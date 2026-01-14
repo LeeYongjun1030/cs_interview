@@ -27,10 +27,28 @@ jobs:
       - name: Build Web
         run: flutter build web --release
 
-      - name: Deploy to Firebase Hosting
+      - name: Deploy to Firebase Hosting (Live)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CS_INTERVIEW_PREP }}'
           projectId: cs-interview-66fb7
-          channelId: '${{ github.ref == "refs/heads/main" && "live" || github.ref == "refs/heads/develop" && "develop" || "" }}'
+          channelId: live
+
+      - name: Deploy to Firebase Hosting (Staging)
+        if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CS_INTERVIEW_PREP }}'
+          projectId: cs-interview-66fb7
+          channelId: develop
+
+      - name: Deploy to Firebase Hosting (Preview)
+        if: github.event_name == 'pull_request'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CS_INTERVIEW_PREP }}'
+          projectId: cs-interview-66fb7
