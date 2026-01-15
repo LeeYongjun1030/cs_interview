@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/utils/data_seeder.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 
@@ -12,10 +13,11 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
-  bool _isLoading = false;
+  bool _isLoginLoading = false;
+  bool _isSeedLoading = false;
 
   Future<void> _handleGoogleSignIn() async {
-    setState(() => _isLoading = true);
+    setState(() => _isLoginLoading = true);
     try {
       await _authService.signInWithGoogle();
     } catch (e) {
@@ -28,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoginLoading = false);
     }
   }
 
@@ -54,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Master your tech interview with\nInteractive Training',
+                'MVP 버전은 네트워크 과목만 지원합니다.',
                 style: AppTextStyles.bodyLarge,
                 textAlign: TextAlign.center,
               ),
@@ -62,8 +64,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Login Button
               ElevatedButton.icon(
-                onPressed: _isLoading ? null : _handleGoogleSignIn,
-                icon: _isLoading
+                onPressed: (_isLoginLoading || _isSeedLoading) ? null : _handleGoogleSignIn,
+                icon: _isLoginLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,
@@ -72,9 +74,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(Icons.login), // Add Google Icon asset later if needed
+                    : const Icon(Icons.login),
                 label: Text(
-                  _isLoading ? 'Signing in...' : 'Sign in with Google',
+                  _isLoginLoading ? 'Signing in...' : 'Sign in with Google',
                   style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -85,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Text(
                 'Join thousands of developers preparing for their dream job.',
                 style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),

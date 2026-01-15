@@ -1,124 +1,113 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 abstract class AppTextStyles {
-  // Use Roboto for now (Flutter Default), can switch to Inter via google_fonts later
-  static const String _fontFamily = 'Roboto';
+  // Display & Headings: Space Grotesk (Futuristic, Tech)
+  static TextStyle get _displayFont => GoogleFonts.spaceGrotesk();
+  
+  // Body: Noto Sans KR (Readable, clean)
+  static TextStyle get _bodyFont => GoogleFonts.notoSansKr();
 
-  static const TextStyle displayLarge = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle displayLarge = _displayFont.copyWith(
     fontSize: 57,
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
     letterSpacing: -0.25,
   );
 
-  static const TextStyle displayMedium = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle displayMedium = _displayFont.copyWith(
     fontSize: 45,
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
     letterSpacing: 0,
   );
 
-  static const TextStyle displaySmall = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle displaySmall = _displayFont.copyWith(
     fontSize: 36,
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
     letterSpacing: 0,
   );
 
-  static const TextStyle headlineLarge = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle headlineLarge = _displayFont.copyWith(
     fontSize: 32,
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
     letterSpacing: 0,
   );
 
-  static const TextStyle headlineMedium = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle headlineMedium = _displayFont.copyWith(
     fontSize: 28,
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
     letterSpacing: 0,
   );
 
-  static const TextStyle headlineSmall = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle headlineSmall = _displayFont.copyWith(
     fontSize: 24,
     fontWeight: FontWeight.w400,
     color: AppColors.textPrimary,
     letterSpacing: 0,
   );
 
-  static const TextStyle titleLarge = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle titleLarge = _displayFont.copyWith(
     fontSize: 22,
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     letterSpacing: 0,
   );
 
-  static const TextStyle titleMedium = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle titleMedium = _bodyFont.copyWith(
     fontSize: 16,
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     letterSpacing: 0.15,
   );
 
-  static const TextStyle titleSmall = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle titleSmall = _bodyFont.copyWith(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     letterSpacing: 0.1,
   );
 
-  static const TextStyle bodyLarge = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle bodyLarge = _bodyFont.copyWith(
     fontSize: 16,
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
     letterSpacing: 0.5,
   );
 
-  static const TextStyle bodyMedium = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle bodyMedium = _bodyFont.copyWith(
     fontSize: 14,
     fontWeight: FontWeight.w400,
     color: AppColors.textSecondary,
     letterSpacing: 0.25,
   );
 
-  static const TextStyle bodySmall = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle bodySmall = _bodyFont.copyWith(
     fontSize: 12,
     fontWeight: FontWeight.w400,
     color: AppColors.textTertiary,
     letterSpacing: 0.4,
   );
 
-  static const TextStyle labelLarge = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle labelLarge = _bodyFont.copyWith(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,
     letterSpacing: 0.1,
   );
 
-  static const TextStyle labelMedium = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle labelMedium = _bodyFont.copyWith(
     fontSize: 12,
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
     letterSpacing: 0.5,
   );
 
-  static const TextStyle labelSmall = TextStyle(
-    fontFamily: _fontFamily,
+  static TextStyle labelSmall = _bodyFont.copyWith(
     fontSize: 11,
     fontWeight: FontWeight.w500,
     color: AppColors.textTertiary,

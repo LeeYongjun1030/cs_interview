@@ -79,26 +79,27 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = AuthService();
+    // TEMPORARY: Bypass Login for development convenience
+    // Change this back to StreamBuilder when ready to re-enable auth.
+    return const HomeScreen();
 
-    return StreamBuilder(
-      stream: authService.authStateChanges,
+    /*
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // Checking auth state
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // User is logged in
         if (snapshot.hasData) {
           return const HomeScreen();
         }
 
-        // User is not logged in
         return const LoginScreen();
       },
     );
+    */
   }
 }

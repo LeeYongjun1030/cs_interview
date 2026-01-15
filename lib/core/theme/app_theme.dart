@@ -23,7 +23,7 @@ class AppTheme {
       ),
 
       // Text Theme
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         displayLarge: AppTextStyles.displayLarge,
         displayMedium: AppTextStyles.displayMedium,
         displaySmall: AppTextStyles.displaySmall,
@@ -46,7 +46,7 @@ class AppTheme {
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: AppTextStyles.titleLarge,
+        titleTextStyle: null, // Use default or set without const if needing AppTextStyles
       ),
       
       cardTheme: CardThemeData(

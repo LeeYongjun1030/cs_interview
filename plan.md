@@ -1,78 +1,88 @@
-# Project Plan: CS Interview Interactive Training Coach
+# Project Plan: CS AI 압박 면접 트레이너 (가제)
 
-## 1. 프로젝트 개요 및 목표
-### 1.1. 정체성 (Identity Pivot)
-- **비전:** "읽는 공부에서 말하는 훈련으로"
-- **정의:** 대한민국 모든 개발자 지망생들이 지식을 내재화하고 면접 압박 속에서도 자신감 있게 답할 수 있도록 돕는 **독립적인 '인터랙티브 트레이닝 코치'**.
-- **핵심 가치:** 
-    - 능동적 인출(Recall) 기반 학습.
-    - AI를 통한 실전형 발화(Speech) 연습.
+## 0. 프로젝트 제약 사항 (Constraints)
+- **Target Language:** **한국어 (Korean)**. 모든 UI, 대화, 콘텐츠는 한국어를 기본으로 한다.
+- **Framework Version:** **Flutter 3.38.6** 이상. (최신 버전에 호환되도록 코드 작성).
 
-### 1.2. 기대 효과
-- **사용자:** 7개 핵심 CS 과목 마스터, 기술 면접 실전 감각 극대화.
-- **비즈니스:** 강의 수강생 락인(Lock-in), Pro 플랜 구독을 통한 수익 창출, 에듀테크 브랜드 강화.
+## 1. 핵심 정의 (One-Liner Identity)
+> **"대답 못 하면 끝까지 물어본다, AI 꼬리 질문 디펜스"**
+- 기존의 수동적인 학습 도구를 넘어, 사용자의 한계까지 밀어붙이는 도전적인 트레이닝 경험 제공.
 
-## 2. 기능 기획 (Feature Planning)
-### 2.1. 핵심 서비스
-| 기능명 | 상세 설명 | 제공 가치 |
-| :--- | :--- | :--- |
-| **인터랙티브 플래시카드** | 7개 과목(NW, OS, DS, Algo, DB, Java, Design Pattern) 질문-답변 카드 학습. | 능동적 암기 및 효율적 복습 |
-| **AI 모의 면접관 (Pro)** | STT 음성 인식 + LLM 키워드 분석 및 맞춤형 꼬리 질문 제공. | 실전 감각 및 대응력 강화 |
-| **학습 관리 대시보드** | 과목별 숙련도(Mastery) 및 학습 연속 일수(Streak) 시각화. | 객관적 지표 확인 및 동기 부여 |
-| **오답/취약 노트** | '다시 보기' 체크된 질문들만 모아 집중 트레이닝. | 학습 누수 방지 |
+## 2. 상세 기능 구성 (Feature List)
 
-### 2.2. 쿠폰 및 멤버십 (BM)
-- **시크릿 쿠폰 시스템:** 기존 강의 구매자에게 Pro Plan 1개월 무료 이용권 제공.
-- **Freemium 전략:**
-    - **General:** 기초 챕터(Chapter 1) 및 제한적 AI 면접 (월 3회).
-    - **Pro:** 전체 과목 무제한, 상세 피드백, 상세 통계, 광고 제거.
+### 2.1. [CORE] AI 심층 압박 면접 (Deep Dive Interview)
+단순한 문답이 아니라, **"사용자의 밑바닥을 확인할 때까지"** 파고드는 기능.
+- **Logic:**
+    1.  사용자 답변 (STT 음성 or 텍스트) 입력.
+    2.  AI가 핵심 키워드 누락 및 논리적 비약 탐지.
+    3.  **꼬리 질문 생성:** "방금 '해시 충돌'을 언급하셨는데, 그렇다면 체이닝 방식의 단점은 무엇인가요?" (최대 3 Depth).
+    4.  **항복 선언:** 사용자가 대답을 못 하거나 "모르겠습니다"라고 할 때까지 진행.
+- **Value:** "진짜 면접장 같은 식은땀 나는 긴장감" 제공.
 
-## 3. UI/UX 디자인 기획
-- **컨셉:** '디지털 스터디룸 (Digital Study Room)'.
-- **스타일:** 
-    - **High-End Dark Mode:** 장시간 집중을 위한 저자극 다크 테마.
-    - **Micro Interaction:** 3D 카드 Flip, 음성 파형(Waveform) 애니메이션.
-- **브랜드 컬러:**
-    - Primary: **#2979FF** (Electric Blue)
-    - Success: **#00E676** (Success Green)
-    - Warning: **#FF9100** (Review Orange)
+### 2.2. [RETENTION] 세션 아카이브 (Session Archive)
+복잡한 수치나 등급 대신, **'내가 연습한 흔적'**을 직관적으로 보여주는 타임라인형 리스트.
+- **List View:**
+    - 최신순으로 정렬된 면접 기록 카드.
+    - 카드 내용: 세션 타이틀, 과목, 진행 날짜, 핵심 피드백 요약.
+    - **Hook:** 쌓여가는 리스트 자체를 학습의 증거로 삼음.
 
-## 4. 기술 스택 (Technical Stack)
-- **Frontend:** Flutter (Web/Mobile-First)
-- **Backend:** Firebase (Auth, Firestore, Hosting, Cloud Functions)
-- **AI Engine:** OpenAI GPT API (Analysis), Google STT (Voice to Text)
-- **Payment:** Stripe Checkout
+### 2.3. [HISTORY] 질문 히스토리 (Question Recall)
+퍼센트(%) 기반의 학습률 대신, **"언제 마지막으로 봤는지"**를 보여줌.
+- **Logic:**
+    - 각 질문마다 'Last Reviewed' 타임스탬프 기록.
+    - **Display:** "이 질문은 3일 전에 학습했음", "이 질문은 한 달 전에 학습했음(복습 필요)".
+    - **Action:** 오래된 질문을 눌러 바로 해당 질문으로 '단건 연습' 진입 가능.
 
-## 5. 단계별 개발 로드맵 (Todo List)
+### 2.4. [BASE] 인터랙티브 플래시카드 (Smart Review)
+- 면접에서 다룬 질문들을 다시 훑어볼 수 있는 카드 뷰.
+- 팁(Tip) 토글 기능으로 핵심 답변 포인트 확인.
 
-### Phase 1: Infrastructure & MVP Setup
-- [ ] **Infrastructure**
-    - [ ] Flutter Web 초기화 (`--web-renderer html`)
-    - [ ] Firebase Hosting & CI/CD (GitHub Actions) 연동
-    - [ ] PWA 및 SEO 최적화 (Meta tags)
-- [ ] **Core Logic**
-    - [ ] Firebase Auth (Google Social Login)
-    - [ ] Firestore 데이터 스키마 설계 (Subject, Card, UserData)
-    - [ ] 시크릿 쿠폰 검증 시스템 (Cloud Functions)
-- [ ] **UI/UX**
-    - [ ] 고해상도 다크 모드 테마 구축
-    - [ ] 7개 과목 기초 데이터 세팅 및 플래시카드 UI 구현
+## 3. MVP (최소 기능 제품) 개발 범위
+프로토타입 단계에서 리스크를 줄이고 핵심 가치(Refactoring Interview)를 검증하기 위한 스펙.
 
-### Phase 2: Growth & AI Integration
-- [ ] **AI 면접 기능**
-    - [ ] Google STT 연동 (음성인식)
-    - [ ] OpenAI GPT API 연동 (답변 분석 및 꼬리 질문 생성)
-    - [ ] 음성 파형(Waveform) 애니메이션 UI
-- [ ] **수익화**
-    - [ ] Stripe 결제 연동 (Web Checkout)
-    - [ ] 구독 상태에 따른 기능 제어 로직
-- [ ] **데이터 시각화**
-    - [ ] Mastery 대시보드 및 학습 통계 페이지
+### ✅ MVP 포함 항목 (Must Have)
+- **Target:** 수요가 가장 높은 **'네트워크'** 또는 '운영체제' 1개 과목만 오픈.
+- **Home:** **[Session List]** 중심의 심플한 대시보드.
+- **Feature:**
+    - 사용자 정의 세션 타이틀 ("오늘자 네트워크 부수기").
+    - 3문제 랜덤 출제 (Triple Threat Match).
+    - 텍스트 입력 및 정답 제출.
+    - 결과 화면 및 히스토리 저장.
+- **Interface:** 기본 채팅형 + 텍스트 입력.
 
-### Phase 3: Optimization & Social
-- [ ] **학습 고도화**
-    - [ ] 오답 노트 및 복습 알고리즘 적용
-    - [ ] 랭킹 시스템 및 사용자 성취도 공유 기능
-- [ ] **폴리싱**
-    - [ ] 전체 성능 최적화 및 브라우저 호환성 테스트
-    - [ ] QA 및 버그 수정
+### ❌ MVP 제외 항목 (Later)
+- 복잡한 대시보드 (전투력, MMR, 5각형 그래프, 티어 시스템).
+- 과목별 퍼센트(%) 학습 상태.
+- 음성 입력 (추후 도입).
+
+## 4. UI/UX 디자인 컨셉
+- **Tone:** 진지하지만 위트 있는 (Dark Mode + Neon Accents).
+- **Layout:**
+    - **Top:** 사용자 프로필 & 간단한 인사.
+    - **Body:** **[Recent Sessions]** 리스트 (메인 콘텐츠).
+    - **Bottom:** **[Start Interview]** 플로팅 액션 버튼 (FAB).
+
+## 5. 상세 세션 로직 (Session Logic Detail)
+**제약 사항:** 초기 데이터셋 과목당 30문제 (High Quality).
+**전략:** "적은 문제로 최대의 긴장감" -> **3문항 집중 타격 (Triple Threat Match)** 방식 채택.
+
+### 5.1. 세션 구성
+- **문항 수:** 1회 플레이 당 **3문제** (무작위 선정).
+- **진행:** 1문항씩 순차 진행 (Flashcard Style).
+
+### 5.2. 피드백 및 결과
+- **Immediate:** 각 문제 답변 후 AI가 꼬리 질문 (MVP 1단계는 생략 가능, 2단계부터 적용).
+- **Summary:** 세션 종료 후 [질문 - 내 답변 - AI 모범 답안] 리스트 제공.
+
+## 7. 수익화 모델 (Monetization)
+단순한 일회성 구매가 아닌, **"기간제 이용권 (Time-Pass)"** 모델 채택.
+- **Philosophy:** "어차피 취준 기간에만 바짝 쓰고 합격하면 떠날 앱" -> 합리적인 단기 결제 유도.
+- **Pricing Tiers:**
+    - **1 Month Pass:** "단기 속성반" - 가장 기본 요금제.
+    - **3 Months Pass:** "표준 코스" - 한 시즌 공략용 (할인 적용).
+    - **6 Months Pass:** "장기 레이스" - 여유로운 준비 (대폭 할인).
+    - **1 Year Pass:** "프리패스" - 사실상 거의 사용되지 않겠지만, 가격 앵커링 효과(Decoy)로 활용.
+
+8. 재도전 시스템 (Review System)
+복잡한 알고리즘 대신, 사용자가 직접 선택하는 복습.
+- **History View:** 과거 세션 상세 내역에서 "이 세션 다시 하기" 또는 특정 질문만 골라서 "다시 풀기".
