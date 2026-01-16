@@ -9,6 +9,7 @@ class Question {
   final int depth;
   final List<String> keywords;
   final int level; // Replaces 'tier' (1: Bronze, 2: Silver, 3: Gold)
+  final DateTime? lastReviewedAt;
 
   Question({
     required this.id,
@@ -19,6 +20,7 @@ class Question {
     required this.depth,
     required this.keywords,
     required this.level,
+    this.lastReviewedAt,
   });
 
   factory Question.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,9 @@ class Question {
       depth: json['depth'] as int? ?? 0,
       keywords: List<String>.from(json['keywords'] ?? []),
       level: json['level'] as int? ?? 1,
+      lastReviewedAt: json['lastReviewedAt'] != null
+          ? (json['lastReviewedAt'] as Timestamp).toDate()
+          : null,
     );
   }
 

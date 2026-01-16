@@ -5,13 +5,15 @@ import '../../domain/models/question_model.dart';
 import '../../data/repositories/interview_repository.dart';
 
 class SubjectQuestionsScreen extends StatefulWidget {
-  final String subject;
+  final String subjectId; // For Query (e.g. 'network')
+  final String subjectName; // For Display (e.g. 'Network')
   final Color themeColor;
   final IconData icon;
 
   const SubjectQuestionsScreen({
     super.key,
-    required this.subject,
+    required this.subjectId,
+    required this.subjectName,
     required this.themeColor,
     required this.icon,
   });
@@ -33,7 +35,8 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
 
   Future<void> _fetchQuestions() async {
     try {
-      final questions = await _repository.fetchQuestionsBySubject(widget.subject);
+      final questions =
+          await _repository.fetchQuestionsBySubject(widget.subjectId);
       if (mounted) {
         setState(() {
           _questions = questions;
@@ -60,7 +63,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: const BackButton(color: Colors.white),
-        title: Text(widget.subject, style: AppTextStyles.titleMedium),
+        title: Text(widget.subjectName, style: AppTextStyles.titleMedium),
         actions: [
           Icon(widget.icon, color: widget.themeColor),
           const SizedBox(width: 16),
@@ -77,7 +80,8 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                     final question = _questions[index];
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(12),
@@ -86,39 +90,42 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: widget.themeColor.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  'Level ${question.level}',
-                                  style: AppTextStyles.labelSmall.copyWith(
-                                    color: widget.themeColor,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
                           Text(
                             question.question,
-                            style: AppTextStyles.bodyLarge.copyWith(color: Colors.white),
+                            style: AppTextStyles.bodyLarge
+                                .copyWith(color: Colors.white, height: 1.4),
                           ),
-                          if (question.tip != null && question.tip!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: Text(
-                                'Tip: ${question.tip}',
-                                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white38),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Builder(builder: (context) {
+                                final categoryColor =
+                                    _getCategoryColor(question.category);
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: categoryColor.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    question.category,
+                                    style: AppTextStyles.labelSmall.copyWith(
+                                      color: categoryColor,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                );
+                              }),
+                              const Spacer(),
+                              if (question.lastReviewedAt != null)
+                                Text(
+                                  '마지막 학습: ${question.lastReviewedAt.toString().split(' ')[0]}',
+                                  style: AppTextStyles.labelSmall
+                                      .copyWith(color: Colors.white38),
+                                ),
+                            ],
+                          ),
                         ],
                       ),
                     );
@@ -132,7 +139,8 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.library_books_outlined, size: 60, color: Colors.white.withOpacity(0.2)),
+          Icon(Icons.library_books_outlined,
+              size: 60, color: Colors.white.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           Text(
             '등록된 질문이 없습니다.',
@@ -141,5 +149,19 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
         ],
       ),
     );
+  }
+
+  Color _getCategoryColor(String category) {
+    final colors = [
+      AppColors.accentCyan,
+      AppColors.accentRed,
+      AppColors.accentGreen,
+      Colors.purpleAccent,
+      Colors.orangeAccent,
+      Colors.pinkAccent,
+      Colors.tealAccent,
+      Colors.indigoAccent,
+    ];
+    return colors[category.hashCode.abs() % colors.length];
   }
 }

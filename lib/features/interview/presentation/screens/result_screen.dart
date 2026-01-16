@@ -17,7 +17,7 @@ class ResultScreen extends StatelessWidget {
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.accentGreen.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.1),
               ),
               child: const Icon(Icons.check_circle_outline, color: AppColors.accentGreen, size: 64),
             ),

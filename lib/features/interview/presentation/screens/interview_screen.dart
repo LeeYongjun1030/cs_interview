@@ -133,7 +133,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Row(
@@ -160,7 +160,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppColors.accentGreen.withOpacity(0.1),
+                            color: AppColors.accentGreen.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -185,7 +185,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: '질문에 대한 답변을 입력하거나 말해보세요...',
-                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
                     filled: true,
                     fillColor: AppColors.surface,
                     border: OutlineInputBorder(

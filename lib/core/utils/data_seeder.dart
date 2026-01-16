@@ -64,6 +64,7 @@ class DataSeeder {
         if (subjectRaw == '자료구조') subjectKey = 'data_structure';
         if (subjectRaw == '자바') subjectKey = 'java';
         if (subjectRaw == '자바스크립트') subjectKey = 'javascript';
+        if (subjectRaw == '알고리즘') subjectKey = 'algorithm';
 
         questions.add(Question(
           id: '${subjectKey}_${i.toString().padLeft(3, '0')}',

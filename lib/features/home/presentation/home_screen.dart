@@ -1,15 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../../../core/services/auth_service.dart'; // Ensure correct path
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/utils/data_seeder.dart';
-import '../../interview/presentation/screens/interview_screen.dart';
-import '../../interview/presentation/providers/session_controller.dart';
-
-import 'dart:ui';
-import 'package:flutter/material.dart';
-import '../../../../core/services/auth_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/data_seeder.dart';
@@ -18,7 +8,7 @@ import '../../interview/presentation/providers/session_controller.dart';
 import '../../interview/data/repositories/interview_repository.dart';
 import '../../interview/domain/models/session_model.dart';
 import '../../interview/presentation/screens/subject_questions_screen.dart';
-import 'profile_screen.dart'; // Added import
+import 'profile_screen.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -60,7 +50,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  @override
   int _selectedIndex = 0;
 
   @override
@@ -74,33 +63,41 @@ class _HomeScreenState extends State<HomeScreen> {
           Positioned(
             top: -100,
             left: -100,
-            child: ImageFiltered(
-              imageFilter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withOpacity(0.1),
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.3),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.7],
                 ),
               ),
             ),
           ),
-          
+
           // Main Content
           IndexedStack(
             index: _selectedIndex,
             children: [
               _buildHomeContent(),
-              const Center(child: Text('멤버십 화면 준비중', style: TextStyle(color: Colors.white))), // Placeholder for Membership
+              const Center(
+                  child: Text('멤버십 화면 준비중',
+                      style: TextStyle(
+                          color: Colors.white))), // Placeholder for Membership
               const ProfileScreen(),
             ],
           ),
         ],
       ),
-      
+
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _selectedIndex == 0 ? _buildFAB(context) : null, // Only show FAB on Home
+      floatingActionButton: _selectedIndex == 0
+          ? _buildFAB(context)
+          : null, // Only show FAB on Home
       bottomNavigationBar: _buildBottomNav(context),
     );
   }
@@ -112,11 +109,12 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildHeader(),
-          
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text('과목별 학습', style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.bold)),
+            child: Text('과목별 학습',
+                style: AppTextStyles.titleLarge
+                    .copyWith(fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -125,44 +123,57 @@ class _HomeScreenState extends State<HomeScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _buildSubjectCard(context, Icons.hub, 'Network', AppColors.accentCyan),
+                _buildSubjectCard(context, Icons.memory, '컴퓨터구조',
+                    'computer_architecture', Colors.blueGrey),
                 const SizedBox(width: 12),
-                _buildSubjectCard(context, Icons.memory, 'OS', AppColors.accentRed),
+                _buildSubjectCard(context, Icons.settings_system_daydream,
+                    '운영체제', 'operating_system', AppColors.accentRed),
                 const SizedBox(width: 12),
-                _buildSubjectCard(context, Icons.storage, 'Database', const Color(0xFFFFCC00)),
+                _buildSubjectCard(context, Icons.hub, '네트워크', 'network',
+                    AppColors.accentCyan),
                 const SizedBox(width: 12),
-                _buildSubjectCard(context, Icons.code, 'Algorithm', Colors.purple),
+                _buildSubjectCard(context, Icons.storage, '데이터베이스', 'database',
+                    const Color(0xFFFFCC00)),
                 const SizedBox(width: 12),
-                _buildSubjectCard(context, Icons.layers, 'DataStructure', Colors.green),
+                _buildSubjectCard(context, Icons.layers, '자료구조',
+                    'data_structure', Colors.green),
+                const SizedBox(width: 12),
+                _buildSubjectCard(
+                    context, Icons.coffee, 'Java', 'java', Colors.orange),
+                const SizedBox(width: 12),
+                _buildSubjectCard(context, Icons.code, 'JavaScript',
+                    'javascript', Colors.yellow),
               ],
             ),
           ),
-
           const SizedBox(height: 24),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Recent Sessions', style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.bold)),
+                Text('Recent Sessions',
+                    style: AppTextStyles.titleLarge
+                        .copyWith(fontWeight: FontWeight.bold)),
                 IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white70),
-                    onPressed: () {
-                      setState(() => _isLoading = true);
-                      _fetchSessions();
-                    },
+                  icon: const Icon(Icons.refresh, color: Colors.white70),
+                  onPressed: () {
+                    setState(() => _isLoading = true);
+                    _fetchSessions();
+                  },
                 )
               ],
             ),
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: _isLoading 
+            child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _sessions.isEmpty
                     ? _buildEmptyState()
                     : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 120), // More bottom padding for nav
+                        padding: const EdgeInsets.fromLTRB(
+                            16, 0, 16, 120), // More bottom padding for nav
                         itemCount: _sessions.length,
                         itemBuilder: (context, index) {
                           return _buildSessionCard(_sessions[index]);
@@ -187,8 +198,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(colors: [AppColors.primary, AppColors.accentCyan]),
-                  boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 10)],
+                  gradient: const LinearGradient(
+                      colors: [AppColors.primary, AppColors.accentCyan]),
+                  boxShadow: [
+                    BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.5),
+                        blurRadius: 10)
+                  ],
                 ),
                 padding: const EdgeInsets.all(2),
                 child: Container(
@@ -198,7 +214,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     border: Border.all(color: AppColors.background, width: 2),
                   ),
                   child: const CircleAvatar(
-                    backgroundImage: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuBRAYUH3XVSo2OHGdcW1Y2yctt6VetQby1-9G3jFKgvWK3vnVd-FUHUpqwkpiljrGU2Eag2tLtYm3wW8UdZZDnzWHJEmj3eHZh5A4L3guFmS81Kwb0FMrL-AaMnzNqQn_bB47z6Ny-_OtXIEHvhEsWoi_gF-nUSqMbc9OM2P7S-LOLxyqh5krmYasAqZDo3rHj0c5HkgMehOGsP0kT4wdzzSBZxiVGEq2HG-dDIsv8JGcaIlfEF40lAAAraxWGlqvR3KP6SZm_YdpA'),
+                    backgroundImage: NetworkImage(
+                        'https://lh3.googleusercontent.com/aida-public/AB6AXuBRAYUH3XVSo2OHGdcW1Y2yctt6VetQby1-9G3jFKgvWK3vnVd-FUHUpqwkpiljrGU2Eag2tLtYm3wW8UdZZDnzWHJEmj3eHZh5A4L3guFmS81Kwb0FMrL-AaMnzNqQn_bB47z6Ny-_OtXIEHvhEsWoi_gF-nUSqMbc9OM2P7S-LOLxyqh5krmYasAqZDo3rHj0c5HkgMehOGsP0kT4wdzzSBZxiVGEq2HG-dDIsv8JGcaIlfEF40lAAAraxWGlqvR3KP6SZm_YdpA'),
                   ),
                 ),
               ),
@@ -206,8 +223,12 @@ class _HomeScreenState extends State<HomeScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('READY TO INTERVIEW?', style: AppTextStyles.labelSmall.copyWith(color: AppColors.textTertiary, letterSpacing: 1.5)),
-                  Text('Kim Dev', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold)),
+                  Text('READY TO INTERVIEW?',
+                      style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.textTertiary, letterSpacing: 1.5)),
+                  Text('Kim Dev',
+                      style: AppTextStyles.titleMedium
+                          .copyWith(fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
@@ -215,14 +236,18 @@ class _HomeScreenState extends State<HomeScreen> {
           // Admin Seed Button (Hidden style)
           InkWell(
             onLongPress: () async {
-               final seeder = DataSeeder();
-               await seeder.seedData();
-               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Data Seeded')));
+              final seeder = DataSeeder();
+              await seeder.seedData();
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text('Data Seeded')));
             },
             child: Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.settings, color: Colors.white70, size: 20),
+              decoration: BoxDecoration(
+                  color: Colors.white10,
+                  borderRadius: BorderRadius.circular(8)),
+              child:
+                  const Icon(Icons.settings, color: Colors.white70, size: 20),
             ),
           )
         ],
@@ -235,17 +260,21 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.history_toggle_off, size: 60, color: Colors.white.withOpacity(0.2)),
+          Icon(Icons.history_toggle_off,
+              size: 60, color: Colors.white.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
-          Text('아직 면접 기록이 없습니다.', style: AppTextStyles.bodyLarge.copyWith(color: Colors.white54)),
+          Text('아직 면접 기록이 없습니다.',
+              style: AppTextStyles.bodyLarge.copyWith(color: Colors.white54)),
           const SizedBox(height: 8),
-          Text('아래 버튼을 눌러 첫 세션을 시작해보세요!', style: AppTextStyles.labelMedium.copyWith(color: Colors.white30)),
+          Text('아래 버튼을 눌러 첫 세션을 시작해보세요!',
+              style: AppTextStyles.labelMedium.copyWith(color: Colors.white30)),
         ],
       ),
     );
   }
 
-  Widget _buildSubjectCard(BuildContext context, IconData icon, String title, Color color) {
+  Widget _buildSubjectCard(BuildContext context, IconData icon, String title,
+      String id, Color color) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -254,7 +283,8 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
             MaterialPageRoute(
               builder: (context) => SubjectQuestionsScreen(
-                subject: title,
+                subjectId: id,
+                subjectName: title,
                 themeColor: color,
                 icon: icon,
               ),
@@ -263,7 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          width: 140, 
+          width: 140,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.surface,
@@ -272,20 +302,21 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min, 
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: color, size: 24), 
+                child: Icon(icon, color: color, size: 24),
               ),
               const SizedBox(height: 8),
               Text(
                 title,
-                style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyles.labelLarge
+                    .copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -317,7 +348,9 @@ class _HomeScreenState extends State<HomeScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: isCompleted ? AppColors.accentGreen.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
+                  color: isCompleted
+                      ? AppColors.accentGreen.withValues(alpha: 0.2)
+                      : Colors.orange.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -329,13 +362,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-              Text(dateStr, style: AppTextStyles.labelSmall.copyWith(color: Colors.white38)),
+              Text(dateStr,
+                  style:
+                      AppTextStyles.labelSmall.copyWith(color: Colors.white38)),
             ],
           ),
           const SizedBox(height: 12),
           Text(
             session.title,
-            style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
+            style:
+                AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
@@ -354,7 +390,11 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         gradient: const LinearGradient(
-          colors: [AppColors.accentCyan, AppColors.primary, AppColors.accentCyan],
+          colors: [
+            AppColors.accentCyan,
+            AppColors.primary,
+            AppColors.accentCyan
+          ],
         ),
         boxShadow: AppColors.neonCyanShadow,
       ),
@@ -380,7 +420,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: const BoxDecoration(
                       color: AppColors.accentRed,
                       shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: AppColors.accentRed, blurRadius: 10, spreadRadius: 2)],
+                      boxShadow: [
+                        BoxShadow(
+                            color: AppColors.accentRed,
+                            blurRadius: 10,
+                            spreadRadius: 2)
+                      ],
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -388,8 +433,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('실전 면접 시작', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                      Text('AI INTERVIEWER STANDBY', style: TextStyle(color: AppColors.accentCyan.withOpacity(0.8), fontSize: 10, letterSpacing: 1)),
+                      const Text('실전 면접 시작',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16)),
+                      Text('AI INTERVIEWER STANDBY',
+                          style: TextStyle(
+                              color:
+                                  AppColors.accentCyan.withValues(alpha: 0.8),
+                              fontSize: 10,
+                              letterSpacing: 1)),
                     ],
                   ),
                   const Spacer(),
@@ -409,9 +463,10 @@ class _HomeScreenState extends State<HomeScreen> {
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           height: 60 + MediaQuery.paddingOf(context).bottom,
-          padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F0F12).withOpacity(0.8),
+            color: const Color(0xFF0F0F12).withValues(alpha: 0.8),
             border: const Border(top: BorderSide(color: Colors.white10)),
           ),
           child: Row(
@@ -430,7 +485,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = _selectedIndex == index;
     final color = isSelected ? AppColors.primary : Colors.grey;
-    
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -447,8 +502,10 @@ class _HomeScreenState extends State<HomeScreen> {
           if (isSelected)
             Container(
               margin: const EdgeInsets.only(top: 4),
-              width: 4, height: 4,
-              decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+              width: 4,
+              height: 4,
+              decoration: const BoxDecoration(
+                  color: AppColors.primary, shape: BoxShape.circle),
             ),
         ],
       ),
@@ -456,7 +513,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showStartSessionDialog(BuildContext context) {
-    final titleController = TextEditingController();
+    // Auto-generate title: "새로운-세션-cf61s2" (Base36, 6 chars)
+    final timestamp = DateTime.now().millisecondsSinceEpoch.toRadixString(36);
+    final randomSuffix = timestamp.substring(timestamp.length - 6);
+    final autoTitle = '새로운-세션-$randomSuffix';
+    final titleController = TextEditingController(text: autoTitle);
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -464,8 +526,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('세션 시작', style: TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('이번 면접 세션의 목표나 제목을 정해주세요.', style: TextStyle(color: Colors.white70)),
+            const Text('이번 면접 세션의 목표나 제목을 정해주세요.',
+                style: TextStyle(color: Colors.white70)),
             const SizedBox(height: 16),
             TextField(
               controller: titleController,
@@ -476,6 +540,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 hintText: '예: 네트워크 뿌시기',
                 hintStyle: TextStyle(color: Colors.white30),
                 counterStyle: TextStyle(color: Colors.white30),
+                labelText: '세션 제목',
+                labelStyle: TextStyle(color: AppColors.accentCyan),
               ),
             ),
           ],
@@ -483,16 +549,20 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('취소'),
+            child: const Text('취소', style: TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
             onPressed: () {
-              if (titleController.text.trim().isEmpty) return;
+              // Allow using the auto-generated title if user didn't change it
+              final title = titleController.text.trim().isEmpty
+                  ? autoTitle
+                  : titleController.text.trim();
               Navigator.pop(dialogContext);
-              _startSession(context, titleController.text.trim());
+              _startSession(context, title);
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('시작하기'),
+            child: const Text('시작하기',
+                style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -503,10 +573,10 @@ class _HomeScreenState extends State<HomeScreen> {
     // For testing: bypass login check
     // final authService = AuthService();
     // final user = authService.currentUser;
-    final userId = _userId; 
-    
+    final userId = _userId;
+
     final controller = SessionController();
-    
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -515,21 +585,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       await controller.startNewSession(userId, title);
-      
-      if (context.mounted) {
-        Navigator.pop(context); // Pop loading
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => InterviewScreen(controller: controller)),
-        );
-        // Refresh list after returning from session
-        _fetchSessions();
-      }
+
+      if (!context.mounted) return;
+      Navigator.pop(context); // Pop loading
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => InterviewScreen(controller: controller)),
+      );
+      // Refresh list after returning from session
+      _fetchSessions();
     } catch (e) {
-      if (context.mounted) {
-        Navigator.pop(context); // Pop loading
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+      if (!context.mounted) return;
+      Navigator.pop(context); // Pop loading
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 }

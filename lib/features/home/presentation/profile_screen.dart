@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../core/services/auth_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -37,7 +36,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: const LinearGradient(colors: [AppColors.primary, AppColors.accentCyan]),
-                      boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.5), blurRadius: 10)],
+                      boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.5), blurRadius: 10)],
                     ),
                     padding: const EdgeInsets.all(2),
                     child: Container(
@@ -75,10 +74,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.2),
+                      color: AppColors.primary.withValues(alpha: 0.2),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -97,7 +96,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: AppColors.primary,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text('PRO', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
+                          child: Text(_isPremium ? 'PRO' : 'FREE', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10)),
                         ),
                       ],
                     ),
@@ -158,6 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       subtitle: const Text('매일 저녁 8시에 알림', style: TextStyle(color: Colors.white38, fontSize: 12)),
                       value: _notificationEnabled,
                       activeColor: AppColors.primary,
+                      activeTrackColor: AppColors.primary.withAlpha(100), // Lighter track
                       onChanged: (value) => setState(() => _notificationEnabled = value),
                     ),
                     const Divider(height: 1, color: Colors.white10),

@@ -27,7 +27,7 @@ class SessionController extends ChangeNotifier {
   bool get isSessionFinished => _currentIndex >= _currentQuestions.length;
 
   Future<String> startNewSession(String userId, String title) async {
-    print('SessionController: Starting new session for $userId');
+    // print('SessionController: Starting new session for $userId');
     _setLoading(true);
     _currentIndex = 0;
     _currentQuestions = [];
@@ -35,9 +35,9 @@ class SessionController extends ChangeNotifier {
 
     try {
       // 1. Fetch ALL Questions
-      print('SessionController: Fetching all questions...');
+      // print('SessionController: Fetching all questions...');
       final allQuestions = await _repository.fetchAllQuestions();
-      print('SessionController: Fetched ${allQuestions.length} questions.');
+      // print('SessionController: Fetched ${allQuestions.length} questions.');
 
       if (allQuestions.isEmpty) {
         throw Exception('No questions available in database');
@@ -45,22 +45,22 @@ class SessionController extends ChangeNotifier {
 
       // 2. Select 3 Questions Randomly (Mixed levels)
       _currentQuestions = _selectRandomQuestions(allQuestions);
-      print('SessionController: Selected ${_currentQuestions.length} questions.');
+      // print('SessionController: Selected ${_currentQuestions.length} questions.');
 
       // 3. Create Session in Firestore
-      print('SessionController: Creating session in Firestore...');
+      // print('SessionController: Creating session in Firestore...');
       final sessionId = await _repository.createSession(
         userId: userId,
         title: title,
         questions: _currentQuestions,
       );
-      print('SessionController: Session created with ID: $sessionId');
+      // print('SessionController: Session created with ID: $sessionId');
       
       _currentSessionId = sessionId;
 
       return sessionId;
     } catch (e) {
-      print('SessionController Error: $e');
+      // print('SessionController Error: $e');
       rethrow;
     } finally {
       _setLoading(false);
