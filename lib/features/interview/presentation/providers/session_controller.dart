@@ -5,23 +5,27 @@ import '../../data/repositories/interview_repository.dart';
 
 class SessionController extends ChangeNotifier {
   final InterviewRepository _repository;
-  
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
-  SessionController({InterviewRepository? repository}) 
+  SessionController({InterviewRepository? repository})
       : _repository = repository ?? InterviewRepository();
 
   String? _currentSessionId;
   String? get currentSessionId => _currentSessionId;
 
+  String _sessionTitle = '';
+  String get sessionTitle => _sessionTitle;
+
   List<Question> _currentQuestions = [];
   int _currentIndex = 0;
-  
-  Question? get currentQuestion => _currentQuestions.isNotEmpty && _currentIndex < _currentQuestions.length 
-      ? _currentQuestions[_currentIndex] 
-      : null;
-      
+
+  Question? get currentQuestion =>
+      _currentQuestions.isNotEmpty && _currentIndex < _currentQuestions.length
+          ? _currentQuestions[_currentIndex]
+          : null;
+
   int get currentIndex => _currentIndex;
   int get totalQuestions => _currentQuestions.length;
   bool get isSessionFinished => _currentIndex >= _currentQuestions.length;
@@ -32,6 +36,7 @@ class SessionController extends ChangeNotifier {
     _currentIndex = 0;
     _currentQuestions = [];
     _currentSessionId = null;
+    _sessionTitle = title;
 
     try {
       // 1. Fetch ALL Questions
@@ -55,7 +60,7 @@ class SessionController extends ChangeNotifier {
         questions: _currentQuestions,
       );
       // print('SessionController: Session created with ID: $sessionId');
-      
+
       _currentSessionId = sessionId;
 
       return sessionId;
@@ -69,11 +74,11 @@ class SessionController extends ChangeNotifier {
 
   Future<void> submitAnswer(String answerText) async {
     if (_currentSessionId == null) return;
-    
+
     // In a real app, we would update the Firestore document here with the user's answer.
     // For now, we'll just move to the next question.
     // await _repository.updateSessionItem(...);
-    
+
     _currentIndex++;
     notifyListeners();
   }
