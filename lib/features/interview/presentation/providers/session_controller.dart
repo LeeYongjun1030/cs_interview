@@ -2,15 +2,40 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import '../../domain/models/question_model.dart';
 import '../../data/repositories/interview_repository.dart';
+import '../../../../core/services/ai_service.dart';
+
+// Represents one "Round" of an interview (Main Question + Optional Follow-up)
+class SessionRound {
+  final Question mainQuestion;
+  String? mainAnswer;
+  GradeResult? mainGrade;
+
+  String? followUpQuestion;
+  String? followUpAnswer;
+  GradeResult? followUpGrade;
+
+  SessionRound({required this.mainQuestion});
+
+  bool get isFollowUpActive =>
+      mainAnswer != null && followUpQuestion != null && followUpAnswer == null;
+  bool get isCompleted =>
+      mainAnswer != null &&
+      (followUpQuestion == null || followUpAnswer != null);
+}
 
 class SessionController extends ChangeNotifier {
   final InterviewRepository _repository;
+  final AIService _aiService;
 
   bool _isLoading = false;
-  bool get isLoading => _isLoading;
+  bool _isAiThinking = false; // "Thinking..." state
 
-  SessionController({InterviewRepository? repository})
-      : _repository = repository ?? InterviewRepository();
+  bool get isLoading => _isLoading;
+  bool get isAiThinking => _isAiThinking;
+
+  SessionController({InterviewRepository? repository, AIService? aiService})
+      : _repository = repository ?? InterviewRepository(),
+        _aiService = aiService ?? AIService();
 
   String? _currentSessionId;
   String? get currentSessionId => _currentSessionId;
@@ -18,54 +43,55 @@ class SessionController extends ChangeNotifier {
   String _sessionTitle = '';
   String get sessionTitle => _sessionTitle;
 
-  List<Question> _currentQuestions = [];
+  List<SessionRound> _rounds = [];
+  List<SessionRound> get rounds =>
+      List.unmodifiable(_rounds); // Expose rounds safely
   int _currentIndex = 0;
 
-  Question? get currentQuestion =>
-      _currentQuestions.isNotEmpty && _currentIndex < _currentQuestions.length
-          ? _currentQuestions[_currentIndex]
+  // Public accessors
+  SessionRound? get currentRound =>
+      _rounds.isNotEmpty && _currentIndex < _rounds.length
+          ? _rounds[_currentIndex]
           : null;
 
+  Question? get currentQuestion =>
+      currentRound?.mainQuestion; // Compatible with existing UI
+
+  // Check if we are in Follow-Up mode for the current round
+  bool get isFollowUpMode => currentRound?.isFollowUpActive ?? false;
+
   int get currentIndex => _currentIndex;
-  int get totalQuestions => _currentQuestions.length;
-  bool get isSessionFinished => _currentIndex >= _currentQuestions.length;
+  int get totalQuestions => _rounds.length;
+  bool get isSessionFinished => _currentIndex >= _rounds.length;
 
   Future<String> startNewSession(String userId, String title) async {
-    // print('SessionController: Starting new session for $userId');
     _setLoading(true);
     _currentIndex = 0;
-    _currentQuestions = [];
+    _rounds = [];
     _currentSessionId = null;
     _sessionTitle = title;
 
     try {
-      // 1. Fetch ALL Questions
-      // print('SessionController: Fetching all questions...');
       final allQuestions = await _repository.fetchAllQuestions();
-      // print('SessionController: Fetched ${allQuestions.length} questions.');
+      if (allQuestions.isEmpty) throw Exception('No questions available');
 
-      if (allQuestions.isEmpty) {
-        throw Exception('No questions available in database');
-      }
+      // 1. Select Questions
+      final selectedQuestions = _selectRandomQuestions(allQuestions);
 
-      // 2. Select 3 Questions Randomly (Mixed levels)
-      _currentQuestions = _selectRandomQuestions(allQuestions);
-      // print('SessionController: Selected ${_currentQuestions.length} questions.');
+      // 2. Create Rounds
+      _rounds =
+          selectedQuestions.map((q) => SessionRound(mainQuestion: q)).toList();
 
-      // 3. Create Session in Firestore
-      // print('SessionController: Creating session in Firestore...');
+      // 3. Create Session in DB (store IDs)
       final sessionId = await _repository.createSession(
         userId: userId,
         title: title,
-        questions: _currentQuestions,
+        questions: selectedQuestions,
       );
-      // print('SessionController: Session created with ID: $sessionId');
 
       _currentSessionId = sessionId;
-
       return sessionId;
     } catch (e) {
-      // print('SessionController Error: $e');
       rethrow;
     } finally {
       _setLoading(false);
@@ -73,18 +99,75 @@ class SessionController extends ChangeNotifier {
   }
 
   Future<void> submitAnswer(String answerText) async {
-    if (_currentSessionId == null) return;
+    if (_currentSessionId == null || currentRound == null) return;
 
-    // In a real app, we would update the Firestore document here with the user's answer.
-    // For now, we'll just move to the next question.
-    // await _repository.updateSessionItem(...);
+    // Determine if this is a main answer or follow-up answer
+    final round = currentRound!;
+    _setAiThinking(true);
 
+    try {
+      if (!round.isFollowUpActive) {
+        // --- 1. Main Answer Submission ---
+        round.mainAnswer = answerText;
+        notifyListeners(); // Update UI immediately to show local echo if needed
+
+        // Call AI for Grading & Follow-up Trigger
+        final result = await _aiService.evaluateAnswer(
+          question: round.mainQuestion,
+          userAnswer: answerText,
+        );
+
+        round.mainGrade = result;
+
+        if (result.followUpQuestion != null) {
+          // AI wants to dig deeper!
+          round.followUpQuestion = result.followUpQuestion;
+          // State: isFollowUpActive becomes true automatically
+        } else {
+          // No follow-up, move to next round immediately or wait for user?
+          // For now, auto-advance to keep flow fast.
+          _moveToNext();
+        }
+      } else {
+        // --- 2. Follow-Up Answer Submission ---
+        round.followUpAnswer = answerText;
+        notifyListeners();
+
+        // Call AI for Grading Follow-up
+        final result = await _aiService.evaluateAnswer(
+          question: round.mainQuestion, // Context is main question
+          userAnswer: answerText,
+          previousFollowUp: round.followUpQuestion, // Provide context
+        );
+
+        round.followUpGrade = result;
+        // Follow-up always ends the round in this MVP (Depth 1)
+        _moveToNext();
+      }
+    } catch (e) {
+      // Error handling: maybe just move on?
+      // user should not be stuck
+      _moveToNext();
+    } finally {
+      _setAiThinking(false);
+    }
+  }
+
+  // Skip the current follow-up (Pass)
+  void passFollowUp() {
+    if (currentRound == null || !currentRound!.isFollowUpActive) return;
+
+    // Mark as skipped
+    currentRound!.followUpAnswer = "[SKIPPED]";
+    _moveToNext();
+  }
+
+  void _moveToNext() {
     _currentIndex++;
     notifyListeners();
   }
 
   List<Question> _selectRandomQuestions(List<Question> allQuestions) {
-    // Simple random selection of 3 questions for MVP
     final random = Random();
     final available = List<Question>.from(allQuestions);
     available.shuffle(random);
@@ -93,6 +176,11 @@ class SessionController extends ChangeNotifier {
 
   void _setLoading(bool value) {
     _isLoading = value;
+    notifyListeners();
+  }
+
+  void _setAiThinking(bool value) {
+    _isAiThinking = value;
     notifyListeners();
   }
 }
