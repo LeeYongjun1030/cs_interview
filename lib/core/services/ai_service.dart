@@ -33,11 +33,21 @@ class AIService {
     );
   }
 
+  // ----------------------------------------------------------------------
+  // [Dev Flag] Set to true to bypass AI API and use Mock data
+  static const bool useMockApi = true;
+  // ----------------------------------------------------------------------
+
   Future<GradeResult> evaluateAnswer({
     required Question question,
     required String userAnswer,
     String? previousFollowUp,
   }) async {
+    // --- Mock Mode Check ---
+    if (useMockApi) {
+      return _simulateMockResponse(userAnswer, previousFollowUp);
+    }
+
     // 1. Construct the prompt
     final prompt = _buildPrompt(question, userAnswer, previousFollowUp);
 
@@ -49,25 +59,49 @@ class AIService {
       if (text == null) throw Exception('Empty response from AI');
 
       // 3. Parse JSON
-      // Clean up markdown code blocks if present (```json ... ```)
       final cleanJson = text.replaceAll(RegExp(r'```json|```'), '').trim();
       final data = jsonDecode(cleanJson) as Map<String, dynamic>;
 
       return GradeResult(
         score: data['score'] as int? ?? 0,
         feedback: data['feedback'] as String? ?? '분석 실패',
-        followUpQuestion:
-            data['followUp'] as String?, // Null if "PASS" or end of depth
+        followUpQuestion: data['followUp'] as String?,
       );
     } catch (e) {
-      // print('AI Logic Error: $e');
-      // Fallback result in case of error
       return GradeResult(
         score: 0,
         feedback: 'AI 분석 중 오류가 발생했습니다. ($e)',
         followUpQuestion: null,
       );
     }
+  }
+
+  // --- Mock Logic for Development ---
+  Future<GradeResult> _simulateMockResponse(
+      String userAnswer, String? previousFollowUp) async {
+    await Future.delayed(
+        const Duration(seconds: 1, milliseconds: 500)); // Simulate network
+
+    final isFollowUpResponse = previousFollowUp != null;
+
+    // Simulate: If main answer, 50% chance of follow-up
+    // If already follow-up, never ask again (depth 1)
+    String? mockFollowUp;
+    if (!isFollowUpResponse) {
+      // Randomly decide if we want a follow-up
+      // For testing, let's say "fail" or "unknown" triggers it
+      if (userAnswer.length < 10 || userAnswer.contains('모르')) {
+        mockFollowUp = '그렇다면, 구체적으로 어떤 상황에서 사용되나요? (Mock 꼬리질문)';
+      }
+    }
+
+    return GradeResult(
+      score: 85,
+      feedback: isFollowUpResponse
+          ? 'Mock: 꼬리질문에 대한 답변이 훌륭합니다.'
+          : 'Mock: 핵심적인 내용을 잘 짚어주셨습니다. (테스트용 응답)',
+      followUpQuestion: mockFollowUp,
+    );
   }
 
   String _buildPrompt(

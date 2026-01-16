@@ -557,19 +557,130 @@ class _HomeScreenState extends State<HomeScreen> {
               final title = titleController.text.trim().isEmpty
                   ? autoTitle
                   : titleController.text.trim();
-              Navigator.pop(dialogContext);
-              _startSession(context, title);
+              Navigator.pop(dialogContext); // Close title dialog
+              _showSubjectSelectionDialog(
+                  context, title); // Open subject dialog
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child: const Text('시작하기',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            child:
+                const Text('다음', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  Future<void> _startSession(BuildContext context, String title) async {
+  void _showSubjectSelectionDialog(BuildContext context, String title) {
+    final Map<String, String> subjects = {
+      'computer_architecture': '컴퓨터 구조',
+      'operating_system': '운영체제',
+      'network': '네트워크',
+      'database': '데이터베이스',
+      'data_structure': '자료구조',
+      'java': '자바',
+      'javascript': '자바스크립트',
+    };
+
+    // Default: All selected
+    List<String> selectedKeys = subjects.keys.toList();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surface,
+              title:
+                  const Text('출제 과목 선택', style: TextStyle(color: Colors.white)),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '원하는 과목을 선택해주세요. (복수 선택 가능)',
+                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: subjects.entries.map((entry) {
+                          final isSelected = selectedKeys.contains(entry.key);
+                          return FilterChip(
+                            label: Text(entry.value),
+                            selected: isSelected,
+                            onSelected: (bool selected) {
+                              setState(() {
+                                if (selected) {
+                                  selectedKeys.add(entry.key);
+                                } else {
+                                  selectedKeys.remove(entry.key);
+                                }
+                              });
+                            },
+                            backgroundColor: Colors.white10,
+                            selectedColor:
+                                AppColors.primary.withValues(alpha: 0.3),
+                            checkmarkColor: AppColors.accentCyan,
+                            labelStyle: TextStyle(
+                              color: isSelected
+                                  ? AppColors.accentCyan
+                                  : Colors.white70,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? AppColors.accentCyan
+                                    : Colors.transparent,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child:
+                      const Text('취소', style: TextStyle(color: Colors.white54)),
+                ),
+                ElevatedButton(
+                  onPressed: selectedKeys.isEmpty
+                      ? null // Disable if none selected
+                      : () {
+                          Navigator.pop(dialogContext);
+                          // Call start session with selected subjects
+                          _startSession(context, title,
+                              targetSubjects: selectedKeys);
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    disabledBackgroundColor: Colors.white10,
+                  ),
+                  child: const Text('면접 시작',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _startSession(BuildContext context, String title,
+      {List<String>? targetSubjects}) async {
     // For testing: bypass login check
     // final authService = AuthService();
     // final user = authService.currentUser;
@@ -584,7 +695,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     try {
-      await controller.startNewSession(userId, title);
+      await controller.startNewSession(userId, title,
+          targetSubjects: targetSubjects);
 
       if (!context.mounted) return;
       Navigator.pop(context); // Pop loading

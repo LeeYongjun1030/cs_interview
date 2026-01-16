@@ -29,9 +29,11 @@ class SessionController extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isAiThinking = false; // "Thinking..." state
+  String _thinkingMessage = 'AI 면접관이 답변을 분석 중입니다...';
 
   bool get isLoading => _isLoading;
   bool get isAiThinking => _isAiThinking;
+  String get thinkingMessage => _thinkingMessage;
 
   SessionController({InterviewRepository? repository, AIService? aiService})
       : _repository = repository ?? InterviewRepository(),
@@ -64,7 +66,8 @@ class SessionController extends ChangeNotifier {
   int get totalQuestions => _rounds.length;
   bool get isSessionFinished => _currentIndex >= _rounds.length;
 
-  Future<String> startNewSession(String userId, String title) async {
+  Future<String> startNewSession(String userId, String title,
+      {List<String>? targetSubjects}) async {
     _setLoading(true);
     _currentIndex = 0;
     _rounds = [];
@@ -72,11 +75,22 @@ class SessionController extends ChangeNotifier {
     _sessionTitle = title;
 
     try {
+      print('[StartSession] Fetching questions...');
       final allQuestions = await _repository.fetchAllQuestions();
-      if (allQuestions.isEmpty) throw Exception('No questions available');
+      print('[StartSession] Fetched ${allQuestions.length} questions.');
 
-      // 1. Select Questions
-      final selectedQuestions = _selectRandomQuestions(allQuestions);
+      if (allQuestions.isEmpty) throw Exception('No questions available in DB');
+
+      // 1. Select Questions (Filter by subject if provided)
+      final selectedQuestions =
+          _selectRandomQuestions(allQuestions, targetSubjects);
+
+      print(
+          '[StartSession] Selected ${selectedQuestions.length} questions for subjects: $targetSubjects');
+
+      if (selectedQuestions.isEmpty) {
+        throw Exception('선택한 과목에 해당하는 문제가 없습니다. (요청: $targetSubjects)');
+      }
 
       // 2. Create Rounds
       _rounds =
@@ -92,8 +106,10 @@ class SessionController extends ChangeNotifier {
       _currentSessionId = sessionId;
       return sessionId;
     } catch (e) {
+      print('[StartSession] Error: $e');
       rethrow;
     } finally {
+      print('[StartSession] Finished (Loading=false)');
       _setLoading(false);
     }
   }
@@ -103,7 +119,13 @@ class SessionController extends ChangeNotifier {
 
     // Determine if this is a main answer or follow-up answer
     final round = currentRound!;
-    _setAiThinking(true);
+
+    // Set message based on context
+    if (round.isFollowUpActive) {
+      _setAiThinking(true, message: '답변 감사합니다.\n다음 면접 질문을 준비 중입니다.');
+    } else {
+      _setAiThinking(true, message: 'AI 면접관이 답변을 분석 중입니다...');
+    }
 
     try {
       if (!round.isFollowUpActive) {
@@ -167,9 +189,20 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  List<Question> _selectRandomQuestions(List<Question> allQuestions) {
+  List<Question> _selectRandomQuestions(
+      List<Question> allQuestions, List<String>? targetSubjects) {
+    var available = List<Question>.from(allQuestions);
+
+    // Filter if subjects are specified and not empty
+    if (targetSubjects != null && targetSubjects.isNotEmpty) {
+      final targets = targetSubjects.map((s) => s.toLowerCase()).toSet();
+      available = available.where((q) {
+        final subject = q.subject.toLowerCase();
+        return targets.contains(subject);
+      }).toList();
+    }
+
     final random = Random();
-    final available = List<Question>.from(allQuestions);
     available.shuffle(random);
     return available.take(3).toList();
   }
@@ -179,8 +212,11 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _setAiThinking(bool value) {
+  void _setAiThinking(bool value, {String? message}) {
     _isAiThinking = value;
+    if (message != null) {
+      _thinkingMessage = message;
+    }
     notifyListeners();
   }
 }

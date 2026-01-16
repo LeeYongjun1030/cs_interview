@@ -152,11 +152,35 @@ class InterviewResultScreen extends StatelessWidget {
                 ),
             ],
           ),
+          // Main Answer Display
+          if (round.mainAnswer != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('나의 답변',
+                      style: TextStyle(color: Colors.white38, fontSize: 11)),
+                  const SizedBox(height: 4),
+                  Text(round.mainAnswer!,
+                      style:
+                          const TextStyle(color: Colors.white70, fontSize: 14)),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           // Main Feedback
           if (round.mainGrade != null) ...[
-            Text('피드백: ${round.mainGrade!.feedback}',
-                style: const TextStyle(color: Colors.white70, fontSize: 13)),
+            Text('AI 피드백: ${round.mainGrade!.feedback}',
+                style:
+                    const TextStyle(color: AppColors.accentCyan, fontSize: 13)),
           ] else ...[
             const Text('피드백 없음',
                 style: TextStyle(color: Colors.white38, fontSize: 13)),
@@ -170,7 +194,7 @@ class InterviewResultScreen extends StatelessWidget {
                 const Icon(Icons.subdirectory_arrow_right,
                     color: AppColors.accentRed, size: 16),
                 const SizedBox(width: 8),
-                const Text('꼬리 질문',
+                const Text('AI 꼬리 질문',
                     style: TextStyle(
                         color: AppColors.accentRed,
                         fontSize: 12,
@@ -189,13 +213,36 @@ class InterviewResultScreen extends StatelessWidget {
             const SizedBox(height: 4),
             Text(round.followUpQuestion!,
                 style: const TextStyle(
-                    color: Colors.white70,
+                    color: Colors.white,
                     fontSize: 13,
-                    fontStyle: FontStyle.italic)),
+                    fontWeight: FontWeight.w500)),
+            if (round.followUpAnswer != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('나의 답변',
+                        style: TextStyle(color: Colors.white38, fontSize: 11)),
+                    const SizedBox(height: 4),
+                    Text(round.followUpAnswer!,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 13)),
+                  ],
+                ),
+              ),
+            ],
             if (round.followUpGrade != null) ...[
-              const SizedBox(height: 4),
-              Text('-> ${round.followUpGrade!.feedback}',
-                  style: const TextStyle(color: Colors.white60, fontSize: 12)),
+              const SizedBox(height: 8),
+              Text('AI 피드백: ${round.followUpGrade!.feedback}',
+                  style: const TextStyle(
+                      color: AppColors.accentCyan, fontSize: 12)),
             ]
           ],
         ],

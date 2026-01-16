@@ -80,21 +80,25 @@ class _InterviewScreenState extends State<InterviewScreen> {
     }
   }
 
-  void _handleSubmit() {
-    if (_answerController.text.trim().isEmpty) {
+  Future<void> _handleSubmit() async {
+    final text = _answerController.text.trim();
+    if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('답변을 입력해주세요.')),
       );
       return;
     }
 
-    widget.controller.submitAnswer(_answerController.text);
     _answerController.clear();
     setState(() {
       _isTipVisible = false;
       _isListening = false;
     });
     _speech.stop();
+
+    await widget.controller.submitAnswer(text);
+
+    if (!mounted) return;
 
     if (widget.controller.isSessionFinished) {
       Navigator.pushReplacement(
@@ -169,7 +173,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                         child: Column(
                           children: [
                             Text(
-                              currentQuestion.category.toUpperCase(),
+                              '${_getSubjectKoreanName(currentQuestion.subject)} • ${currentQuestion.category.toUpperCase()}',
                               style: AppTextStyles.labelSmall.copyWith(
                                   color: AppColors.primary, letterSpacing: 2),
                             ),
@@ -398,6 +402,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                     // SKIP FOLLOW UP
                                     widget.controller.passFollowUp();
                                     _answerController.clear();
+                                    if (!context.mounted) return;
                                     if (widget.controller.isSessionFinished) {
                                       Navigator.pushReplacement(
                                           context,
@@ -470,9 +475,10 @@ class _InterviewScreenState extends State<InterviewScreen> {
                             color: AppColors.accentCyan),
                         const SizedBox(height: 24),
                         Text(
-                          'AI 면접관이 답변을 분석 중입니다...',
+                          widget.controller.thinkingMessage,
                           style: AppTextStyles.titleMedium
                               .copyWith(color: Colors.white),
+                          textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -487,5 +493,26 @@ class _InterviewScreenState extends State<InterviewScreen> {
             ],
           );
         });
+  }
+
+  String _getSubjectKoreanName(String subjectKey) {
+    switch (subjectKey) {
+      case 'computer_architecture':
+        return '컴퓨터 구조';
+      case 'operating_system':
+        return '운영체제';
+      case 'network':
+        return '네트워크';
+      case 'database':
+        return '데이터베이스';
+      case 'data_structure':
+        return '자료구조';
+      case 'java':
+        return '자바';
+      case 'javascript':
+        return '자바스크립트';
+      default:
+        return '기타';
+    }
   }
 }
