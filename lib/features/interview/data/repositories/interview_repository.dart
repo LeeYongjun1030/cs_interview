@@ -103,6 +103,21 @@ class InterviewRepository {
     }
   }
 
+  Future<void> deleteAllUserSessions(String userId) async {
+    try {
+      final querySnapshot =
+          await _sessionsRef.where('userId', isEqualTo: userId).get();
+
+      final batch = _firestore.batch();
+      for (final doc in querySnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Failed to delete all sessions: $e');
+    }
+  }
+
   Future<void> deleteSession(String sessionId) async {
     try {
       await _sessionsRef.doc(sessionId).delete();

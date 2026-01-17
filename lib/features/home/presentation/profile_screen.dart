@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/localization/language_service.dart';
+import '../../interview/data/repositories/interview_repository.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,11 +14,52 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Mock Data for MVP
-  final bool _isPremium = true;
-  final int _daysLeft = 12;
-  bool _notificationEnabled = true;
-  bool _soundEnabled = true;
+  final InterviewRepository _repository = InterviewRepository();
+
+  Future<void> _clearData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('데이터 초기화', style: TextStyle(color: Colors.white)),
+        content: const Text('모든 인터뷰 기록이 영구적으로 삭제됩니다.\n정말 삭제하시겠습니까?',
+            style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppColors.accentRed),
+            child:
+                const Text('삭제', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await _repository.deleteAllUserSessions(user.uid);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('모든 데이터가 초기화되었습니다.')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('오류 발생: $e')),
+          );
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,143 +73,67 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               const SizedBox(height: 16),
               // Header
-              Row(
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: const LinearGradient(
-                          colors: [AppColors.primary, AppColors.accentCyan]),
-                      boxShadow: [
-                        BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.5),
-                            blurRadius: 10)
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(2),
-                    child: Container(
+              // Header
+              if (FirebaseAuth.instance.currentUser != null) ...[
+                Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.background,
-                        border:
-                            Border.all(color: AppColors.background, width: 2),
+                        gradient: const LinearGradient(
+                            colors: [AppColors.primary, AppColors.accentCyan]),
+                        boxShadow: [
+                          BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.5),
+                              blurRadius: 10)
+                        ],
                       ),
-                      child: const CircleAvatar(
-                        backgroundImage: NetworkImage(
-                            'https://lh3.googleusercontent.com/aida-public/AB6AXuBRAYUH3XVSo2OHGdcW1Y2yctt6VetQby1-9G3jFKgvWK3vnVd-FUHUpqwkpiljrGU2Eag2tLtYm3wW8UdZZDnzWHJEmj3eHZh5A4L3guFmS81Kwb0FMrL-AaMnzNqQn_bB47z6Ny-_OtXIEHvhEsWoi_gF-nUSqMbc9OM2P7S-LOLxyqh5krmYasAqZDo3rHj0c5HkgMehOGsP0kT4wdzzSBZxiVGEq2HG-dDIsv8JGcaIlfEF40lAAAraxWGlqvR3KP6SZm_YdpA'),
+                      padding: const EdgeInsets.all(2),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.background,
+                          border:
+                              Border.all(color: AppColors.background, width: 2),
+                        ),
+                        child: CircleAvatar(
+                          backgroundImage: FirebaseAuth
+                                      .instance.currentUser?.photoURL !=
+                                  null
+                              ? NetworkImage(
+                                  FirebaseAuth.instance.currentUser!.photoURL!)
+                              : null,
+                          child: FirebaseAuth.instance.currentUser?.photoURL ==
+                                  null
+                              ? const Icon(Icons.person, color: Colors.white)
+                              : null,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Kim Dev',
-                          style: AppTextStyles.titleLarge
-                              .copyWith(fontWeight: FontWeight.bold)),
-                      Text('kim.dev@example.com',
-                          style: AppTextStyles.bodyMedium
-                              .copyWith(color: Colors.white54)),
-                    ],
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 32),
-
-              // Membership Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1A0B2E), Color(0xFF2D1B4E)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.3)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                            FirebaseAuth.instance.currentUser?.displayName ??
+                                'User',
+                            style: AppTextStyles.titleLarge
+                                .copyWith(fontWeight: FontWeight.bold)),
+                        Text(
+                            FirebaseAuth.instance.currentUser?.email ??
+                                'No Email',
+                            style: AppTextStyles.bodyMedium
+                                .copyWith(color: Colors.white54)),
+                      ],
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text('MY MEMBERSHIP',
-                            style: AppTextStyles.labelSmall.copyWith(
-                                color: AppColors.accentCyan,
-                                letterSpacing: 1.5)),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(_isPremium ? 'PRO' : 'FREE',
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'D-$_daysLeft',
-                          style: AppTextStyles.displayMedium.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.0),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Days Left',
-                          style: AppTextStyles.bodyLarge
-                              .copyWith(color: Colors.white70, height: 1.5),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    LinearProgressIndicator(
-                      value: 0.6, // Mock value
-                      backgroundColor: Colors.white10,
-                      color: AppColors.accentCyan,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: const Text('기간 연장하기',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              ],
 
               const SizedBox(height: 32),
+
               Text('Settings',
                   style: AppTextStyles.titleMedium.copyWith(
                       fontWeight: FontWeight.bold,
@@ -182,29 +149,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: Column(
                   children: [
-                    SwitchListTile(
-                      title: const Text('일일 학습 알림',
-                          style: TextStyle(color: Colors.white)),
-                      subtitle: const Text('매일 저녁 8시에 알림',
-                          style:
-                              TextStyle(color: Colors.white38, fontSize: 12)),
-                      value: _notificationEnabled,
-                      activeColor: AppColors.primary,
-                      activeTrackColor:
-                          AppColors.primary.withAlpha(100), // Lighter track
-                      onChanged: (value) =>
-                          setState(() => _notificationEnabled = value),
-                    ),
-                    const Divider(height: 1, color: Colors.white10),
-                    SwitchListTile(
-                      title: const Text('배경음 및 효과음',
-                          style: TextStyle(color: Colors.white)),
-                      value: _soundEnabled,
-                      activeColor: AppColors.primary,
-                      onChanged: (value) =>
-                          setState(() => _soundEnabled = value),
-                    ),
-                    const Divider(height: 1, color: Colors.white10),
                     Consumer<LanguageController>(
                       builder: (context, controller, child) {
                         return SwitchListTile(
@@ -244,30 +188,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.description_outlined,
-                          color: Colors.white70),
-                      title: const Text('이용약관',
-                          style: TextStyle(color: Colors.white)),
-                      trailing: const Icon(Icons.arrow_forward_ios,
-                          size: 14, color: Colors.white30),
-                      onTap: () {},
-                    ),
-                    const Divider(height: 1, color: Colors.white10),
-                    ListTile(
                       leading: const Icon(Icons.logout, color: Colors.white70),
                       title: const Text('로그아웃',
                           style: TextStyle(color: Colors.white)),
                       onTap: () {
-                        // AuthService().signOut();
+                        // AuthService().signOut(); // TODO: Implement sign out
                       },
                     ),
                     const Divider(height: 1, color: Colors.white10),
                     ListTile(
-                      leading: const Icon(Icons.delete_outline,
-                          color: AppColors.accentRed),
-                      title: const Text('회원 탈퇴',
-                          style: TextStyle(color: AppColors.accentRed)),
-                      onTap: () {},
+                      leading: const Icon(Icons.refresh, color: Colors.white70),
+                      title: const Text('기록 초기화',
+                          style: TextStyle(color: Colors.white)),
+                      onTap: _clearData,
                     ),
                   ],
                 ),

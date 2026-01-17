@@ -14,6 +14,7 @@ class LanguageController extends ChangeNotifier {
 
   AppLanguage get currentLanguage => _currentLanguage;
   bool get isKorean => _currentLanguage == AppLanguage.korean;
+  AppStrings get strings => AppStrings(_currentLanguage);
 
   void toggleLanguage() {
     _currentLanguage = _currentLanguage == AppLanguage.korean
@@ -51,6 +52,11 @@ class AppStrings {
       language == AppLanguage.korean ? '새로운 면접' : 'New Session';
   String get startButton => language == AppLanguage.korean ? '시작하기' : 'Start';
   String get cancelButton => language == AppLanguage.korean ? '취소' : 'Cancel';
+
+  // Navigation
+  String get navHome => language == AppLanguage.korean ? '홈' : 'Home';
+  String get navLearning => language == AppLanguage.korean ? '학습' : 'Learning';
+  String get navProfile => language == AppLanguage.korean ? '마이페이지' : 'My Page';
 
   // Subjects
   String get subjectNetwork =>
@@ -169,12 +175,6 @@ class AppStrings {
       language == AppLanguage.korean ? '로딩중...' : 'Loading...';
   String get error => language == AppLanguage.korean ? '오류 발생' : 'Error';
 
-  // Navigation
-  String get navHome => language == AppLanguage.korean ? '홈' : 'Home';
-  String get navMembership =>
-      language == AppLanguage.korean ? '멤버십' : 'Membership';
-  String get navProfile => language == AppLanguage.korean ? '프로필' : 'Profile';
-
   // Home Screen Sections & UI
   String get sectionSubjectLearning =>
       language == AppLanguage.korean ? '과목별 학습' : 'Subject Learning';
@@ -208,4 +208,30 @@ class AppStrings {
       language == AppLanguage.korean ? '답변 입력' : 'Enter Answer';
   String get waitMessage =>
       language == AppLanguage.korean ? '잠시만 기다려주세요' : 'Please wait a moment';
+
+  String get lectureScreenTitle =>
+      language == AppLanguage.korean ? '추천 강의' : 'Recommended Lectures';
+  String get lectureScreenSubtitle => language == AppLanguage.korean
+      ? '인프런에서 만나는 고퀄리티 CS 강의'
+      : 'High-quality CS lectures on Inflearn';
+
+  // Lecture Descriptions
+  String get lectureDescArch =>
+      language == AppLanguage.korean ? 'CS 개념의 뿌리' : 'Roots of CS Concepts';
+  String get lectureDescOS => language == AppLanguage.korean
+      ? '프로그램 실행의 원리'
+      : 'Principles of Program Execution';
+  String get lectureDescNetwork => language == AppLanguage.korean
+      ? '서비스 연결의 핵심'
+      : 'Core of Service Connectivity';
+  String get lectureDescDB =>
+      language == AppLanguage.korean ? '데이터 다루는 법' : 'How to Handle Data';
+  String get lectureDescDS =>
+      language == AppLanguage.korean ? '문제 해결의 시작' : 'Start of Problem Solving';
+  String get lectureDescJava => language == AppLanguage.korean
+      ? '프로그래밍 핵심 (Java)'
+      : 'Core of Programming (Java)';
+  String get lectureDescJs => language == AppLanguage.korean
+      ? '프로그래밍 핵심 (JS)'
+      : 'Core of Programming (JS)';
 }
