@@ -10,6 +10,7 @@ class InterviewSession {
   final DateTime startTime;
   final DateTime? endTime;
   final List<SessionQuestionItem> questions;
+  final double? averageScore;
 
   InterviewSession({
     required this.id,
@@ -19,6 +20,7 @@ class InterviewSession {
     required this.startTime,
     this.endTime,
     required this.questions,
+    this.averageScore,
   });
 
   Map<String, dynamic> toJson() {
@@ -30,6 +32,7 @@ class InterviewSession {
       'startTime': Timestamp.fromDate(startTime),
       'endTime': endTime != null ? Timestamp.fromDate(endTime!) : null,
       'questions': questions.map((q) => q.toJson()).toList(),
+      'averageScore': averageScore,
     };
   }
 
@@ -43,11 +46,15 @@ class InterviewSession {
         orElse: () => SessionStatus.active,
       ),
       startTime: (json['startTime'] as Timestamp).toDate(),
-      endTime: json['endTime'] != null ? (json['endTime'] as Timestamp).toDate() : null,
+      endTime: json['endTime'] != null
+          ? (json['endTime'] as Timestamp).toDate()
+          : null,
       questions: (json['questions'] as List<dynamic>?)
-              ?.map((q) => SessionQuestionItem.fromJson(q as Map<String, dynamic>))
+              ?.map((q) =>
+                  SessionQuestionItem.fromJson(q as Map<String, dynamic>))
               .toList() ??
           [],
+      averageScore: (json['averageScore'] as num?)?.toDouble(),
     );
   }
 }
@@ -82,6 +89,7 @@ class SessionQuestionItem {
       'evaluation': evaluation,
     };
   }
+
   factory SessionQuestionItem.fromJson(Map<String, dynamic> json) {
     return SessionQuestionItem(
       questionId: json['questionId'] as String,

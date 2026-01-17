@@ -19,17 +19,32 @@ abstract class AppColors {
   // Background Colors (High-End Dark Mode)
   static const Color background = Color(0xFF0F0F12); // Deep charcoal/black
   static const Color surface = Color(0xFF1A1625); // Surface Dark
-  static const Color surfaceVariant = Color(0xFF2C2C2C); // Slight Lighter Surface
-  
+  static const Color surfaceContainer =
+      Color(0xFF231E32); // Slightly Lighter Surface
+  static const Color surfaceVariant =
+      Color(0xFF2C2C2C); // Slight Lighter Surface
+
   // Shadows
   static const List<BoxShadow> neonShadow = [
-    BoxShadow(color: Color.fromRGBO(146, 19, 236, 0.5), blurRadius: 10, spreadRadius: 0),
-    BoxShadow(color: Color.fromRGBO(146, 19, 236, 0.3), blurRadius: 20, spreadRadius: 0),
+    BoxShadow(
+        color: Color.fromRGBO(146, 19, 236, 0.5),
+        blurRadius: 10,
+        spreadRadius: 0),
+    BoxShadow(
+        color: Color.fromRGBO(146, 19, 236, 0.3),
+        blurRadius: 20,
+        spreadRadius: 0),
   ];
-  
+
   static const List<BoxShadow> neonCyanShadow = [
-    BoxShadow(color: Color.fromRGBO(0, 240, 255, 0.5), blurRadius: 10, spreadRadius: 0),
-    BoxShadow(color: Color.fromRGBO(0, 240, 255, 0.3), blurRadius: 20, spreadRadius: 0),
+    BoxShadow(
+        color: Color.fromRGBO(0, 240, 255, 0.5),
+        blurRadius: 10,
+        spreadRadius: 0),
+    BoxShadow(
+        color: Color.fromRGBO(0, 240, 255, 0.3),
+        blurRadius: 20,
+        spreadRadius: 0),
   ];
 
   // Text Colors

@@ -13,6 +13,22 @@ class GradeResult {
     this.followUpQuestion,
   });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'score': score,
+      'feedback': feedback,
+      'followUpQuestion': followUpQuestion,
+    };
+  }
+
+  factory GradeResult.fromJson(Map<String, dynamic> json) {
+    return GradeResult(
+      score: json['score'] as int? ?? 0,
+      feedback: json['feedback'] as String? ?? '',
+      followUpQuestion: json['followUpQuestion'] as String?,
+    );
+  }
+
   @override
   String toString() =>
       'Score: $score, Feedback: $feedback, FollowUp: $followUpQuestion';
@@ -88,11 +104,8 @@ class AIService {
     // If already follow-up, never ask again (depth 1)
     String? mockFollowUp;
     if (!isFollowUpResponse) {
-      // Randomly decide if we want a follow-up
-      // For testing, let's say "fail" or "unknown" triggers it
-      if (userAnswer.length < 10 || userAnswer.contains('모르')) {
-        mockFollowUp = '그렇다면, 구체적으로 어떤 상황에서 사용되나요? (Mock 꼬리질문)';
-      }
+      // Always ask follow-up in Mock mode
+      mockFollowUp = '그렇다면, 구체적으로 어떤 상황에서 사용되나요? (Mock 꼬리질문)';
     }
 
     return GradeResult(

@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/models/question_model.dart';
+import '../../domain/models/session_model.dart';
 import '../../data/repositories/interview_repository.dart';
 import '../../../../core/services/ai_service.dart';
 
@@ -188,6 +190,59 @@ class SessionController extends ChangeNotifier {
   void _moveToNext() {
     _currentIndex++;
     notifyListeners();
+
+    if (isSessionFinished) {
+      _saveSessionResults();
+    }
+  }
+
+  Future<void> _saveSessionResults() async {
+    if (_currentSessionId == null) return;
+
+    try {
+      double totalScore = 0;
+      int count = 0;
+
+      final sessionItems = _rounds.map((round) {
+        // Calculate round score (average of main + follow-up if exists)
+        // For MVP, just use main grade score.
+        // If follow-up exists, maybe average them?
+        // Let's stick to main grade for now or average both.
+
+        final mainScore = round.mainGrade?.score ?? 0;
+        totalScore += mainScore;
+        count++;
+
+        // Construct SessionQuestionItem
+        return SessionQuestionItem(
+          questionId: round.mainQuestion.id,
+          questionText: round.mainQuestion.question,
+          userAnswerText: round.mainAnswer ?? '',
+          aiFollowUp: round.followUpQuestion,
+          userFollowUpAnswer: round.followUpAnswer,
+          evaluation: {
+            'main': round.mainGrade?.toJson(),
+            'followUp': round.followUpGrade?.toJson(),
+          },
+        );
+      }).toList();
+
+      final averageScore = count > 0 ? totalScore / count : 0.0;
+
+      await _repository.updateSession(
+        sessionId: _currentSessionId!,
+        data: {
+          'status': 'completed',
+          'endTime': Timestamp.now(),
+          'averageScore': averageScore,
+          'questions': sessionItems.map((i) => i.toJson()).toList(),
+        },
+      );
+
+      print('[Session] Results saved successfully. Avg Score: $averageScore');
+    } catch (e) {
+      print('[Session] Failed to save results: $e');
+    }
   }
 
   List<Question> _selectRandomQuestions(

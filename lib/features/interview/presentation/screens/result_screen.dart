@@ -4,28 +4,18 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../providers/session_controller.dart';
 
 class InterviewResultScreen extends StatelessWidget {
-  final SessionController controller;
+  final List<SessionRound> rounds;
+  final double averageScore;
 
-  const InterviewResultScreen({super.key, required this.controller});
+  const InterviewResultScreen({
+    super.key,
+    required this.rounds,
+    required this.averageScore,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final rounds = controller.rounds;
-
-    // Calc Average Score
-    int totalScore = 0;
-    int count = 0;
-    for (var round in rounds) {
-      if (round.mainGrade != null) {
-        totalScore += round.mainGrade!.score;
-        count++;
-      }
-      if (round.followUpGrade != null) {
-        totalScore += round.followUpGrade!.score;
-        count++;
-      }
-    }
-    final avgScore = count == 0 ? 0 : (totalScore / count).round();
+    final displayScore = averageScore.round();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -62,13 +52,13 @@ class InterviewResultScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '$avgScore점',
+                    '${displayScore}점',
                     style: AppTextStyles.displayLarge.copyWith(
                         color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    _getCheerMessage(avgScore),
+                    _getCheerMessage(displayScore),
                     style:
                         AppTextStyles.titleMedium.copyWith(color: Colors.white),
                     textAlign: TextAlign.center,

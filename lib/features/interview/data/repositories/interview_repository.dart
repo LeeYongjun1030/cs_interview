@@ -5,7 +5,7 @@ import '../../domain/models/session_model.dart';
 class InterviewRepository {
   final FirebaseFirestore _firestore;
 
-  InterviewRepository({FirebaseFirestore? firestore}) 
+  InterviewRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   // Collection References
@@ -14,9 +14,8 @@ class InterviewRepository {
 
   Future<List<Question>> fetchQuestionsBySubject(String subject) async {
     try {
-      final querySnapshot = await _questionsRef
-          .where('subject', isEqualTo: subject)
-          .get();
+      final querySnapshot =
+          await _questionsRef.where('subject', isEqualTo: subject).get();
 
       return querySnapshot.docs
           .map((doc) => Question.fromJson(doc.data() as Map<String, dynamic>))
@@ -47,10 +46,12 @@ class InterviewRepository {
   }) async {
     try {
       // Create initial session items
-      final sessionItems = questions.map((q) => SessionQuestionItem(
-        questionId: q.id,
-        questionText: q.question,
-      )).toList();
+      final sessionItems = questions
+          .map((q) => SessionQuestionItem(
+                questionId: q.id,
+                questionText: q.question,
+              ))
+          .toList();
 
       final session = InterviewSession(
         id: '', // Will be assigned by Firestore or UUID
@@ -63,7 +64,7 @@ class InterviewRepository {
 
       // Add to Firestore and get ID
       final docRef = await _sessionsRef.add(session.toJson());
-      
+
       // Update the local object ID if needed, but returning ID is usually enough
       return docRef.id;
     } catch (e) {
@@ -71,31 +72,18 @@ class InterviewRepository {
     }
   }
 
-  Future<void> updateSessionItem(String sessionId, int index, SessionQuestionItem item) async {
-    // This requires reading the array, modifying it, and updating back.
-    // Or better, we map the entire questions list to JSON for updates.
+  Future<void> updateSession({
+    required String sessionId,
+    required Map<String, dynamic> data,
+  }) async {
     try {
-        // Implement specific update logic depending on how granular we need to be.
-        // For MVP, we might overwrite the 'questions' field.
-        final sessionDoc = _sessionsRef.doc(sessionId);
-        final snapshot = await sessionDoc.get();
-        if (!snapshot.exists) throw Exception('Session not found');
-
-        // final data = snapshot.data() as Map<String, dynamic>;
-        // TODO: Implement proper update logic
-        // For now, we are skipping full consistency update as it's MVP
-        
-        await sessionDoc.update({
-          // Simple update logic placeholder
-        });
-        
-        // However, since we don't have a fromJson on SessionQuestionItem easily in the snippet 
-        // (it was manual), we should update the specific item in the array if possible 
-        // OR just fetch the session, update local state, and save the session.
+      if (sessionId.isEmpty) return;
+      await _sessionsRef.doc(sessionId).update(data);
     } catch (e) {
-       // ...
+      throw Exception('Failed to update session: $e');
     }
   }
+
   Future<List<InterviewSession>> fetchUserSessions(String userId) async {
     try {
       final querySnapshot = await _sessionsRef
@@ -103,13 +91,11 @@ class InterviewRepository {
           .orderBy('startTime', descending: true)
           .get();
 
-      return querySnapshot.docs
-          .map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            data['id'] = doc.id; // Ensure ID is set from doc ID
-            return InterviewSession.fromJson(data);
-          })
-          .toList();
+      return querySnapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id; // Ensure ID is set from doc ID
+        return InterviewSession.fromJson(data);
+      }).toList();
     } catch (e) {
       throw Exception('Failed to fetch user sessions: $e');
     }

@@ -103,13 +103,34 @@ class _InterviewScreenState extends State<InterviewScreen> {
     if (!mounted) return;
 
     if (widget.controller.isSessionFinished) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                InterviewResultScreen(controller: widget.controller)),
-      );
+      _navigateToResult();
     }
+  }
+
+  void _navigateToResult() {
+    final rounds = widget.controller.rounds;
+    double totalScore = 0;
+    int count = 0;
+    for (var round in rounds) {
+      if (round.mainGrade != null) {
+        totalScore += round.mainGrade!.score;
+        count++;
+      }
+      if (round.followUpGrade != null) {
+        totalScore += round.followUpGrade!.score;
+        count++;
+      }
+    }
+    final double averageScore = count > 0 ? totalScore / count : 0.0;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+          builder: (context) => InterviewResultScreen(
+                rounds: rounds,
+                averageScore: averageScore,
+              )),
+    );
   }
 
   @override
@@ -406,13 +427,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                     _answerController.clear();
                                     if (!context.mounted) return;
                                     if (widget.controller.isSessionFinished) {
-                                      Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  InterviewResultScreen(
-                                                      controller:
-                                                          widget.controller)));
+                                      _navigateToResult();
                                     }
                                   },
                                   style: TextButton.styleFrom(

@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/data_seeder.dart';
@@ -10,6 +11,9 @@ import '../../interview/domain/models/session_model.dart';
 import '../../interview/presentation/screens/subject_questions_screen.dart';
 import 'profile_screen.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/services/ai_service.dart';
+import '../../interview/domain/models/question_model.dart';
+import '../../interview/presentation/screens/result_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,13 +26,19 @@ class _HomeScreenState extends State<HomeScreen> {
   final InterviewRepository _repository = InterviewRepository();
   List<InterviewSession> _sessions = [];
   bool _isLoading = true;
-  // For MVP testing, using fixed ID
-  final String _userId = 'test-user-id';
+  late String _userId;
 
   @override
   void initState() {
     super.initState();
-    _fetchSessions();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _userId = user.uid;
+      _fetchSessions();
+    } else {
+      // Should not happen if wrapped in AuthWrapper, but handle safe
+      _isLoading = false;
+    }
   }
 
   Future<void> _fetchSessions() async {
@@ -213,8 +223,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: AppColors.background,
                     border: Border.all(color: AppColors.background, width: 2),
                   ),
-                  child: const CircleAvatar(
-                    backgroundImage: NetworkImage(
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(FirebaseAuth
+                            .instance.currentUser?.photoURL ??
                         'https://lh3.googleusercontent.com/aida-public/AB6AXuBRAYUH3XVSo2OHGdcW1Y2yctt6VetQby1-9G3jFKgvWK3vnVd-FUHUpqwkpiljrGU2Eag2tLtYm3wW8UdZZDnzWHJEmj3eHZh5A4L3guFmS81Kwb0FMrL-AaMnzNqQn_bB47z6Ny-_OtXIEHvhEsWoi_gF-nUSqMbc9OM2P7S-LOLxyqh5krmYasAqZDo3rHj0c5HkgMehOGsP0kT4wdzzSBZxiVGEq2HG-dDIsv8JGcaIlfEF40lAAAraxWGlqvR3KP6SZm_YdpA'),
                   ),
                 ),
@@ -226,7 +237,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Text('READY TO INTERVIEW?',
                       style: AppTextStyles.labelSmall.copyWith(
                           color: AppColors.textTertiary, letterSpacing: 1.5)),
-                  Text('Kim Dev',
+                  Text(
+                      FirebaseAuth.instance.currentUser?.displayName ?? 'Guest',
                       style: AppTextStyles.titleMedium
                           .copyWith(fontWeight: FontWeight.bold)),
                 ],
@@ -327,58 +339,65 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSessionCard(InterviewSession session) {
+    // Only show completed sessions
+    if (session.status != SessionStatus.completed)
+      return const SizedBox.shrink();
+
     final dateStr = DateFormat('yyyy.MM.dd HH:mm').format(session.startTime);
-    final questionCount = session.questions.length;
-    final isCompleted = session.status == SessionStatus.completed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white10),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: InkWell(
+        onTap: () => _openSessionDetail(session),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isCompleted
-                      ? AppColors.accentGreen.withValues(alpha: 0.2)
-                      : Colors.orange.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  isCompleted ? 'COMPLETED' : 'IN PROGRESS',
-                  style: TextStyle(
-                    color: isCompleted ? AppColors.accentGreen : Colors.orange,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
               Text(dateStr,
                   style:
                       AppTextStyles.labelSmall.copyWith(color: Colors.white38)),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      session.title,
+                      style: AppTextStyles.titleMedium
+                          .copyWith(fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (session.averageScore != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceContainer,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: AppColors.accentCyan.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        'Score: ${session.averageScore!.toStringAsFixed(0)}',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.accentCyan,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            session.title,
-            style:
-                AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '$questionCount Questions • Network', // Hardcoded subject for now
-            style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -677,6 +696,51 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         );
       },
+    );
+  }
+
+  void _openSessionDetail(InterviewSession session) {
+    if (session.averageScore == null) return;
+
+    final rounds = session.questions.map((qItem) {
+      final question = Question(
+        id: qItem.questionId,
+        subject: 'unknown',
+        category: 'unknown',
+        question: qItem.questionText,
+        tip: '',
+        depth: 0,
+        keywords: [],
+        level: 1,
+      );
+
+      final round = SessionRound(mainQuestion: question);
+      round.mainAnswer = qItem.userAnswerText;
+
+      if (qItem.evaluation != null) {
+        final eval = qItem.evaluation!;
+        if (eval['main'] != null) {
+          round.mainGrade = GradeResult.fromJson(eval['main']);
+        }
+        if (eval['followUp'] != null) {
+          round.followUpGrade = GradeResult.fromJson(eval['followUp']);
+        }
+      }
+
+      round.followUpQuestion = qItem.aiFollowUp;
+      round.followUpAnswer = qItem.userFollowUpAnswer;
+
+      return round;
+    }).toList();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InterviewResultScreen(
+          rounds: rounds,
+          averageScore: session.averageScore!,
+        ),
+      ),
     );
   }
 

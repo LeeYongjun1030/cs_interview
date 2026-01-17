@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
 import 'features/home/presentation/home_screen.dart';
+import 'features/auth/presentation/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -21,7 +23,7 @@ void main() async {
 class ErrorApp extends StatelessWidget {
   final String error;
   final StackTrace? stackTrace;
-  
+
   const ErrorApp({super.key, required this.error, this.stackTrace});
 
   @override
@@ -45,7 +47,8 @@ class ErrorApp extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     error,
-                    style: const TextStyle(color: Colors.redAccent, fontFamily: 'monospace'),
+                    style: const TextStyle(
+                        color: Colors.redAccent, fontFamily: 'monospace'),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -77,11 +80,6 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TEMPORARY: Bypass Login for development convenience
-    // Change this back to StreamBuilder when ready to re-enable auth.
-    return const HomeScreen();
-
-    /*
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
@@ -98,6 +96,5 @@ class AuthWrapper extends StatelessWidget {
         return const LoginScreen();
       },
     );
-    */
   }
 }
