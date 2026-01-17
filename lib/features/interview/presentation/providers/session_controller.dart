@@ -69,7 +69,7 @@ class SessionController extends ChangeNotifier {
   bool get isSessionFinished => _currentIndex >= _rounds.length;
 
   Future<String> startNewSession(String userId, String title,
-      {List<String>? targetSubjects}) async {
+      {List<String>? targetSubjects, List<Question>? fixedQuestions}) async {
     _setLoading(true);
     _currentIndex = 0;
     _rounds = [];
@@ -77,15 +77,24 @@ class SessionController extends ChangeNotifier {
     _sessionTitle = title;
 
     try {
-      print('[StartSession] Fetching questions...');
-      final allQuestions = await _repository.fetchAllQuestions();
-      print('[StartSession] Fetched ${allQuestions.length} questions.');
+      List<Question> selectedQuestions;
 
-      if (allQuestions.isEmpty) throw Exception('No questions available in DB');
+      if (fixedQuestions != null && fixedQuestions.isNotEmpty) {
+        selectedQuestions = fixedQuestions;
+        print(
+            '[StartSession] Using fixed questions: ${selectedQuestions.length} items');
+      } else {
+        print('[StartSession] Fetching questions...');
+        final allQuestions = await _repository.fetchAllQuestions();
+        print('[StartSession] Fetched ${allQuestions.length} questions.');
 
-      // 1. Select Questions (Filter by subject if provided)
-      final selectedQuestions =
-          _selectRandomQuestions(allQuestions, targetSubjects);
+        if (allQuestions.isEmpty)
+          throw Exception('No questions available in DB');
+
+        // 1. Select Questions (Filter by subject if provided)
+        selectedQuestions =
+            _selectRandomQuestions(allQuestions, targetSubjects);
+      }
 
       print(
           '[StartSession] Selected ${selectedQuestions.length} questions for subjects: $targetSubjects');
@@ -224,6 +233,8 @@ class SessionController extends ChangeNotifier {
             'main': round.mainGrade?.toJson(),
             'followUp': round.followUpGrade?.toJson(),
           },
+          subject: round.mainQuestion.subject,
+          category: round.mainQuestion.category,
         );
       }).toList();
 

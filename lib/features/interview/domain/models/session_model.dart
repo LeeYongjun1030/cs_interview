@@ -65,8 +65,11 @@ class SessionQuestionItem {
   String userAnswerText;
   String? userAnswerAudioUrl;
   String? aiFollowUp;
+
   String? userFollowUpAnswer;
   Map<String, dynamic>? evaluation; // result, score, feedback
+  final String subject;
+  final String category;
 
   SessionQuestionItem({
     required this.questionId,
@@ -76,6 +79,8 @@ class SessionQuestionItem {
     this.aiFollowUp,
     this.userFollowUpAnswer,
     this.evaluation,
+    this.subject = 'unknown',
+    this.category = 'unknown',
   });
 
   Map<String, dynamic> toJson() {
@@ -87,6 +92,8 @@ class SessionQuestionItem {
       'aiFollowUp': aiFollowUp,
       'userFollowUpAnswer': userFollowUpAnswer,
       'evaluation': evaluation,
+      'subject': subject,
+      'category': category,
     };
   }
 
@@ -99,6 +106,8 @@ class SessionQuestionItem {
       aiFollowUp: json['aiFollowUp'] as String?,
       userFollowUpAnswer: json['userFollowUpAnswer'] as String?,
       evaluation: json['evaluation'] as Map<String, dynamic>?,
+      subject: json['subject'] as String? ?? 'unknown',
+      category: json['category'] as String? ?? 'unknown',
     );
   }
 }

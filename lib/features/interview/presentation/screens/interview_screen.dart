@@ -129,6 +129,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
           builder: (context) => InterviewResultScreen(
                 rounds: rounds,
                 averageScore: averageScore,
+                controller: widget.controller,
               )),
     );
   }

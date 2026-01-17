@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../providers/session_controller.dart';
@@ -6,11 +7,13 @@ import '../providers/session_controller.dart';
 class InterviewResultScreen extends StatelessWidget {
   final List<SessionRound> rounds;
   final double averageScore;
+  final SessionController? controller;
 
   const InterviewResultScreen({
     super.key,
     required this.rounds,
     required this.averageScore,
+    this.controller,
   });
 
   @override
@@ -33,7 +36,8 @@ class InterviewResultScreen extends StatelessWidget {
           children: [
             // Summary Card
             Container(
-              padding: const EdgeInsets.all(24),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   colors: [AppColors.primary, AppColors.accentCyan],
@@ -43,25 +47,33 @@ class InterviewResultScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: AppColors.neonShadow,
               ),
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '종합 점수',
-                    style: AppTextStyles.labelMedium
-                        .copyWith(color: Colors.white70),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '종합 점수',
+                        style: AppTextStyles.labelMedium
+                            .copyWith(color: Colors.white70),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${displayScore}점',
+                        style: AppTextStyles.displayMedium.copyWith(
+                            color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${displayScore}점',
-                    style: AppTextStyles.displayLarge.copyWith(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    _getCheerMessage(displayScore),
-                    style:
-                        AppTextStyles.titleMedium.copyWith(color: Colors.white),
-                    textAlign: TextAlign.center,
+                  Expanded(
+                    child: Text(
+                      _getCheerMessage(displayScore),
+                      style: AppTextStyles.titleSmall
+                          .copyWith(color: Colors.white),
+                      textAlign: TextAlign.right,
+                      maxLines: 2,
+                    ),
                   ),
                 ],
               ),
@@ -80,25 +92,122 @@ class InterviewResultScreen extends StatelessWidget {
               );
             }),
 
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white10,
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              child:
-                  const Text('홈으로 이동', style: TextStyle(color: Colors.white)),
-            ),
             const SizedBox(height: 32),
           ],
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OutlinedButton(
+                onPressed: () => _handleRetry(context),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppColors.primary),
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                child: const Text('같은 질문으로 다시 도전 (Retry)',
+                    style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white10,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                ),
+                child: const Text('홈으로 이동',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
+
+  void _handleRetry(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final titleController = TextEditingController(
+          text:
+              '재도전-세션-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).substring(4)}',
+        );
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: const Text('다시 도전하기',
+              style: TextStyle(color: Colors.white, fontSize: 18)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('이전 세션과 동일한 질문으로\n새로운 세션을 시작합니다.',
+                  style: TextStyle(color: Colors.white70)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: titleController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: '세션 이름',
+                  labelStyle: const TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: Colors.black12,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소', style: TextStyle(color: Colors.white54)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+              onPressed: () {
+                final title = titleController.text.trim();
+                if (title.isEmpty) return;
+                Navigator.pop(context);
+                _startRetrySession(context, title);
+              },
+              child: const Text('시작',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _startRetrySession(BuildContext context, String title) {
+    // Return to HomeScreen with retry intent
+    // We pass the data needed to start a new session
+    final retryData = {
+      'action': 'retry',
+      'title': title,
+      'questions': rounds.map((r) => r.mainQuestion).toList(),
+    };
+    Navigator.pop(context, retryData);
   }
 
   Widget _buildRoundCard(int index, SessionRound round) {

@@ -50,6 +50,8 @@ class InterviewRepository {
           .map((q) => SessionQuestionItem(
                 questionId: q.id,
                 questionText: q.question,
+                subject: q.subject,
+                category: q.category,
               ))
           .toList();
 

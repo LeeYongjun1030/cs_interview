@@ -187,7 +187,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       IconButton(
                         icon: const Icon(Icons.refresh, color: Colors.white70),
                         onPressed: () {
-                          setState(() => _isLoading = true);
+                          // Silent refresh (keep existing list visible while fetching)
+                          if (_sessions.isEmpty) {
+                            setState(() => _isLoading = true);
+                          }
                           _fetchSessions();
                         },
                       )
@@ -391,10 +394,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     color: AppColors.background,
                     border: Border.all(color: AppColors.background, width: 2),
                   ),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(FirebaseAuth
-                            .instance.currentUser?.photoURL ??
-                        'https://lh3.googleusercontent.com/aida-public/AB6AXuBRAYUH3XVSo2OHGdcW1Y2yctt6VetQby1-9G3jFKgvWK3vnVd-FUHUpqwkpiljrGU2Eag2tLtYm3wW8UdZZDnzWHJEmj3eHZh5A4L3guFmS81Kwb0FMrL-AaMnzNqQn_bB47z6Ny-_OtXIEHvhEsWoi_gF-nUSqMbc9OM2P7S-LOLxyqh5krmYasAqZDo3rHj0c5HkgMehOGsP0kT4wdzzSBZxiVGEq2HG-dDIsv8JGcaIlfEF40lAAAraxWGlqvR3KP6SZm_YdpA'),
+                  child: ClipOval(
+                    child: Image.network(
+                      FirebaseAuth.instance.currentUser?.photoURL ??
+                          'https://lh3.googleusercontent.com/aida-public/AB6AXuBRAYUH3XVSo2OHGdcW1Y2yctt6VetQby1-9G3jFKgvWK3vnVd-FUHUpqwkpiljrGU2Eag2tLtYm3wW8UdZZDnzWHJEmj3eHZh5A4L3guFmS81Kwb0FMrL-AaMnzNqQn_bB47z6Ny-_OtXIEHvhEsWoi_gF-nUSqMbc9OM2P7S-LOLxyqh5krmYasAqZDo3rHj0c5HkgMehOGsP0kT4wdzzSBZxiVGEq2HG-dDIsv8JGcaIlfEF40lAAAraxWGlqvR3KP6SZm_YdpA',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(Icons.person,
+                              color: Colors.white54, size: 24),
+                        );
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                            child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2)));
+                      },
+                    ),
                   ),
                 ),
               ),
@@ -485,8 +505,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => SubjectQuestionsScreen(
@@ -497,6 +517,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           );
+          _fetchSessions();
         },
         borderRadius: BorderRadius.circular(16),
         child: Container(
@@ -929,53 +950,70 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _openSessionDetail(InterviewSession session) {
-    if (session.averageScore == null) return;
-
-    final rounds = session.questions.map((qItem) {
-      final question = Question(
-        id: qItem.questionId,
-        subject: 'unknown',
-        category: 'unknown',
-        question: qItem.questionText,
-        tip: '',
-        depth: 0,
-        keywords: [],
-        level: 1,
-      );
-
-      final round = SessionRound(mainQuestion: question);
-      round.mainAnswer = qItem.userAnswerText;
-
-      if (qItem.evaluation != null) {
-        final eval = qItem.evaluation!;
-        if (eval['main'] != null) {
-          round.mainGrade = GradeResult.fromJson(eval['main']);
-        }
-        if (eval['followUp'] != null) {
-          round.followUpGrade = GradeResult.fromJson(eval['followUp']);
-        }
-      }
-
-      round.followUpQuestion = qItem.aiFollowUp;
-      round.followUpAnswer = qItem.userFollowUpAnswer;
-
-      return round;
+  void _openSessionDetail(InterviewSession session) async {
+    // Map existing session items to SessionRounds for display
+    final rounds = session.questions.map((q) {
+      return SessionRound(
+        mainQuestion: Question(
+          id: q.questionId,
+          question: q.questionText,
+          // Use stored metadata if available
+          subject: q.subject,
+          category: q.category,
+          level: 1, // Default level for history
+          depth: 0,
+          keywords: [],
+          tip: '',
+        ),
+      )
+        ..mainAnswer = q.userAnswerText
+        ..mainGrade = q.evaluation != null && q.evaluation!['main'] != null
+            ? GradeResult.fromJson(q.evaluation!['main'])
+            : null
+        ..followUpQuestion = q.aiFollowUp
+        ..followUpAnswer = q.userFollowUpAnswer
+        ..followUpGrade =
+            q.evaluation != null && q.evaluation!['followUp'] != null
+                ? GradeResult.fromJson(q.evaluation!['followUp'])
+                : null;
     }).toList();
 
-    Navigator.push(
+    // Calculate score
+    final avgScore = session.averageScore ?? 0.0;
+
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => InterviewResultScreen(
           rounds: rounds,
-          averageScore: session.averageScore!,
+          averageScore: avgScore,
+          // Optionally pass a new controller for Retrying historical sessions
         ),
       ),
     );
+
+    // Handle Retry
+    if (result != null &&
+        result is Map &&
+        result['action'] == 'retry' &&
+        result['questions'] is List<Question>) {
+      print('[HomeScreen] Retry requested for: ${result['title']}');
+      if (mounted) {
+        // Start new session with fixed questions
+        await _startSession(
+          context,
+          result['title'],
+          fixedQuestions: result['questions'],
+        );
+      }
+    }
+
+    // Always fetch sessions to ensure list is updated
+    _fetchSessions();
   }
 
   Future<void> _startSession(BuildContext context, String title,
-      {List<String>? targetSubjects}) async {
+      {List<String>? targetSubjects, List<Question>? fixedQuestions}) async {
     // For testing: bypass login check
     // final authService = AuthService();
     // final user = authService.currentUser;
@@ -983,6 +1021,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final controller = SessionController();
 
+    // Show loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -991,7 +1030,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       await controller.startNewSession(userId, title,
-          targetSubjects: targetSubjects);
+          targetSubjects: targetSubjects, fixedQuestions: fixedQuestions);
 
       print('[StartSession] Session started successfully');
 
