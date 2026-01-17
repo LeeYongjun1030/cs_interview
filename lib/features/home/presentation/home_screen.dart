@@ -588,7 +588,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (builderContext, setState) {
             return AlertDialog(
               backgroundColor: AppColors.surface,
               title:
@@ -661,6 +661,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       : () {
                           Navigator.pop(dialogContext);
                           // Call start session with selected subjects
+                          // Use outer 'context' (HomeScreen) to ensure it survives the pop
                           _startSession(context, title,
                               targetSubjects: selectedKeys);
                         },
@@ -698,8 +699,11 @@ class _HomeScreenState extends State<HomeScreen> {
       await controller.startNewSession(userId, title,
           targetSubjects: targetSubjects);
 
+      print('[StartSession] Session started successfully');
+
       if (!context.mounted) return;
       Navigator.pop(context); // Pop loading
+      print('[StartSession] Navigating to InterviewScreen');
       await Navigator.push(
         context,
         MaterialPageRoute(

@@ -104,6 +104,7 @@ class SessionController extends ChangeNotifier {
       );
 
       _currentSessionId = sessionId;
+      print('[StartSession] Created session with ID: $sessionId');
       return sessionId;
     } catch (e) {
       print('[StartSession] Error: $e');

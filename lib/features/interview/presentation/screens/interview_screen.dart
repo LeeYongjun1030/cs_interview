@@ -24,6 +24,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
   @override
   void initState() {
     super.initState();
+
+    print('[InterviewScreen] initState');
     _speech = stt.SpeechToText();
     // Assuming controller needs initialization or likely already done in previous screen
     // widget.controller.startNewSession if not already?
