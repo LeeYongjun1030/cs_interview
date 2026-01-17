@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/utils/data_seeder.dart';
+
 import '../../interview/presentation/screens/interview_screen.dart';
 import '../../interview/presentation/providers/session_controller.dart';
 import '../../interview/data/repositories/interview_repository.dart';
@@ -163,7 +163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           _buildSubjectCard(
                               context,
                               Icons.memory,
-                              strings.subjectNetwork,
+                              strings.subjectArch,
                               'computer_architecture',
                               Colors.blueGrey),
                           const SizedBox(width: 12),
@@ -467,72 +467,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           // Language Toggle
-          Consumer<LanguageController>(
-            builder: (context, controller, child) {
-              return Padding(
-                padding: const EdgeInsets.only(right: 8.0),
-                child: TextButton(
-                  onPressed: () => controller.toggleLanguage(),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.white.withValues(alpha: 0.1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  ),
-                  child: Text(
-                    controller.currentLanguage == AppLanguage.korean
-                        ? '🇰🇷 KO'
-                        : '🇺🇸 EN',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          // Admin Seed / Cleanup Button (Hidden style)
-          // Admin Seed / Cleanup Button
-          IconButton(
-            icon: const Icon(Icons.cloud_upload, color: Colors.white70),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => SimpleDialog(
-                  title: const Text('Admin Menu',
-                      style: TextStyle(color: AppColors.primary)),
-                  backgroundColor: AppColors.surface,
-                  children: [
-                    SimpleDialogOption(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        final seeder = DataSeeder();
-                        await seeder.seedData();
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Data Seeded')));
-                        }
-                      },
-                      child: const Text('Seed Data (Load CSV)',
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                    SimpleDialogOption(
-                      onPressed: () async {
-                        Navigator.pop(context);
-                        _cleanupIncompleteSessions();
-                      },
-                      child: const Text('Clean Incomplete Sessions',
-                          style: TextStyle(color: AppColors.accentRed)),
-                    ),
-                  ],
-                ),
-              );
-            },
-          )
         ],
       ),
     );
@@ -578,6 +512,7 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(16),
         child: Container(
           width: 140,
+          height: 120, // Fixed height for consistency
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
             color: AppColors.surface,
@@ -602,6 +537,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: AppTextStyles.labelLarge
                     .copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
