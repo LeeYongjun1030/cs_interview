@@ -46,7 +46,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final sessions = await _repository.fetchUserSessions(_userId);
       if (mounted) {
         setState(() {
-          _sessions = sessions;
+          // Filter only completed sessions locally for display
+          _sessions = sessions
+              .where((s) => s.status == SessionStatus.completed)
+              .toList();
           _isLoading = false;
         });
       }
@@ -113,84 +116,249 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeContent() {
+    final recentSession = (!_isLoading && _sessions.isNotEmpty)
+        ? _sessions
+            .where((s) => s.status == SessionStatus.completed)
+            .firstOrNull
+        : null;
+
     return SafeArea(
       bottom: false,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text('과목별 학습',
-                style: AppTextStyles.titleLarge
-                    .copyWith(fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            height: 120,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildSubjectCard(context, Icons.memory, '컴퓨터구조',
-                    'computer_architecture', Colors.blueGrey),
-                const SizedBox(width: 12),
-                _buildSubjectCard(context, Icons.settings_system_daydream,
-                    '운영체제', 'operating_system', AppColors.accentRed),
-                const SizedBox(width: 12),
-                _buildSubjectCard(context, Icons.hub, '네트워크', 'network',
-                    AppColors.accentCyan),
-                const SizedBox(width: 12),
-                _buildSubjectCard(context, Icons.storage, '데이터베이스', 'database',
-                    const Color(0xFFFFCC00)),
-                const SizedBox(width: 12),
-                _buildSubjectCard(context, Icons.layers, '자료구조',
-                    'data_structure', Colors.green),
-                const SizedBox(width: 12),
-                _buildSubjectCard(
-                    context, Icons.coffee, 'Java', 'java', Colors.orange),
-                const SizedBox(width: 12),
-                _buildSubjectCard(context, Icons.code, 'JavaScript',
-                    'javascript', Colors.yellow),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Recent Sessions',
-                    style: AppTextStyles.titleLarge
-                        .copyWith(fontWeight: FontWeight.bold)),
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: Colors.white70),
-                  onPressed: () {
-                    setState(() => _isLoading = true);
-                    _fetchSessions();
-                  },
-                )
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _sessions.isEmpty
-                    ? _buildEmptyState()
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(
-                            16, 0, 16, 120), // More bottom padding for nav
-                        itemCount: _sessions.length,
-                        itemBuilder: (context, index) {
-                          return _buildSessionCard(_sessions[index]);
+                _buildHeader(),
+                if (recentSession != null) ...[
+                  const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _buildFeaturedSessionCard(recentSession),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text('과목별 학습',
+                      style: AppTextStyles.titleLarge
+                          .copyWith(fontWeight: FontWeight.bold)),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 120,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    children: [
+                      _buildSubjectCard(context, Icons.memory, '컴퓨터구조',
+                          'computer_architecture', Colors.blueGrey),
+                      const SizedBox(width: 12),
+                      _buildSubjectCard(context, Icons.settings_system_daydream,
+                          '운영체제', 'operating_system', AppColors.accentRed),
+                      const SizedBox(width: 12),
+                      _buildSubjectCard(context, Icons.hub, '네트워크', 'network',
+                          AppColors.accentCyan),
+                      const SizedBox(width: 12),
+                      _buildSubjectCard(context, Icons.storage, '데이터베이스',
+                          'database', const Color(0xFFFFCC00)),
+                      const SizedBox(width: 12),
+                      _buildSubjectCard(context, Icons.layers, '자료구조',
+                          'data_structure', Colors.green),
+                      const SizedBox(width: 12),
+                      _buildSubjectCard(
+                          context, Icons.coffee, 'Java', 'java', Colors.orange),
+                      const SizedBox(width: 12),
+                      _buildSubjectCard(context, Icons.code, 'JavaScript',
+                          'javascript', Colors.yellow),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Recent Sessions',
+                          style: AppTextStyles.titleLarge
+                              .copyWith(fontWeight: FontWeight.bold)),
+                      IconButton(
+                        icon: const Icon(Icons.refresh, color: Colors.white70),
+                        onPressed: () {
+                          setState(() => _isLoading = true);
+                          _fetchSessions();
                         },
-                      ),
+                      )
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
+          if (_isLoading)
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (_sessions.isEmpty)
+            SliverFillRemaining(
+              child: _buildEmptyState(),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    return _buildSessionCard(_sessions[index]);
+                  },
+                  childCount: _sessions.length,
+                ),
+              ),
+            ),
+          const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFeaturedSessionCard(InterviewSession session) {
+    // Only show completed
+    if (session.status != SessionStatus.completed) {
+      return const SizedBox.shrink();
+    }
+
+    final dateStr = DateFormat('MM.dd').format(session.startTime);
+    final score = session.averageScore?.round() ?? 0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: InkWell(
+        onTap: () => _openSessionDetail(session),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text('최근 학습 기록 ($dateStr)',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        session.title,
+                        style: AppTextStyles.titleLarge.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          height: 1.2,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.accentCyan.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    '$score점',
+                    style: const TextStyle(
+                      color: AppColors.accentCyan,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Divider(color: Colors.white.withValues(alpha: 0.2)),
+            const SizedBox(height: 12),
+            ...session.questions.map((q) {
+              final eval = q.evaluation ?? {};
+              final mainEval = eval['main'] as Map<String, dynamic>?;
+              final itemScore = mainEval?['score'] as int? ?? 0;
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Q. ${q.questionText}',
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'A. ${q.userAnswerText}',
+                            style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 12),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2)),
+                      ),
+                      child: Text(
+                        '$itemScore점',
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
       ),
     );
   }
@@ -245,13 +413,40 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          // Admin Seed Button (Hidden style)
+          // Admin Seed / Cleanup Button (Hidden style)
           InkWell(
             onLongPress: () async {
-              final seeder = DataSeeder();
-              await seeder.seedData();
-              ScaffoldMessenger.of(context)
-                  .showSnackBar(const SnackBar(content: Text('Data Seeded')));
+              showDialog(
+                context: context,
+                builder: (context) => SimpleDialog(
+                  title: const Text('Admin Menu',
+                      style: TextStyle(color: AppColors.primary)),
+                  backgroundColor: AppColors.surface,
+                  children: [
+                    SimpleDialogOption(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        final seeder = DataSeeder();
+                        await seeder.seedData();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Data Seeded')));
+                        }
+                      },
+                      child: const Text('Seed Data',
+                          style: TextStyle(color: Colors.white)),
+                    ),
+                    SimpleDialogOption(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        _cleanupIncompleteSessions();
+                      },
+                      child: const Text('Clean Incomplete Sessions',
+                          style: TextStyle(color: AppColors.accentRed)),
+                    ),
+                  ],
+                ),
+              );
             },
             child: Container(
               padding: const EdgeInsets.all(8),
@@ -697,6 +892,41 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  Future<void> _cleanupIncompleteSessions() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      messenger.showSnackBar(
+          const SnackBar(content: Text('Cleaning up incomplete sessions...')));
+
+      // 1. Fetch ALL sessions (including incomplete)
+      final allSessions = await _repository.fetchUserSessions(_userId);
+
+      // 2. Filter incomplete ones
+      final incomplete = allSessions
+          .where((s) => s.status != SessionStatus.completed)
+          .toList();
+
+      if (incomplete.isEmpty) {
+        messenger.showSnackBar(
+            const SnackBar(content: Text('No incomplete sessions found.')));
+        return;
+      }
+
+      // 3. Delete them
+      for (final session in incomplete) {
+        await _repository.deleteSession(session.id);
+      }
+
+      messenger.showSnackBar(SnackBar(
+          content: Text('Deleted ${incomplete.length} incomplete sessions.')));
+
+      // 4. Refresh list
+      _fetchSessions();
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Failed to cleanup: $e')));
+    }
   }
 
   void _openSessionDetail(InterviewSession session) {

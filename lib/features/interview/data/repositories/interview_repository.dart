@@ -100,4 +100,12 @@ class InterviewRepository {
       throw Exception('Failed to fetch user sessions: $e');
     }
   }
+
+  Future<void> deleteSession(String sessionId) async {
+    try {
+      await _sessionsRef.doc(sessionId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete session: $e');
+    }
+  }
 }
