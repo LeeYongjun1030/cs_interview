@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/localization/language_service.dart';
 import '../providers/session_controller.dart';
 
 class InterviewResultScreen extends StatelessWidget {
@@ -19,12 +21,14 @@ class InterviewResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final displayScore = averageScore.round();
+    final langController = Provider.of<LanguageController>(context);
+    final strings = AppStrings(langController.currentLanguage);
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title:
-            const Text('면접 결과 Report', style: TextStyle(color: Colors.white)),
+        title: Text(strings.resultReportTitle,
+            style: const TextStyle(color: Colors.white)),
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
@@ -54,13 +58,13 @@ class InterviewResultScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '종합 점수',
+                        strings.overallScore, // Reusing existing or new key
                         style: AppTextStyles.labelMedium
                             .copyWith(color: Colors.white70),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${displayScore}점',
+                        '${displayScore}', // Removed '점' to be generic or add unit in strings if needed. Korean usually adds 점.
                         style: AppTextStyles.displayMedium.copyWith(
                             color: Colors.white, fontWeight: FontWeight.bold),
                       ),
@@ -68,7 +72,7 @@ class InterviewResultScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      _getCheerMessage(displayScore),
+                      _getCheerMessage(displayScore, strings),
                       style: AppTextStyles.titleSmall
                           .copyWith(color: Colors.white),
                       textAlign: TextAlign.right,
@@ -86,7 +90,7 @@ class InterviewResultScreen extends StatelessWidget {
               final round = entry.value;
               return Column(
                 children: [
-                  _buildRoundCard(index + 1, round),
+                  _buildRoundCard(index + 1, round, strings),
                   const SizedBox(height: 16),
                 ],
               );
@@ -103,15 +107,15 @@ class InterviewResultScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               OutlinedButton(
-                onPressed: () => _handleRetry(context),
+                onPressed: () => _handleRetry(context, strings),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppColors.primary),
                   minimumSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                 ),
-                child: const Text('같은 질문으로 다시 도전 (Retry)',
-                    style: TextStyle(
+                child: Text(strings.retrySameQuestions,
+                    style: const TextStyle(
                         color: AppColors.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
@@ -127,8 +131,8 @@ class InterviewResultScreen extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                 ),
-                child: const Text('홈으로 이동',
-                    style: TextStyle(
+                child: Text(strings.homeButton,
+                    style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
@@ -140,29 +144,29 @@ class InterviewResultScreen extends StatelessWidget {
     );
   }
 
-  void _handleRetry(BuildContext context) {
+  void _handleRetry(BuildContext context, AppStrings strings) {
     showDialog(
       context: context,
       builder: (context) {
         final titleController = TextEditingController(
           text:
-              '재도전-세션-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).substring(4)}',
+              '${strings.defaultSessionTitle}-${DateTime.now().millisecondsSinceEpoch.toRadixString(36).substring(4)}',
         );
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          title: const Text('다시 도전하기',
-              style: TextStyle(color: Colors.white, fontSize: 18)),
+          title: Text(strings.retryTitleDialog,
+              style: const TextStyle(color: Colors.white, fontSize: 18)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('이전 세션과 동일한 질문으로\n새로운 세션을 시작합니다.',
-                  style: TextStyle(color: Colors.white70)),
+              Text(strings.retryContentDialog,
+                  style: const TextStyle(color: Colors.white70)),
               const SizedBox(height: 16),
               TextField(
                 controller: titleController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: '세션 이름',
+                  labelText: strings.sessionNameLabel,
                   labelStyle: const TextStyle(color: Colors.white54),
                   filled: true,
                   fillColor: Colors.black12,
@@ -176,7 +180,8 @@ class InterviewResultScreen extends StatelessWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('취소', style: TextStyle(color: Colors.white54)),
+              child: Text(strings.cancelButton,
+                  style: const TextStyle(color: Colors.white54)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -190,8 +195,8 @@ class InterviewResultScreen extends StatelessWidget {
                 Navigator.pop(context);
                 _startRetrySession(context, title);
               },
-              child: const Text('시작',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(strings.startAction,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -210,7 +215,7 @@ class InterviewResultScreen extends StatelessWidget {
     Navigator.pop(context, retryData);
   }
 
-  Widget _buildRoundCard(int index, SessionRound round) {
+  Widget _buildRoundCard(int index, SessionRound round, AppStrings strings) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -236,7 +241,8 @@ class InterviewResultScreen extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  round.mainQuestion.question,
+                  round.mainQuestion
+                      .getLocalizedQuestion(strings.language.code),
                   style: AppTextStyles.titleSmall.copyWith(color: Colors.white),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -244,7 +250,7 @@ class InterviewResultScreen extends StatelessWidget {
               ),
               if (round.mainGrade != null)
                 Text(
-                  '${round.mainGrade!.score}점',
+                  '${round.mainGrade!.score}',
                   style: TextStyle(
                       color: _getScoreColor(round.mainGrade!.score),
                       fontWeight: FontWeight.bold),
@@ -264,8 +270,9 @@ class InterviewResultScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('나의 답변',
-                      style: TextStyle(color: Colors.white38, fontSize: 11)),
+                  Text(strings.myAnswer,
+                      style:
+                          const TextStyle(color: Colors.white38, fontSize: 11)),
                   const SizedBox(height: 4),
                   Text(round.mainAnswer!,
                       style:
@@ -277,12 +284,12 @@ class InterviewResultScreen extends StatelessWidget {
           const SizedBox(height: 12),
           // Main Feedback
           if (round.mainGrade != null) ...[
-            Text('AI 피드백: ${round.mainGrade!.feedback}',
+            Text('${strings.aiFeedback}: ${round.mainGrade!.feedback}',
                 style:
                     const TextStyle(color: AppColors.accentCyan, fontSize: 13)),
           ] else ...[
-            const Text('피드백 없음',
-                style: TextStyle(color: Colors.white38, fontSize: 13)),
+            Text(strings.noFeedback,
+                style: const TextStyle(color: Colors.white38, fontSize: 13)),
           ],
 
           // Follow Up Section if exists
@@ -293,15 +300,15 @@ class InterviewResultScreen extends StatelessWidget {
                 const Icon(Icons.subdirectory_arrow_right,
                     color: AppColors.accentRed, size: 16),
                 const SizedBox(width: 8),
-                const Text('AI 꼬리 질문',
-                    style: TextStyle(
+                Text(strings.followUpTitle,
+                    style: const TextStyle(
                         color: AppColors.accentRed,
                         fontSize: 12,
                         fontWeight: FontWeight.bold)),
                 const Spacer(),
                 if (round.followUpGrade != null)
                   Text(
-                    '${round.followUpGrade!.score}점',
+                    '${round.followUpGrade!.score}',
                     style: TextStyle(
                         color: _getScoreColor(round.followUpGrade!.score),
                         fontWeight: FontWeight.bold,
@@ -327,8 +334,9 @@ class InterviewResultScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('나의 답변',
-                        style: TextStyle(color: Colors.white38, fontSize: 11)),
+                    Text(strings.myAnswer,
+                        style: const TextStyle(
+                            color: Colors.white38, fontSize: 11)),
                     const SizedBox(height: 4),
                     Text(round.followUpAnswer!,
                         style: const TextStyle(
@@ -339,7 +347,7 @@ class InterviewResultScreen extends StatelessWidget {
             ],
             if (round.followUpGrade != null) ...[
               const SizedBox(height: 8),
-              Text('AI 피드백: ${round.followUpGrade!.feedback}',
+              Text('${strings.aiFeedback}: ${round.followUpGrade!.feedback}',
                   style: const TextStyle(
                       color: AppColors.accentCyan, fontSize: 12)),
             ]
@@ -355,10 +363,21 @@ class InterviewResultScreen extends StatelessWidget {
     return AppColors.accentRed;
   }
 
-  String _getCheerMessage(int score) {
-    if (score >= 90) return '완벽해요! 면접 마스터시네요 🏆';
-    if (score >= 70) return '훌륭해요! 조금만 더 다듬으면 완벽할 거예요 🚀';
-    if (score >= 50) return '좋아요! 부족한 부분을 보완해볼까요? 💪';
-    return '시작이 반이에요! 꾸준히 연습해봐요 🌱';
+  String _getCheerMessage(int score, AppStrings strings) {
+    // Ideally these messages should also be in AppStrings or passed by key
+    // For now, I'll localize them inline or just keep basic English/Korean toggle if strict localization needed.
+    // Let's use simple logic for now.
+
+    if (strings.language == AppLanguage.korean) {
+      if (score >= 90) return '완벽해요! 면접 마스터시네요 🏆';
+      if (score >= 70) return '훌륭해요! 조금만 더 다듬으면 완벽할 거예요 🚀';
+      if (score >= 50) return '좋아요! 부족한 부분을 보완해볼까요? 💪';
+      return '시작이 반이에요! 꾸준히 연습해봐요 🌱';
+    } else {
+      if (score >= 90) return 'Perfect! You are an interview master 🏆';
+      if (score >= 70) return 'Great! Just a little more polish 🚀';
+      if (score >= 50) return 'Good! Let\'s improve the weak points 💪';
+      return 'A good start! Keep practicing 🌱';
+    }
   }
 }

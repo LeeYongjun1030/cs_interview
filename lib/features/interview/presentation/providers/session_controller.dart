@@ -126,40 +126,45 @@ class SessionController extends ChangeNotifier {
     }
   }
 
-  Future<void> submitAnswer(String answerText) async {
+  String _sessionLanguageCode = 'ko';
+
+  Future<void> submitAnswer(String answerText,
+      {String languageCode = 'ko'}) async {
     if (_currentSessionId == null || currentRound == null) return;
 
-    // Determine if this is a main answer or follow-up answer
-    final round = currentRound!;
+    _sessionLanguageCode = languageCode; // capture language code
 
-    // Set message based on context
-    if (round.isFollowUpActive) {
-      _setAiThinking(true, message: '답변 감사합니다.\n다음 면접 질문을 준비 중입니다.');
-    } else {
-      _setAiThinking(true, message: 'AI 면접관이 답변을 분석 중입니다...');
-    }
+    final round = currentRound!;
+    final isEnglish = languageCode == 'en';
+
+    // Set thinking state
+    final thinkingMsg = isEnglish
+        ? 'AI Interviewer is analyzing your answer...'
+        : 'AI 면접관이 답변을 분석 중입니다...';
+    final nextMsg = isEnglish
+        ? 'Thank you. Preparing next question...'
+        : '답변 감사합니다.\n다음 면접 질문을 준비 중입니다.';
+
+    _setAiThinking(true,
+        message: round.isFollowUpActive ? nextMsg : thinkingMsg);
 
     try {
       if (!round.isFollowUpActive) {
         // --- 1. Main Answer Submission ---
         round.mainAnswer = answerText;
-        notifyListeners(); // Update UI immediately to show local echo if needed
+        notifyListeners();
 
-        // Call AI for Grading & Follow-up Trigger
         final result = await _aiService.evaluateAnswer(
           question: round.mainQuestion,
           userAnswer: answerText,
+          languageCode: languageCode,
         );
 
         round.mainGrade = result;
 
         if (result.followUpQuestion != null) {
-          // AI wants to dig deeper!
           round.followUpQuestion = result.followUpQuestion;
-          // State: isFollowUpActive becomes true automatically
         } else {
-          // No follow-up, move to next round immediately or wait for user?
-          // For now, auto-advance to keep flow fast.
           _moveToNext();
         }
       } else {
@@ -167,20 +172,18 @@ class SessionController extends ChangeNotifier {
         round.followUpAnswer = answerText;
         notifyListeners();
 
-        // Call AI for Grading Follow-up
         final result = await _aiService.evaluateAnswer(
-          question: round.mainQuestion, // Context is main question
+          question: round.mainQuestion,
           userAnswer: answerText,
-          previousFollowUp: round.followUpQuestion, // Provide context
+          previousFollowUp: round.followUpQuestion,
+          languageCode: languageCode,
         );
 
         round.followUpGrade = result;
-        // Follow-up always ends the round in this MVP (Depth 1)
         _moveToNext();
       }
     } catch (e) {
-      // Error handling: maybe just move on?
-      // user should not be stuck
+      print('Error submitting answer: $e');
       _moveToNext();
     } finally {
       _setAiThinking(false);
@@ -225,7 +228,8 @@ class SessionController extends ChangeNotifier {
         // Construct SessionQuestionItem
         return SessionQuestionItem(
           questionId: round.mainQuestion.id,
-          questionText: round.mainQuestion.question,
+          questionText:
+              round.mainQuestion.getLocalizedQuestion(_sessionLanguageCode),
           userAnswerText: round.mainAnswer ?? '',
           aiFollowUp: round.followUpQuestion,
           userFollowUpAnswer: round.followUpAnswer,
@@ -234,7 +238,8 @@ class SessionController extends ChangeNotifier {
             'followUp': round.followUpGrade?.toJson(),
           },
           subject: round.mainQuestion.subject,
-          category: round.mainQuestion.category,
+          category:
+              round.mainQuestion.getLocalizedCategory(_sessionLanguageCode),
         );
       }).toList();
 

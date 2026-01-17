@@ -9,6 +9,8 @@ import '../../interview/presentation/providers/session_controller.dart';
 import '../../interview/data/repositories/interview_repository.dart';
 import '../../interview/domain/models/session_model.dart';
 import '../../interview/presentation/screens/subject_questions_screen.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/localization/language_service.dart';
 import 'profile_screen.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/services/ai_service.dart';
@@ -67,6 +69,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Watch language changes to rebuild the entire screen
+    final language = Provider.of<LanguageController>(context).currentLanguage;
+    final strings = AppStrings(language);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       extendBody: true,
@@ -96,10 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
           IndexedStack(
             index: _selectedIndex,
             children: [
-              _buildHomeContent(),
-              const Center(
-                  child: Text('멤버십 화면 준비중',
-                      style: TextStyle(
+              _buildHomeContent(strings),
+              Center(
+                  child: Text(strings.membershipPlaceholder,
+                      style: const TextStyle(
                           color: Colors.white))), // Placeholder for Membership
               const ProfileScreen(),
             ],
@@ -109,13 +115,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: _selectedIndex == 0
-          ? _buildFAB(context)
+          ? _buildFAB(context, strings)
           : null, // Only show FAB on Home
-      bottomNavigationBar: _buildBottomNav(context),
+      bottomNavigationBar: _buildBottomNav(context, strings),
     );
   }
 
-  Widget _buildHomeContent() {
+  Widget _buildHomeContent(AppStrings strings) {
     final recentSession = (!_isLoading && _sessions.isNotEmpty)
         ? _sessions
             .where((s) => s.status == SessionStatus.completed)
@@ -130,18 +136,18 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildHeader(),
+                _buildHeader(strings),
                 if (recentSession != null) ...[
                   const SizedBox(height: 16),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _buildFeaturedSessionCard(recentSession),
+                    child: _buildFeaturedSessionCard(recentSession, strings),
                   ),
                 ],
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text('과목별 학습',
+                  child: Text(strings.sectionSubjectLearning,
                       style: AppTextStyles.titleLarge
                           .copyWith(fontWeight: FontWeight.bold)),
                 ),
@@ -152,26 +158,50 @@ class _HomeScreenState extends State<HomeScreen> {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
-                      _buildSubjectCard(context, Icons.memory, '컴퓨터구조',
-                          'computer_architecture', Colors.blueGrey),
-                      const SizedBox(width: 12),
-                      _buildSubjectCard(context, Icons.settings_system_daydream,
-                          '운영체제', 'operating_system', AppColors.accentRed),
-                      const SizedBox(width: 12),
-                      _buildSubjectCard(context, Icons.hub, '네트워크', 'network',
-                          AppColors.accentCyan),
-                      const SizedBox(width: 12),
-                      _buildSubjectCard(context, Icons.storage, '데이터베이스',
-                          'database', const Color(0xFFFFCC00)),
-                      const SizedBox(width: 12),
-                      _buildSubjectCard(context, Icons.layers, '자료구조',
-                          'data_structure', Colors.green),
-                      const SizedBox(width: 12),
-                      _buildSubjectCard(
-                          context, Icons.coffee, 'Java', 'java', Colors.orange),
-                      const SizedBox(width: 12),
-                      _buildSubjectCard(context, Icons.code, 'JavaScript',
-                          'javascript', Colors.yellow),
+                      Row(
+                        children: [
+                          _buildSubjectCard(
+                              context,
+                              Icons.memory,
+                              strings.subjectNetwork,
+                              'computer_architecture',
+                              Colors.blueGrey),
+                          const SizedBox(width: 12),
+                          _buildSubjectCard(
+                              context,
+                              Icons.settings_system_daydream,
+                              strings.subjectOS,
+                              'operating_system',
+                              AppColors.accentRed),
+                          const SizedBox(width: 12),
+                          _buildSubjectCard(
+                              context,
+                              Icons.hub,
+                              strings.subjectNetwork,
+                              'network',
+                              AppColors.accentCyan),
+                          const SizedBox(width: 12),
+                          _buildSubjectCard(
+                              context,
+                              Icons.storage,
+                              strings.subjectDB,
+                              'database',
+                              const Color(0xFFFFCC00)),
+                          const SizedBox(width: 12),
+                          _buildSubjectCard(
+                              context,
+                              Icons.layers,
+                              strings.subjectDS,
+                              'data_structure',
+                              Colors.green),
+                          const SizedBox(width: 12),
+                          _buildSubjectCard(context, Icons.coffee,
+                              strings.subjectJava, 'java', Colors.orange),
+                          const SizedBox(width: 12),
+                          _buildSubjectCard(context, Icons.code,
+                              strings.subjectJs, 'javascript', Colors.yellow),
+                        ],
+                      )
                     ],
                   ),
                 ),
@@ -181,9 +211,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Recent Sessions',
-                          style: AppTextStyles.titleLarge
-                              .copyWith(fontWeight: FontWeight.bold)),
+                      Text(
+                        strings.recentSessions,
+                        style: AppTextStyles.titleLarge
+                            .copyWith(fontWeight: FontWeight.bold),
+                      ),
                       IconButton(
                         icon: const Icon(Icons.refresh, color: Colors.white70),
                         onPressed: () {
@@ -207,7 +239,7 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           else if (_sessions.isEmpty)
             SliverFillRemaining(
-              child: _buildEmptyState(),
+              child: _buildEmptyState(strings),
             )
           else
             SliverPadding(
@@ -215,7 +247,7 @@ class _HomeScreenState extends State<HomeScreen> {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    return _buildSessionCard(_sessions[index]);
+                    return _buildSessionCard(_sessions[index], strings);
                   },
                   childCount: _sessions.length,
                 ),
@@ -227,7 +259,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFeaturedSessionCard(InterviewSession session) {
+  Widget _buildFeaturedSessionCard(
+      InterviewSession session, AppStrings strings) {
     // Only show completed
     if (session.status != SessionStatus.completed) {
       return const SizedBox.shrink();
@@ -261,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        child: Text('최근 학습 기록 ($dateStr)',
+                        child: Text('${strings.recentSessionBadge} ($dateStr)',
                             style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -292,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: AppColors.accentCyan.withValues(alpha: 0.3)),
                   ),
                   child: Text(
-                    '$score점',
+                    '$score${strings.scoreSuffix}',
                     style: const TextStyle(
                       color: AppColors.accentCyan,
                       fontSize: 16,
@@ -349,7 +382,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.white.withValues(alpha: 0.2)),
                       ),
                       child: Text(
-                        '$itemScore점',
+                        '$itemScore${strings.scoreSuffix}',
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
@@ -359,14 +392,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               );
-            }),
+            }).toList(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppStrings strings) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -422,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('READY TO INTERVIEW?',
+                  Text(strings.readyToInterview,
                       style: AppTextStyles.labelSmall.copyWith(
                           color: AppColors.textTertiary, letterSpacing: 1.5)),
                   Text(
@@ -433,9 +466,40 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+          // Language Toggle
+          Consumer<LanguageController>(
+            builder: (context, controller, child) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: TextButton(
+                  onPressed: () => controller.toggleLanguage(),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.1),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  child: Text(
+                    controller.currentLanguage == AppLanguage.korean
+                        ? '🇰🇷 KO'
+                        : '🇺🇸 EN',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
           // Admin Seed / Cleanup Button (Hidden style)
-          InkWell(
-            onLongPress: () async {
+          // Admin Seed / Cleanup Button
+          IconButton(
+            icon: const Icon(Icons.cloud_upload, color: Colors.white70),
+            onPressed: () {
               showDialog(
                 context: context,
                 builder: (context) => SimpleDialog(
@@ -448,12 +512,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.pop(context);
                         final seeder = DataSeeder();
                         await seeder.seedData();
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Data Seeded')));
                         }
                       },
-                      child: const Text('Seed Data',
+                      child: const Text('Seed Data (Load CSV)',
                           style: TextStyle(color: Colors.white)),
                     ),
                     SimpleDialogOption(
@@ -468,21 +532,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               );
             },
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                  color: Colors.white10,
-                  borderRadius: BorderRadius.circular(8)),
-              child:
-                  const Icon(Icons.settings, color: Colors.white70, size: 20),
-            ),
           )
         ],
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppStrings strings) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -490,10 +546,10 @@ class _HomeScreenState extends State<HomeScreen> {
           Icon(Icons.history_toggle_off,
               size: 60, color: Colors.white.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
-          Text('아직 면접 기록이 없습니다.',
+          Text(strings.recentSessions,
               style: AppTextStyles.bodyLarge.copyWith(color: Colors.white54)),
           const SizedBox(height: 8),
-          Text('아래 버튼을 눌러 첫 세션을 시작해보세요!',
+          Text(strings.startNewSession,
               style: AppTextStyles.labelMedium.copyWith(color: Colors.white30)),
         ],
       ),
@@ -554,7 +610,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSessionCard(InterviewSession session) {
+  Widget _buildSessionCard(InterviewSession session, AppStrings strings) {
     // Only show completed sessions
     if (session.status != SessionStatus.completed)
       return const SizedBox.shrink();
@@ -602,7 +658,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: AppColors.accentCyan.withValues(alpha: 0.3)),
                       ),
                       child: Text(
-                        'Score: ${session.averageScore!.toStringAsFixed(0)}',
+                        '${strings.scorePrefix}: ${session.averageScore!.toStringAsFixed(0)}',
                         style: AppTextStyles.bodyMedium.copyWith(
                           color: AppColors.accentCyan,
                           fontWeight: FontWeight.bold,
@@ -618,7 +674,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFAB(BuildContext context) {
+  Widget _buildFAB(BuildContext context, AppStrings strings) {
     return Container(
       width: 300,
       height: 56,
@@ -668,12 +724,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('실전 면접 시작',
-                          style: TextStyle(
+                      Text(strings.startInterviewButton,
+                          style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 16)),
-                      Text('AI INTERVIEWER STANDBY',
+                      Text(strings.aiStandbyStatus,
                           style: TextStyle(
                               color:
                                   AppColors.accentCyan.withValues(alpha: 0.8),
@@ -692,7 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBottomNav(BuildContext context) {
+  Widget _buildBottomNav(BuildContext context, AppStrings strings) {
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -707,9 +763,9 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(0, Icons.dashboard, '홈'),
-              _buildNavItem(1, Icons.diamond_outlined, '멤버십'),
-              _buildNavItem(2, Icons.person_outline, '프로필'),
+              _buildNavItem(0, Icons.dashboard, strings.navHome),
+              _buildNavItem(1, Icons.diamond_outlined, strings.navMembership),
+              _buildNavItem(2, Icons.person_outline, strings.navProfile),
             ],
           ),
         ),
@@ -751,32 +807,39 @@ class _HomeScreenState extends State<HomeScreen> {
     // Auto-generate title: "새로운-세션-cf61s2" (Base36, 6 chars)
     final timestamp = DateTime.now().millisecondsSinceEpoch.toRadixString(36);
     final randomSuffix = timestamp.substring(timestamp.length - 6);
-    final autoTitle = '새로운-세션-$randomSuffix';
+    final strings = AppStrings(
+        Provider.of<LanguageController>(context, listen: false)
+            .currentLanguage);
+
+    // Localize default title base
+    final defaultTitleBase = strings.defaultSessionTitle.replaceAll(' ', '-');
+    final autoTitle = '$defaultTitleBase-$randomSuffix';
     final titleController = TextEditingController(text: autoTitle);
 
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('세션 시작', style: TextStyle(color: Colors.white)),
+        title: Text(strings.startNewSession,
+            style: const TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('이번 면접 세션의 목표나 제목을 정해주세요.',
-                style: TextStyle(color: Colors.white70)),
+            Text(strings.sessionGoalHint,
+                style: const TextStyle(color: Colors.white70)),
             const SizedBox(height: 16),
             TextField(
               controller: titleController,
               autofocus: true,
               style: const TextStyle(color: Colors.white),
               maxLength: 30,
-              decoration: const InputDecoration(
-                hintText: '예: 네트워크 뿌시기',
-                hintStyle: TextStyle(color: Colors.white30),
-                counterStyle: TextStyle(color: Colors.white30),
-                labelText: '세션 제목',
-                labelStyle: TextStyle(color: AppColors.accentCyan),
+              decoration: InputDecoration(
+                hintText: strings.sessionTitleHint,
+                hintStyle: const TextStyle(color: Colors.white30),
+                counterStyle: const TextStyle(color: Colors.white30),
+                labelText: strings.sessionNameLabel,
+                labelStyle: const TextStyle(color: AppColors.accentCyan),
               ),
             ),
           ],
@@ -784,7 +847,8 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('취소', style: TextStyle(color: Colors.white54)),
+            child: Text(strings.cancelButton,
+                style: const TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -797,8 +861,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   context, title); // Open subject dialog
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            child:
-                const Text('다음', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(strings.nextButtonLabel,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -806,14 +870,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showSubjectSelectionDialog(BuildContext context, String title) {
+    final strings = AppStrings(
+        Provider.of<LanguageController>(context, listen: false)
+            .currentLanguage);
+
     final Map<String, String> subjects = {
-      'computer_architecture': '컴퓨터 구조',
-      'operating_system': '운영체제',
-      'network': '네트워크',
-      'database': '데이터베이스',
-      'data_structure': '자료구조',
-      'java': '자바',
-      'javascript': '자바스크립트',
+      'computer_architecture': strings.subjectArch,
+      'operating_system': strings.subjectOS,
+      'network': strings.subjectNetwork,
+      'database': strings.subjectDB,
+      'data_structure': strings.subjectDS,
+      'java': strings.subjectJava,
+      'javascript': strings.subjectJs,
     };
 
     // Default: All selected
@@ -826,8 +894,8 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (builderContext, setState) {
             return AlertDialog(
               backgroundColor: AppColors.surface,
-              title:
-                  const Text('출제 과목 선택', style: TextStyle(color: Colors.white)),
+              title: Text(strings.selectSubjectTitle,
+                  style: const TextStyle(color: Colors.white)),
               content: SizedBox(
                 width: double.maxFinite,
                 child: SingleChildScrollView(
@@ -836,8 +904,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '원하는 과목을 선택해주세요. (복수 선택 가능)',
-                        style: TextStyle(color: Colors.white70, fontSize: 13),
+                        strings.selectSubjectSubtitle,
+                        style: const TextStyle(
+                            color: Colors.white70, fontSize: 13),
                       ),
                       const SizedBox(height: 16),
                       Wrap(
@@ -887,8 +956,8 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
-                  child:
-                      const Text('취소', style: TextStyle(color: Colors.white54)),
+                  child: Text(strings.cancelButton,
+                      style: const TextStyle(color: Colors.white54)),
                 ),
                 ElevatedButton(
                   onPressed: selectedKeys.isEmpty
@@ -904,8 +973,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor: AppColors.primary,
                     disabledBackgroundColor: Colors.white10,
                   ),
-                  child: const Text('면접 시작',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(strings.startInterviewButton,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ],
             );

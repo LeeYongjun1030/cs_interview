@@ -14,12 +14,12 @@ class DataSeeder {
 
     final StringBuffer logs = StringBuffer();
     int successCount = 0;
-    
+
     // logs.writeln('Starts seeding from CSV (Authenticated: ${FirebaseAuth.instance.currentUser?.email})...');
-    logs.writeln('Starts seeding from CSV (Auth Bypassed)...');
+    logs.writeln('Starts seeding from questions2.csv (Auth Bypassed)...');
 
     try {
-      final content = await rootBundle.loadString('questions/questions.csv');
+      final content = await rootBundle.loadString('questions/questions2.csv');
 
       final rows = content.split('\n');
       if (rows.length < 2) {
@@ -27,29 +27,40 @@ class DataSeeder {
       }
 
       final List<Question> questions = [];
-      
+
       // Parse CSV (Skip header)
       for (int i = 1; i < rows.length; i++) {
         final line = rows[i].trim();
         if (line.isEmpty) continue;
 
         // Simple CSV parsing (handling quoted strings)
-        // Note: This is a basic parser. For complex CSVs, use csv package.
-        // Assuming the user's CSV is well-formed.
         final List<String> cells = _parseCsvLine(line);
+        // Expect at least 6 columns for valid KO data. EN is optional but ideal.
         if (cells.length < 6) {
           logs.writeln('Skipping invalid line $i: $line');
           continue;
         }
 
-        // Columns: 과목,질문,꿀팁 한문장,난이도,키워드들,카테고리들
+        // Columns:
+        // 0:과목, 1:질문, 2:꿀팁, 3:난이도, 4:키워드, 5:카테고리
+        // 6:영어질문, 7:영어꿀팁, 8:영어키워드, 9:영어카테고리 (New)
         final subjectRaw = cells[0].trim();
         final questionText = cells[1].trim();
         final tipText = cells[2].trim();
         final difficultyStr = cells[3].trim();
         final keywordsStr = cells[4].trim();
         final categoryRaw = cells[5].trim();
-        
+
+        String? questionEn;
+        String? tipEn;
+        String? keywordsEnStr;
+        String? categoryEn;
+
+        if (cells.length > 6) questionEn = cells[6].trim();
+        if (cells.length > 7) tipEn = cells[7].trim();
+        if (cells.length > 8) keywordsEnStr = cells[8].trim();
+        if (cells.length > 9) categoryEn = cells[9].trim();
+
         // Map Difficulty to Level
         int level = 1; // Bronze
         if (difficultyStr == '중') level = 2; // Silver
@@ -69,20 +80,22 @@ class DataSeeder {
         questions.add(Question(
           id: '${subjectKey}_${i.toString().padLeft(3, '0')}',
           subject: subjectKey,
-          category: categoryRaw, // Specific sub-topic from CSV
+          category: categoryRaw,
           question: questionText,
+          questionEn: questionEn,
           tip: tipText,
+          tipEn: tipEn,
           depth: 0,
           keywords: keywordsStr.split(',').map((e) => e.trim()).toList(),
+          keywordsEn: keywordsEnStr?.split(',').map((e) => e.trim()).toList(),
+          categoryEn: categoryEn,
           level: level,
         ));
       }
 
-
       logs.writeln('Parsed ${questions.length} questions from CSV.');
 
       if (questions.isNotEmpty) {
-
         final batch = _firestore.batch();
         for (final q in questions) {
           final docRef = _firestore.collection('questions').doc(q.id);
@@ -90,15 +103,13 @@ class DataSeeder {
         }
         await batch.commit();
         successCount = questions.length;
-
       }
-
     } catch (e) {
       logs.writeln('Failed: $e');
-
     }
 
-    final result = 'Completed. Total Questions Uploaded: $successCount.\nLogs:\n$logs';
+    final result =
+        'Completed. Total Questions Uploaded: $successCount.\nLogs:\n$logs';
 
     return result;
   }
@@ -108,10 +119,10 @@ class DataSeeder {
     List<String> result = [];
     bool inQuote = false;
     StringBuffer current = StringBuffer();
-    
+
     for (int i = 0; i < line.length; i++) {
       String char = line[i];
-      
+
       if (char == '"') {
         inQuote = !inQuote;
       } else if (char == ',' && !inQuote) {

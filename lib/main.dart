@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
+import 'package:provider/provider.dart';
+import 'core/localization/language_service.dart';
 import 'features/home/presentation/home_screen.dart';
 import 'features/auth/presentation/login_screen.dart';
 
@@ -13,7 +15,14 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    runApp(const MyApp());
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => LanguageController()),
+        ],
+        child: const MyApp(),
+      ),
+    );
   } catch (e, stackTrace) {
     print("Failed to initialize Firebase: $e");
     runApp(ErrorApp(error: e.toString(), stackTrace: stackTrace));

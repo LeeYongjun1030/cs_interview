@@ -3,6 +3,8 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/utils/data_seeder.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import 'package:provider/provider.dart';
+import '../../../core/localization/language_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -36,6 +38,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Need consumer here
+    final strings =
+        AppStrings(Provider.of<LanguageController>(context).currentLanguage);
+
     return Scaffold(
       body: Center(
         child: Container(
@@ -47,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               // Logo or Title
               Text(
-                'CS Interview Coach',
+                strings.loginTitle,
                 style: AppTextStyles.displaySmall.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -56,7 +62,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'MVP 버전은 네트워크 과목만 지원합니다.',
+                strings.loginSubtitle,
                 style: AppTextStyles.bodyLarge,
                 textAlign: TextAlign.center,
               ),
@@ -64,7 +70,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Login Button
               ElevatedButton.icon(
-                onPressed: (_isLoginLoading || _isSeedLoading) ? null : _handleGoogleSignIn,
+                onPressed: (_isLoginLoading || _isSeedLoading)
+                    ? null
+                    : _handleGoogleSignIn,
                 icon: _isLoginLoading
                     ? const SizedBox(
                         width: 20,
@@ -76,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       )
                     : const Icon(Icons.login),
                 label: Text(
-                  _isLoginLoading ? 'Signing in...' : 'Sign in with Google',
+                  _isLoginLoading ? strings.signingIn : strings.signInGoogle,
                   style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -89,8 +97,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Join thousands of developers preparing for their dream job.',
-                style: AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),
+                strings.loginFooter,
+                style: AppTextStyles.bodySmall
+                    .copyWith(color: AppColors.textTertiary),
                 textAlign: TextAlign.center,
               ),
             ],

@@ -58,14 +58,16 @@ class AIService {
     required Question question,
     required String userAnswer,
     String? previousFollowUp,
+    String? languageCode, // 'en' or 'ko'
   }) async {
     // --- Mock Mode Check ---
     if (useMockApi) {
-      return _simulateMockResponse(userAnswer, previousFollowUp);
+      return _simulateMockResponse(userAnswer, previousFollowUp, languageCode);
     }
 
     // 1. Construct the prompt
-    final prompt = _buildPrompt(question, userAnswer, previousFollowUp);
+    final prompt =
+        _buildPrompt(question, userAnswer, previousFollowUp, languageCode);
 
     try {
       // 2. Call Gemini
@@ -80,13 +82,13 @@ class AIService {
 
       return GradeResult(
         score: data['score'] as int? ?? 0,
-        feedback: data['feedback'] as String? ?? '분석 실패',
+        feedback: data['feedback'] as String? ?? 'Analysis Failed',
         followUpQuestion: data['followUp'] as String?,
       );
     } catch (e) {
       return GradeResult(
         score: 0,
-        feedback: 'AI 분석 중 오류가 발생했습니다. ($e)',
+        feedback: 'AI Error: $e',
         followUpQuestion: null,
       );
     }
@@ -94,46 +96,56 @@ class AIService {
 
   // --- Mock Logic for Development ---
   Future<GradeResult> _simulateMockResponse(
-      String userAnswer, String? previousFollowUp) async {
+      String userAnswer, String? previousFollowUp, String? languageCode) async {
     await Future.delayed(
         const Duration(seconds: 1, milliseconds: 500)); // Simulate network
 
     final isFollowUpResponse = previousFollowUp != null;
+    final isEnglish = languageCode == 'en';
 
-    // Simulate: If main answer, 50% chance of follow-up
-    // If already follow-up, never ask again (depth 1)
     String? mockFollowUp;
     if (!isFollowUpResponse) {
-      // Always ask follow-up in Mock mode
-      mockFollowUp = '그렇다면, 구체적으로 어떤 상황에서 사용되나요? (Mock 꼬리질문)';
+      mockFollowUp = isEnglish
+          ? 'Then, in what specific situation is it used? (Mock Follow-up)'
+          : '그렇다면, 구체적으로 어떤 상황에서 사용되나요? (Mock 꼬리질문)';
     }
 
     return GradeResult(
       score: 85,
       feedback: isFollowUpResponse
-          ? 'Mock: 꼬리질문에 대한 답변이 훌륭합니다.'
-          : 'Mock: 핵심적인 내용을 잘 짚어주셨습니다. (테스트용 응답)',
+          ? (isEnglish
+              ? 'Mock: Great answer to the follow-up.'
+              : 'Mock: 꼬리질문에 대한 답변이 훌륭합니다.')
+          : (isEnglish
+              ? 'Mock: You captured the core points well.'
+              : 'Mock: 핵심적인 내용을 잘 짚어주셨습니다.'),
       followUpQuestion: mockFollowUp,
     );
   }
 
-  String _buildPrompt(
-      Question question, String userAnswer, String? previousFollowUp) {
+  String _buildPrompt(Question question, String userAnswer,
+      String? previousFollowUp, String? languageCode) {
+    final isEnglish = languageCode == 'en';
+    final langInstruction = isEnglish ? 'English' : 'Korean';
+
+    final safeLangCode = languageCode ?? 'ko';
+
     // Base instruction
     return '''
 You are a ferocious technical interviewer in a computer science job interview.
 Evaluate the user's answer and decide whether to ask a follow-up question.
+IMPORTANT: You MUST answer in **$langInstruction**.
 
 [Context]
-Subject: ${question.category}
-Question: ${previousFollowUp ?? question.question}
+Subject: ${question.getLocalizedCategory(safeLangCode)}
+Question: ${previousFollowUp ?? question.getLocalizedQuestion(safeLangCode)}
 User Answer: "$userAnswer"
 
 [Instructions]
 1. **Grade** the answer (0-100). Be strict. 0 if irrelevant.
-2. **Feedback**: Summarize strengths/weaknesses in 1 Korean sentence.
+2. **Feedback**: Summarize strengths/weaknesses in 1 **$langInstruction** sentence.
 3. **Follow-Up**:
-   - If the answer is vague, incorrect, or mentions a keyword worth digging into, ask a sharp follow-up question (Korean).
+   - If the answer is vague, incorrect, or mentions a keyword worth digging into, ask a sharp follow-up question (**in $langInstruction**).
    - If the answer is perfect or this is already a follow-up response, set "followUp" to null.
    - Max 1 follow-up allowed per main question. If 'previousFollowUp' was provided in [Context], DO NOT ask another follow-up. Set "followUp" to null.
 

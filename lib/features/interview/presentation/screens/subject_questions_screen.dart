@@ -3,6 +3,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/models/question_model.dart';
 import '../../data/repositories/interview_repository.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/localization/language_service.dart';
 
 class SubjectQuestionsScreen extends StatefulWidget {
   final String subjectId; // For Query (e.g. 'network')
@@ -57,6 +59,11 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final languageCode =
+        Provider.of<LanguageController>(context).currentLanguage.code; // code
+    final strings =
+        AppStrings(Provider.of<LanguageController>(context).currentLanguage);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -72,7 +79,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _questions.isEmpty
-              ? _buildEmptyState()
+              ? _buildEmptyState(strings)
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _questions.length,
@@ -91,7 +98,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            question.question,
+                            question.getLocalizedQuestion(languageCode),
                             style: AppTextStyles.bodyLarge
                                 .copyWith(color: Colors.white, height: 1.4),
                           ),
@@ -99,8 +106,10 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                           Row(
                             children: [
                               Builder(builder: (context) {
+                                final categoryText =
+                                    question.getLocalizedCategory(languageCode);
                                 final categoryColor =
-                                    _getCategoryColor(question.category);
+                                    _getCategoryColor(categoryText);
                                 return Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 8, vertical: 4),
@@ -109,7 +118,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: Text(
-                                    question.category,
+                                    categoryText,
                                     style: AppTextStyles.labelSmall.copyWith(
                                       color: categoryColor,
                                       fontWeight: FontWeight.bold,
@@ -120,7 +129,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                               const Spacer(),
                               if (question.lastReviewedAt != null)
                                 Text(
-                                  '마지막 학습: ${question.lastReviewedAt.toString().split(' ')[0]}',
+                                  '${strings.lastStudied}: ${question.lastReviewedAt.toString().split(' ')[0]}',
                                   style: AppTextStyles.labelSmall
                                       .copyWith(color: Colors.white38),
                                 ),
@@ -134,7 +143,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppStrings strings) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -143,7 +152,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
               size: 60, color: Colors.white.withValues(alpha: 0.2)),
           const SizedBox(height: 16),
           Text(
-            '등록된 질문이 없습니다.',
+            strings.noQuestions,
             style: AppTextStyles.bodyLarge.copyWith(color: Colors.white54),
           ),
         ],

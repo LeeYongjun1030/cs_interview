@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/localization/language_service.dart';
 import '../providers/session_controller.dart';
 import 'result_screen.dart';
 
@@ -61,7 +63,11 @@ class _InterviewScreenState extends State<InterviewScreen> {
   void _toggleListening() async {
     if (!_isSpeechAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('음성 인식을 사용할 수 없습니다. 권한을 확인해주세요.')),
+        SnackBar(
+            content: Text(
+                Provider.of<LanguageController>(context, listen: false).isKorean
+                    ? '음성 인식을 사용할 수 없습니다. 권한을 확인해주세요.'
+                    : 'Microphone permission denied.')),
       );
       return;
     }
@@ -83,10 +89,14 @@ class _InterviewScreenState extends State<InterviewScreen> {
   }
 
   Future<void> _handleSubmit() async {
+    final langController =
+        Provider.of<LanguageController>(context, listen: false);
+    final strings = AppStrings(langController.currentLanguage);
+
     final text = _answerController.text.trim();
     if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('답변을 입력해주세요.')),
+        SnackBar(content: Text(strings.emptyInputError)),
       );
       return;
     }
@@ -98,7 +108,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
     });
     _speech.stop();
 
-    await widget.controller.submitAnswer(text);
+    await widget.controller
+        .submitAnswer(text, languageCode: langController.currentLanguage.code);
 
     if (!mounted) return;
 
@@ -141,6 +152,9 @@ class _InterviewScreenState extends State<InterviewScreen> {
         builder: (context, child) {
           final round = widget.controller.currentRound;
           final currentQuestion = widget.controller.currentQuestion;
+
+          final langController = Provider.of<LanguageController>(context);
+          final strings = AppStrings(langController.currentLanguage);
 
           if (currentQuestion == null) {
             if (widget.controller.isSessionFinished) return const SizedBox();
@@ -197,13 +211,14 @@ class _InterviewScreenState extends State<InterviewScreen> {
                         child: Column(
                           children: [
                             Text(
-                              '${_getSubjectKoreanName(currentQuestion.subject)} • ${currentQuestion.category.toUpperCase()}',
+                              '${_getSubjectName(currentQuestion.subject, strings)} • ${currentQuestion.getLocalizedCategory(langController.currentLanguage.code).toUpperCase()}',
                               style: AppTextStyles.labelSmall.copyWith(
                                   color: AppColors.primary, letterSpacing: 2),
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              currentQuestion.question,
+                              currentQuestion.getLocalizedQuestion(
+                                  langController.currentLanguage.code),
                               style: AppTextStyles.headlineSmall.copyWith(
                                   fontWeight: FontWeight.bold, height: 1.4),
                               textAlign: TextAlign.center,
@@ -237,7 +252,9 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      _isTipVisible ? '꿀팁 숨기기' : '꿀팁 보기',
+                                      _isTipVisible
+                                          ? strings.tipHide
+                                          : strings.tipShow,
                                       style: AppTextStyles.labelSmall.copyWith(
                                         color: _isTipVisible
                                             ? Colors.grey
@@ -258,9 +275,13 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
-                                  currentQuestion.tip.isEmpty
-                                      ? '등록된 팁이 없습니다.'
-                                      : currentQuestion.tip,
+                                  currentQuestion
+                                          .getLocalizedTip(langController
+                                              .currentLanguage.code)
+                                          .isEmpty
+                                      ? strings.noTip
+                                      : currentQuestion.getLocalizedTip(
+                                          langController.currentLanguage.code),
                                   style: AppTextStyles.bodyMedium
                                       .copyWith(color: AppColors.accentGreen),
                                   textAlign: TextAlign.center,
@@ -283,7 +304,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('나의 답변:',
+                              Text(strings.yourAnswer,
                                   style: AppTextStyles.labelSmall
                                       .copyWith(color: Colors.white54)),
                               const SizedBox(height: 4),
@@ -315,7 +336,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                       color: AppColors.accentRed),
                                   const SizedBox(width: 8),
                                   Text(
-                                    'AI 꼬리 질문',
+                                    strings.followUpTitle,
                                     style: AppTextStyles.labelSmall.copyWith(
                                         color: AppColors.accentRed,
                                         fontWeight: FontWeight.bold),
@@ -337,7 +358,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                       const SizedBox(height: 32),
 
                       // --- Input Area ---
-                      Text(isFollowUp ? '꼬리 질문 답변 입력' : '답변 입력',
+                      Text(strings.inputLabel, // Simplified & Localized
                           style: AppTextStyles.labelLarge),
                       const SizedBox(height: 8),
                       Container(
@@ -359,10 +380,10 @@ class _InterviewScreenState extends State<InterviewScreen> {
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 hintText: _isListening
-                                    ? '듣고 있습니다...'
+                                    ? strings.listening
                                     : (isFollowUp
-                                        ? '꼬리 질문에 답변하거나 패스하세요.'
-                                        : '질문에 대한 답변을 입력하거나 마이크를 켜세요.'),
+                                        ? strings.inputPlaceholderFollowUp
+                                        : strings.inputPlaceholderMain),
                                 hintStyle: TextStyle(
                                     color: Colors.white.withValues(alpha: 0.3)),
                                 filled: true,
@@ -394,8 +415,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                     FadeTransition(
                                       opacity: const AlwaysStoppedAnimation(
                                           1.0), // Can animate later
-                                      child: const Text('Recording...',
-                                          style: TextStyle(
+                                      child: Text(strings.listening,
+                                          style: const TextStyle(
                                               color: AppColors.accentRed,
                                               fontSize: 12)),
                                     ),
@@ -436,7 +457,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         vertical: 16),
                                   ),
-                                  child: const Text('잘 모르겠어요 (Pass)'),
+                                  child: Text(strings.passButton),
                                 ),
                               ),
                               const SizedBox(width: 16),
@@ -452,8 +473,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                         borderRadius:
                                             BorderRadius.circular(16)),
                                   ),
-                                  child: const Text('제출하기',
-                                      style: TextStyle(
+                                  child: Text(strings.submitButton,
+                                      style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold)),
                                 ),
@@ -473,8 +494,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16)),
                             ),
-                            child: const Text('제출하기',
-                                style: TextStyle(
+                            child: Text(strings.submitButton,
+                                style: const TextStyle(
                                     fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                         ),
@@ -500,7 +521,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          '잠시만 기다려주세요',
+                          strings.waitMessage,
                           style: AppTextStyles.bodyMedium
                               .copyWith(color: Colors.white70),
                         ),
@@ -513,24 +534,24 @@ class _InterviewScreenState extends State<InterviewScreen> {
         });
   }
 
-  String _getSubjectKoreanName(String subjectKey) {
-    switch (subjectKey) {
+  String _getSubjectName(String subjectId, AppStrings strings) {
+    switch (subjectId) {
       case 'computer_architecture':
-        return '컴퓨터 구조';
+        return strings.subjectArch;
       case 'operating_system':
-        return '운영체제';
+        return strings.subjectOS;
       case 'network':
-        return '네트워크';
+        return strings.subjectNetwork;
       case 'database':
-        return '데이터베이스';
+        return strings.subjectDB;
       case 'data_structure':
-        return '자료구조';
+        return strings.subjectDS;
       case 'java':
-        return '자바';
+        return strings.subjectJava;
       case 'javascript':
-        return '자바스크립트';
+        return strings.subjectJs;
       default:
-        return '기타';
+        return subjectId;
     }
   }
 }
