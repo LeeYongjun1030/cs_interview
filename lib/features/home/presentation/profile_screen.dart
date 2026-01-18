@@ -90,13 +90,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       height: 60,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                            colors: [AppColors.primary, AppColors.accentCyan]),
-                        boxShadow: [
-                          BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.5),
-                              blurRadius: 10)
-                        ],
+                        color: AppColors.primary,
+                        boxShadow: [],
                       ),
                       padding: const EdgeInsets.all(2),
                       child: Container(

@@ -43,11 +43,7 @@ class InterviewResultScreen extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, AppColors.accentCyan],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(20),
                 // Removed boxShadow for performance
               ),

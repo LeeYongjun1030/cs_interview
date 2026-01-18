@@ -25,27 +25,9 @@ abstract class AppColors {
       Color(0xFF2C2C2C); // Slight Lighter Surface
 
   // Shadows
-  static const List<BoxShadow> neonShadow = [
-    BoxShadow(
-        color: Color.fromRGBO(146, 19, 236, 0.5),
-        blurRadius: 10,
-        spreadRadius: 0),
-    BoxShadow(
-        color: Color.fromRGBO(146, 19, 236, 0.3),
-        blurRadius: 20,
-        spreadRadius: 0),
-  ];
-
-  static const List<BoxShadow> neonCyanShadow = [
-    BoxShadow(
-        color: Color.fromRGBO(0, 240, 255, 0.5),
-        blurRadius: 10,
-        spreadRadius: 0),
-    BoxShadow(
-        color: Color.fromRGBO(0, 240, 255, 0.3),
-        blurRadius: 20,
-        spreadRadius: 0),
-  ];
+  // Performance Optimization: Shadows removed for HTML renderer compatibility
+  static const List<BoxShadow> neonShadow = [];
+  static const List<BoxShadow> neonCyanShadow = [];
 
   // Text Colors
   static const Color textPrimary = Color(0xFFFFFFFF); // High Emphasis

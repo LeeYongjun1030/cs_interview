@@ -125,8 +125,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _fetchSessions() async {
+  Future<void> _fetchSessions({bool showLoading = true}) async {
     try {
+      if (showLoading) {
+        // Only set loading if requested (initial load or explicit refresh)
+        if (mounted) setState(() => _isLoading = true);
+      }
+
       final sessions = await _repository.fetchUserSessions(_userId);
       if (mounted) {
         setState(() {
@@ -356,13 +361,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                      colors: [AppColors.primary, AppColors.accentCyan]),
-                  boxShadow: [
-                    BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.5),
-                        blurRadius: 10)
-                  ],
+                  color: AppColors.primary,
+                  boxShadow: [],
                 ),
                 padding: const EdgeInsets.all(2),
                 child: Container(
@@ -635,14 +635,7 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          colors: [
-            AppColors.accentCyan,
-            AppColors.primary,
-            AppColors.accentCyan
-          ],
-        ),
-        boxShadow: AppColors.neonCyanShadow,
+        color: AppColors.primary,
       ),
       padding: const EdgeInsets.all(2),
       child: Container(
@@ -666,12 +659,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     decoration: const BoxDecoration(
                       color: AppColors.accentRed,
                       shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                            color: AppColors.accentRed,
-                            blurRadius: 10,
-                            spreadRadius: 2)
-                      ],
+                      boxShadow: [],
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -704,26 +692,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBottomNav(BuildContext context, AppStrings strings) {
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          height: 60 + MediaQuery.paddingOf(context).bottom,
-          padding:
-              EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0F0F12).withValues(alpha: 0.8),
-            border: const Border(top: BorderSide(color: Colors.white10)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, Icons.dashboard, strings.navHome),
-              _buildNavItem(1, Icons.menu_book, strings.navLearning),
-              _buildNavItem(2, Icons.person_outline, strings.navProfile),
-            ],
-          ),
-        ),
+    return Container(
+      height: 60 + MediaQuery.paddingOf(context).bottom,
+      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F0F12)
+            .withValues(alpha: 0.95), // Solid, opaque background
+        border: const Border(top: BorderSide(color: Colors.white10)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(0, Icons.dashboard, strings.navHome),
+          _buildNavItem(1, Icons.menu_book, strings.navLearning),
+          _buildNavItem(2, Icons.person_outline, strings.navProfile),
+        ],
       ),
     );
   }
@@ -1036,8 +1019,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    // Always fetch sessions to ensure list is updated
-    _fetchSessions();
+    // Always fetch sessions to ensure list is updated (silent)
+    _fetchSessions(showLoading: false);
   }
 
   Future<void> _startSession(BuildContext context, String title,
@@ -1070,8 +1053,8 @@ class _HomeScreenState extends State<HomeScreen> {
         MaterialPageRoute(
             builder: (context) => InterviewScreen(controller: controller)),
       );
-      // Refresh list after returning from session
-      _fetchSessions();
+      // Refresh list after returning from session (silent)
+      _fetchSessions(showLoading: false);
     } catch (e) {
       if (!context.mounted) return;
       Navigator.pop(context); // Pop loading
