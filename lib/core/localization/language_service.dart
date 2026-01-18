@@ -187,6 +187,8 @@ class AppStrings {
       : 'Prepare for CS Interviews with AI Coach';
   String get signInGoogle =>
       language == AppLanguage.korean ? 'Google로 시작하기' : 'Sign in with Google';
+  String get signInGitHub =>
+      language == AppLanguage.korean ? 'GitHub로 시작하기' : 'Sign in with GitHub';
   String get signingIn =>
       language == AppLanguage.korean ? '로그인 중...' : 'Signing in...';
   String get loginFooter => language == AppLanguage.korean

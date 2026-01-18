@@ -19,7 +19,8 @@ class AuthService {
       if (googleUser == null) return null; // User canceled the sign-in
 
       // Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // Create a new credential
       final AuthCredential credential = GoogleAuthProvider.credential(
@@ -31,6 +32,21 @@ class AuthService {
       return await _auth.signInWithCredential(credential);
     } catch (e) {
       print("Error signing in with Google: $e");
+      rethrow;
+    }
+  }
+
+  // GitHub Sign In
+  Future<UserCredential?> signInWithGitHub() async {
+    try {
+      // Create a new provider
+      GithubAuthProvider githubProvider = GithubAuthProvider();
+
+      // On web, this triggers a popup or redirect.
+      // On mobile, this uses a webview or browser tab.
+      return await _auth.signInWithProvider(githubProvider);
+    } catch (e) {
+      print("Error signing in with GitHub: $e");
       rethrow;
     }
   }

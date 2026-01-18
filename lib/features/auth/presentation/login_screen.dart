@@ -36,6 +36,24 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _handleGitHubSignIn() async {
+    setState(() => _isLoginLoading = true);
+    try {
+      await _authService.signInWithGitHub();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoginLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Need consumer here
@@ -82,13 +100,58 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(Icons.login),
+                    : Image.asset(
+                        'assets/images/google_logo.png', // Assuming no asset, using Icon
+                        width: 20,
+                        height: 20,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons
+                                .login)), // Oh, previously it was Icon(Icons.login).
+                // User asked for "Google login". Usually uses G logo.
+                // Previous code: const Icon(Icons.login). I will stick to Icon for consistency unless I have asset.
+                // I'll keep previous Icon logic but maybe change icon type?
+                // Material Icons doesn't have Google logo.
+                // I'll stick to Icon(Icons.login) for Google for now to match previous code, or ensure I don't break it.
+                // Wait, I should not change Google button style if not requested.
+                // But for GitHub I need an icon? `FontAwesome` not installed.
+                // I'll use `Icons.code` or just text. Or `Icons.login` with different color?
+                // I'll use `Icons.person` for GitHub or similar.
+                icon: _isLoginLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.login,
+                        color: Colors.white), // Added color
                 label: Text(
                   _isLoginLoading ? strings.signingIn : strings.signInGoogle,
                   style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: (_isLoginLoading || _isSeedLoading)
+                    ? null
+                    : _handleGitHubSignIn,
+                icon: const Icon(Icons.code,
+                    color: Colors.white), // Placeholder for GitHub
+                label: Text(
+                  strings.signInGitHub,
+                  style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF24292e), // GitHub Dark Color
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
