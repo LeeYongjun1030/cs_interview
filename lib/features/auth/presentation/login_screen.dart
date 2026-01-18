@@ -16,11 +16,15 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
-  bool _isLoginLoading = false;
+  bool _isGoogleLoading = false;
+  bool _isGitHubLoading = false;
   bool _isSeedLoading = false;
 
+  bool get _isAnyLoading =>
+      _isGoogleLoading || _isGitHubLoading || _isSeedLoading;
+
   Future<void> _handleGoogleSignIn() async {
-    setState(() => _isLoginLoading = true);
+    setState(() => _isGoogleLoading = true);
     try {
       await _authService.signInWithGoogle();
     } on FirebaseAuthException catch (e) {
@@ -48,15 +52,17 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoginLoading = false);
+      if (mounted) setState(() => _isGoogleLoading = false);
     }
   }
 
   Future<void> _handleGitHubSignIn() async {
-    setState(() => _isLoginLoading = true);
+    setState(() => _isGitHubLoading = true);
     try {
       await _authService.signInWithGitHub();
     } on FirebaseAuthException catch (e) {
+      print('DEBUG: GitHub Auth Error Code: ${e.code}');
+      print('DEBUG: GitHub Auth Error Message: ${e.message}');
       if (mounted) {
         String message = e.message ?? 'Login failed';
         if (e.code == 'account-exists-with-different-credential') {
@@ -72,6 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
+      print('DEBUG: Generic Error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -81,7 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } finally {
-      if (mounted) setState(() => _isLoginLoading = false);
+      if (mounted) setState(() => _isGitHubLoading = false);
     }
   }
 
@@ -119,10 +126,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Login Button
               ElevatedButton.icon(
-                onPressed: (_isLoginLoading || _isSeedLoading)
-                    ? null
-                    : _handleGoogleSignIn,
-                icon: _isLoginLoading
+                onPressed: _isAnyLoading ? null : _handleGoogleSignIn,
+                icon: _isGoogleLoading
                     ? const SizedBox(
                         width: 20,
                         height: 20,
@@ -133,7 +138,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       )
                     : const Icon(Icons.login, color: Colors.white),
                 label: Text(
-                  _isLoginLoading ? strings.signingIn : strings.signInGoogle,
+                  _isGoogleLoading ? strings.signingIn : strings.signInGoogle,
                   style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -146,13 +151,20 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 12),
               ElevatedButton.icon(
-                onPressed: (_isLoginLoading || _isSeedLoading)
-                    ? null
-                    : _handleGitHubSignIn,
-                icon: const Icon(Icons.code,
-                    color: Colors.white), // Placeholder for GitHub
+                onPressed: _isAnyLoading ? null : _handleGitHubSignIn,
+                icon: _isGitHubLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.code,
+                        color: Colors.white), // Placeholder for GitHub
                 label: Text(
-                  strings.signInGitHub,
+                  _isGitHubLoading ? strings.signingIn : strings.signInGitHub,
                   style: AppTextStyles.labelLarge.copyWith(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
