@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -42,9 +43,12 @@ class AuthService {
       // Create a new provider
       GithubAuthProvider githubProvider = GithubAuthProvider();
 
-      // On web, this triggers a popup or redirect.
-      // On mobile, this uses a webview or browser tab.
-      return await _auth.signInWithProvider(githubProvider);
+      if (kIsWeb) {
+        return await _auth.signInWithPopup(githubProvider);
+      } else {
+        // On mobile, this uses a webview or browser tab.
+        return await _auth.signInWithProvider(githubProvider);
+      }
     } catch (e) {
       print("Error signing in with GitHub: $e");
       rethrow;

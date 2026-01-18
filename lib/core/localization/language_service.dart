@@ -199,6 +199,10 @@ class AppStrings {
   String get loading =>
       language == AppLanguage.korean ? '로딩중...' : 'Loading...';
   String get error => language == AppLanguage.korean ? '오류 발생' : 'Error';
+  String get errorAccountExistsWithDifferentCredential => language ==
+          AppLanguage.korean
+      ? '이미 다른 계정(Google 등)으로 가입된 이메일입니다. 해당 계정으로 로그인해주세요.'
+      : 'An account already exists with the same email. Please sign in with your existing provider.';
 
   // Home Screen Sections & UI
   String get sectionSubjectLearning =>

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/utils/data_seeder.dart';
 import '../../../core/theme/app_colors.dart';
@@ -22,6 +23,21 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoginLoading = true);
     try {
       await _authService.signInWithGoogle();
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        String message = e.message ?? 'Login failed';
+        if (e.code == 'account-exists-with-different-credential') {
+          message = Provider.of<LanguageController>(context, listen: false)
+              .strings
+              .errorAccountExistsWithDifferentCredential;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -40,6 +56,21 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoginLoading = true);
     try {
       await _authService.signInWithGitHub();
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        String message = e.message ?? 'Login failed';
+        if (e.code == 'account-exists-with-different-credential') {
+          message = Provider.of<LanguageController>(context, listen: false)
+              .strings
+              .errorAccountExistsWithDifferentCredential;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
