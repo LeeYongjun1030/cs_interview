@@ -473,9 +473,50 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(dateStr,
-                    style: AppTextStyles.labelSmall
-                        .copyWith(color: Colors.white38)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(dateStr,
+                        style: AppTextStyles.labelSmall
+                            .copyWith(color: Colors.white38)),
+                    IconButton(
+                      icon: const Icon(Icons.close,
+                          color: Colors.white30, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: AppColors.surface,
+                            title: const Text('기록 삭제',
+                                style: TextStyle(color: Colors.white)),
+                            content: const Text('이 인터뷰 기록을 삭제하시겠습니까?',
+                                style: TextStyle(color: Colors.white70)),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('취소',
+                                    style: TextStyle(color: Colors.white54)),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.accentRed),
+                                child: const Text('삭제',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          _deleteSession(session.id);
+                        }
+                      },
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -489,23 +530,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     if (session.averageScore != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceContainer,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color:
-                                  AppColors.accentCyan.withValues(alpha: 0.3)),
-                        ),
-                        child: Text(
-                          '${strings.scorePrefix}: ${session.averageScore!.toStringAsFixed(0)}',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.accentCyan,
+                      Text(
+                        '${session.averageScore!.round()}',
+                        style: TextStyle(
+                            color:
+                                _getScoreColor(session.averageScore!.round()),
                             fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                            fontSize: 16),
                       ),
                   ],
                 ),
@@ -607,7 +638,7 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(0, Icons.dashboard, strings.navHome),
-              _buildNavItem(1, Icons.school_outlined, strings.navLearning),
+              _buildNavItem(1, Icons.menu_book, strings.navLearning),
               _buildNavItem(2, Icons.person_outline, strings.navProfile),
             ],
           ),
@@ -683,6 +714,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 counterStyle: const TextStyle(color: Colors.white30),
                 labelText: strings.sessionNameLabel,
                 labelStyle: const TextStyle(color: AppColors.accentCyan),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear, color: Colors.white54),
+                  onPressed: () => titleController.clear(),
+                ),
               ),
             ),
           ],
@@ -962,5 +997,11 @@ class _HomeScreenState extends State<HomeScreen> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
+  }
+
+  Color _getScoreColor(int score) {
+    if (score >= 80) return const Color(0xFF00E676); // Green Accent
+    if (score >= 50) return AppColors.accentCyan;
+    return AppColors.accentRed;
   }
 }

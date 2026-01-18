@@ -49,7 +49,7 @@ class InterviewResultScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: AppColors.neonShadow,
+                // Removed boxShadow for performance
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -172,6 +172,10 @@ class InterviewResultScreen extends StatelessWidget {
                   fillColor: Colors.black12,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear, color: Colors.white54),
+                    onPressed: () => titleController.clear(),
                   ),
                 ),
               ),
