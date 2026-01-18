@@ -20,24 +20,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
+    final strings =
+        Provider.of<LanguageController>(context, listen: false).strings;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('데이터 초기화', style: TextStyle(color: Colors.white)),
-        content: const Text('모든 인터뷰 기록이 영구적으로 삭제됩니다.\n정말 삭제하시겠습니까?',
-            style: TextStyle(color: Colors.white70)),
+        title: Text(strings.resetDialogTitle,
+            style: const TextStyle(color: Colors.white)),
+        content: Text(strings.resetDialogContent,
+            style: const TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소', style: TextStyle(color: Colors.white54)),
+            child: Text(strings.cancelButton,
+                style: const TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style:
                 ElevatedButton.styleFrom(backgroundColor: AppColors.accentRed),
-            child:
-                const Text('삭제', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(strings.deleteAction,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -63,6 +68,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Access strings via LanguageController
+    final strings = Provider.of<LanguageController>(context).strings;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -72,7 +80,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              // Header
               // Header
               if (FirebaseAuth.instance.currentUser != null) ...[
                 Row(
@@ -134,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 32),
 
-              Text('Settings',
+              Text(strings.settingsTitle,
                   style: AppTextStyles.titleMedium.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.textTertiary)),
@@ -151,20 +158,96 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     Consumer<LanguageController>(
                       builder: (context, controller, child) {
-                        return SwitchListTile(
-                          title: const Text('Language (한국어/Eng)',
-                              style: TextStyle(color: Colors.white)),
-                          subtitle: Text(
-                              controller.isKorean
-                                  ? '현재: 한국어'
-                                  : 'Current: English',
-                              style: const TextStyle(
-                                  color: Colors.white38, fontSize: 12)),
-                          value: !controller.isKorean, // True if English
-                          activeColor: AppColors.primary,
-                          onChanged: (value) => controller.toggleLanguage(),
-                          secondary:
-                              const Icon(Icons.language, color: Colors.white70),
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.language,
+                                      color: Colors.white70),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    strings.languageSettingTitle,
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => controller
+                                          .setLanguage(AppLanguage.korean),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: controller.isKorean
+                                              ? AppColors.primary
+                                              : Colors.white
+                                                  .withValues(alpha: 0.05),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: controller.isKorean
+                                                ? AppColors.primary
+                                                : Colors.white10,
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '🇰🇷 한국어',
+                                          style: TextStyle(
+                                            color: controller.isKorean
+                                                ? Colors.white
+                                                : Colors.white54,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => controller
+                                          .setLanguage(AppLanguage.english),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: !controller.isKorean
+                                              ? AppColors.primary
+                                              : Colors.white
+                                                  .withValues(alpha: 0.05),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: !controller.isKorean
+                                                ? AppColors.primary
+                                                : Colors.white10,
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '🇺🇸 English',
+                                          style: TextStyle(
+                                            color: !controller.isKorean
+                                                ? Colors.white
+                                                : Colors.white54,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         );
                       },
                     ),
@@ -173,7 +256,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
 
               const SizedBox(height: 24),
-              Text('Account',
+              Text(strings.accountTitle,
                   style: AppTextStyles.titleMedium.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.textTertiary)),
@@ -189,8 +272,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.logout, color: Colors.white70),
-                      title: const Text('로그아웃',
-                          style: TextStyle(color: Colors.white)),
+                      title: Text(strings.logoutLabel,
+                          style: const TextStyle(color: Colors.white)),
                       onTap: () {
                         // AuthService().signOut(); // TODO: Implement sign out
                       },
@@ -198,8 +281,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const Divider(height: 1, color: Colors.white10),
                     ListTile(
                       leading: const Icon(Icons.refresh, color: Colors.white70),
-                      title: const Text('기록 초기화',
-                          style: TextStyle(color: Colors.white)),
+                      title: Text(strings.resetDataLabel,
+                          style: const TextStyle(color: Colors.white)),
                       onTap: _clearData,
                     ),
                   ],

@@ -234,4 +234,22 @@ class AppStrings {
   String get lectureDescJs => language == AppLanguage.korean
       ? '프로그래밍 핵심 (JS)'
       : 'Core of Programming (JS)';
+  // Profile Screen
+  String get settingsTitle =>
+      language == AppLanguage.korean ? '설정' : 'Settings';
+  String get accountTitle => language == AppLanguage.korean ? '계정' : 'Account';
+  String get languageSettingTitle =>
+      language == AppLanguage.korean ? '언어 설정' : 'Language Settings';
+
+  String get logoutLabel => language == AppLanguage.korean ? '로그아웃' : 'Logout';
+  String get resetDataLabel =>
+      language == AppLanguage.korean ? '기록 초기화' : 'Reset Data';
+
+  String get resetDialogTitle =>
+      language == AppLanguage.korean ? '데이터 초기화' : 'Reset Data';
+  String get resetDialogContent => language == AppLanguage.korean
+      ? '모든 인터뷰 기록이 영구적으로 삭제됩니다.\n정말 삭제하시겠습니까?'
+      : 'All interview history will be deleted.\nAre you sure?';
+
+  String get deleteAction => language == AppLanguage.korean ? '삭제' : 'Delete';
 }
