@@ -39,9 +39,90 @@ class _HomeScreenState extends State<HomeScreen> {
       _userId = user.uid;
       _fetchSessions();
     } else {
-      // Should not happen if wrapped in AuthWrapper, but handle safe
       _isLoading = false;
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLanguageSetup();
+    });
+  }
+
+  void _checkLanguageSetup() {
+    final controller = Provider.of<LanguageController>(context, listen: false);
+    if (!controller.isLoaded) {
+      controller.addListener(_onLanguageChange);
+    } else if (!controller.hasLanguageSet) {
+      _showLanguageSelectionDialog();
+    }
+  }
+
+  void _onLanguageChange() {
+    if (!mounted) return;
+    final controller = Provider.of<LanguageController>(context, listen: false);
+    if (controller.isLoaded) {
+      controller.removeListener(_onLanguageChange);
+      if (!controller.hasLanguageSet) {
+        _showLanguageSelectionDialog();
+      }
+    }
+  }
+
+  void _showLanguageSelectionDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Force selection
+      builder: (context) {
+        return PopScope(
+          canPop: false, // Prevent back button
+          child: AlertDialog(
+            backgroundColor: AppColors.surface,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: const Text('Select Language / 언어 선택',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 10),
+                _buildLanguageOption(
+                    context, '🇰🇷 한국어', AppLanguage.korean, Colors.white10),
+                const SizedBox(height: 12),
+                _buildLanguageOption(context, '🇺🇸 English',
+                    AppLanguage.english, Colors.white10),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLanguageOption(
+      BuildContext context, String label, AppLanguage language, Color bgColor) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: bgColor,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          side: const BorderSide(color: Colors.white10),
+        ),
+        onPressed: () {
+          Provider.of<LanguageController>(context, listen: false)
+              .setLanguage(language);
+          Navigator.pop(context);
+        },
+        child: Text(
+          label,
+          style: const TextStyle(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
   }
 
   Future<void> _fetchSessions() async {

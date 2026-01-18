@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum AppLanguage {
   korean('🇰🇷 한국어', 'ko'),
@@ -11,23 +12,45 @@ enum AppLanguage {
 
 class LanguageController extends ChangeNotifier {
   AppLanguage _currentLanguage = AppLanguage.english; // Default to Global
+  bool _isLoaded = false;
+  bool _hasLanguageSet = false;
 
   AppLanguage get currentLanguage => _currentLanguage;
   bool get isKorean => _currentLanguage == AppLanguage.korean;
   AppStrings get strings => AppStrings(_currentLanguage);
+  bool get hasLanguageSet => _hasLanguageSet;
+  bool get isLoaded => _isLoaded;
 
-  void toggleLanguage() {
-    _currentLanguage = _currentLanguage == AppLanguage.korean
-        ? AppLanguage.english
-        : AppLanguage.korean;
+  LanguageController() {
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final langCode = prefs.getString('language_code');
+    if (langCode != null) {
+      _currentLanguage = AppLanguage.values.firstWhere(
+        (e) => e.code == langCode,
+        orElse: () => AppLanguage.english,
+      );
+      _hasLanguageSet = true;
+    }
+    _isLoaded = true;
     notifyListeners();
   }
 
-  void setLanguage(AppLanguage lang) {
-    if (_currentLanguage != lang) {
-      _currentLanguage = lang;
-      notifyListeners();
-    }
+  Future<void> setLanguage(AppLanguage lang) async {
+    _currentLanguage = lang;
+    _hasLanguageSet = true;
+    notifyListeners();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language_code', lang.code);
+  }
+
+  void toggleLanguage() {
+    setLanguage(_currentLanguage == AppLanguage.korean
+        ? AppLanguage.english
+        : AppLanguage.korean);
   }
 }
 
