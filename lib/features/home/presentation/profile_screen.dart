@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../core/services/auth_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
@@ -274,8 +275,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       leading: const Icon(Icons.logout, color: Colors.white70),
                       title: Text(strings.logoutLabel,
                           style: const TextStyle(color: Colors.white)),
-                      onTap: () {
-                        // AuthService().signOut(); // TODO: Implement sign out
+                      onTap: () async {
+                        try {
+                          await AuthService().signOut();
+                        } catch (e) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Logout failed: $e')),
+                            );
+                          }
+                        }
                       },
                     ),
                     const Divider(height: 1, color: Colors.white10),
