@@ -5,9 +5,11 @@
 *.swp
 .DS_Store
 .atom/
+.build/
 .buildlog/
 .history
 .svn/
+.swiftpm/
 migrate_working_dir/
 
 # IntelliJ related
@@ -41,3 +43,31 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Android
+**/android/.gradle
+**/android/local.properties
+**/android/app/google-services.json
+**/android/*.iml
+**/android/.navigation/
+**/android/captures/
+
+# iOS
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/gen_snapshot
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GoogleService-Info.plist
+**/ios/Pods/
+**/ios/DerivedData/
+**/ios/.symlinks/
+**/ios/.xcode.env.local
+
+# Mac
+.DS_Store
+
+# PWA (if keeping)
+pwa_react/node_modules/
+pwa_react/build/
+pwa_react/.env
