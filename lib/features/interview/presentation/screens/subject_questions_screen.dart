@@ -97,6 +97,22 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          Builder(builder: (context) {
+                            final categoryText =
+                                question.getLocalizedCategory(languageCode);
+                            // Use a neutral/calm style (Dam-baek)
+                            const categoryColor = Colors.white70;
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 4),
+                              child: Text(
+                                categoryText,
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: categoryColor,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          }),
                           Text(
                             question.getLocalizedQuestion(languageCode),
                             style: AppTextStyles.bodyLarge
@@ -104,29 +120,8 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                           ),
                           const SizedBox(height: 12),
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
-                              Builder(builder: (context) {
-                                final categoryText =
-                                    question.getLocalizedCategory(languageCode);
-                                final categoryColor =
-                                    _getCategoryColor(categoryText);
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: categoryColor.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    categoryText,
-                                    style: AppTextStyles.labelSmall.copyWith(
-                                      color: categoryColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                );
-                              }),
-                              const Spacer(),
                               if (question.lastReviewedAt != null)
                                 Text(
                                   '${strings.lastStudied}: ${question.lastReviewedAt.toString().split(' ')[0]}',
@@ -160,17 +155,5 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
     );
   }
 
-  Color _getCategoryColor(String category) {
-    final colors = [
-      AppColors.accentCyan,
-      AppColors.accentRed,
-      AppColors.accentGreen,
-      Colors.purpleAccent,
-      Colors.orangeAccent,
-      Colors.pinkAccent,
-      Colors.tealAccent,
-      Colors.indigoAccent,
-    ];
-    return colors[category.hashCode.abs() % colors.length];
-  }
+  // _getCategoryColor removed as it is no longer needed
 }

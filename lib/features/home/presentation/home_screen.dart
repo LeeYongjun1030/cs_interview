@@ -294,7 +294,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -318,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
               ],
             ),
           ),
@@ -548,9 +548,38 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: InkWell(
           onTap: () => _openSessionDetail(session),
+          onLongPress: () async {
+            final confirm = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                backgroundColor: AppColors.surface,
+                title:
+                    const Text('기록 삭제', style: TextStyle(color: Colors.white)),
+                content: const Text('이 인터뷰 기록을 삭제하시겠습니까?',
+                    style: TextStyle(color: Colors.white70)),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('취소',
+                        style: TextStyle(color: Colors.white54)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accentRed),
+                    child: const Text('삭제',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            );
+            if (confirm == true) {
+              _deleteSession(session.id);
+            }
+          },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -560,42 +589,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(dateStr,
                         style: AppTextStyles.labelSmall
                             .copyWith(color: Colors.white38)),
-                    IconButton(
-                      icon: const Icon(Icons.close,
-                          color: Colors.white30, size: 20),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor: AppColors.surface,
-                            title: const Text('기록 삭제',
-                                style: TextStyle(color: Colors.white)),
-                            content: const Text('이 인터뷰 기록을 삭제하시겠습니까?',
-                                style: TextStyle(color: Colors.white70)),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text('취소',
-                                    style: TextStyle(color: Colors.white54)),
-                              ),
-                              ElevatedButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.accentRed),
-                                child: const Text('삭제',
-                                    style:
-                                        TextStyle(fontWeight: FontWeight.bold)),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (confirm == true) {
-                          _deleteSession(session.id);
-                        }
-                      },
-                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -631,57 +624,84 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFAB(BuildContext context, AppStrings strings) {
     return Container(
-      width: 300,
-      height: 56,
+      margin: const EdgeInsets.only(bottom: 20),
+      width: 320, // Fixed width
+      height: 60,
+      // Fancy Gradient Shadow
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: 2,
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(2),
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A0B2E),
-          borderRadius: BorderRadius.circular(26),
-        ),
-        child: Material(
-          color: Colors.transparent,
+      child: Material(
+        color: Colors.transparent,
+        child: Ink(
+          decoration: BoxDecoration(
+            // "Fancy" Gradient
+            gradient: const LinearGradient(
+              colors: [
+                Color(0xFF6366F1), // Indigo/Purple
+                Color(0xFF8B5CF6), // Violet
+                Color(0xFFD946EF), // Fuchsia
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(color: Colors.white24, width: 1),
+          ),
           child: InkWell(
             onTap: () => _showStartSessionDialog(context),
-            borderRadius: BorderRadius.circular(26),
+            borderRadius: BorderRadius.circular(30),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: const BoxDecoration(
-                      color: AppColors.accentRed,
-                      shape: BoxShape.circle,
-                      boxShadow: [],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(strings.startInterviewButton,
-                          style: const TextStyle(
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.mic,
+                            color: Colors.white, size: 20),
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            strings.startInterviewButton,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 16)),
-                      Text(strings.aiStandbyStatus,
-                          style: TextStyle(
-                              color:
-                                  AppColors.accentCyan.withValues(alpha: 0.8),
-                              fontSize: 10,
-                              letterSpacing: 1)),
+                              fontSize: 16,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          Text(
+                            strings.aiStandbyStatus,
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  const Spacer(),
-                  const Icon(Icons.arrow_forward, color: Colors.white),
+                  const Icon(Icons.arrow_forward_ios,
+                      color: Colors.white70, size: 16),
                 ],
               ),
             ),

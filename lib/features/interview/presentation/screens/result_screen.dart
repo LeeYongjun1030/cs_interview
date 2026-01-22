@@ -32,7 +32,7 @@ class InterviewResultScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
-        automaticallyImplyLeading: false,
+        leading: const BackButton(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -41,39 +41,38 @@ class InterviewResultScreen extends StatelessWidget {
             // Summary Card
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
               decoration: BoxDecoration(
                 color: AppColors.primary,
                 borderRadius: BorderRadius.circular(20),
-                // Removed boxShadow for performance
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        strings.overallScore, // Reusing existing or new key
-                        style: AppTextStyles.labelMedium
-                            .copyWith(color: Colors.white70),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${displayScore}', // Removed '점' to be generic or add unit in strings if needed. Korean usually adds 점.
-                        style: AppTextStyles.displayMedium.copyWith(
-                            color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                  Text(
+                    strings.overallScore,
+                    style: AppTextStyles.labelMedium
+                        .copyWith(color: Colors.white70),
                   ),
-                  Expanded(
-                    child: Text(
-                      _getCheerMessage(displayScore, strings),
-                      style: AppTextStyles.titleSmall
-                          .copyWith(color: Colors.white),
-                      textAlign: TextAlign.right,
-                      maxLines: 2,
-                    ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '$displayScore',
+                    style: AppTextStyles.displayLarge.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        height: 1.0),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    height: 1,
+                    color: Colors.white10,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _getCheerMessage(displayScore, strings),
+                    style: AppTextStyles.titleMedium
+                        .copyWith(color: Colors.white, height: 1.4),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
@@ -240,12 +239,9 @@ class InterviewResultScreen extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  round.mainQuestion
+                child: _ExpandableQuestionText(
+                  text: round.mainQuestion
                       .getLocalizedQuestion(strings.language.code),
-                  style: AppTextStyles.titleSmall.copyWith(color: Colors.white),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (round.mainGrade != null)
@@ -364,10 +360,6 @@ class InterviewResultScreen extends StatelessWidget {
   }
 
   String _getCheerMessage(int score, AppStrings strings) {
-    // Ideally these messages should also be in AppStrings or passed by key
-    // For now, I'll localize them inline or just keep basic English/Korean toggle if strict localization needed.
-    // Let's use simple logic for now.
-
     if (strings.language == AppLanguage.korean) {
       if (score >= 90) return '완벽해요! 면접 마스터시네요 🏆';
       if (score >= 70) return '훌륭해요! 조금만 더 다듬으면 완벽할 거예요 🚀';
@@ -379,5 +371,44 @@ class InterviewResultScreen extends StatelessWidget {
       if (score >= 50) return 'Good! Let\'s improve the weak points 💪';
       return 'A good start! Keep practicing 🌱';
     }
+  }
+}
+
+class _ExpandableQuestionText extends StatefulWidget {
+  final String text;
+  const _ExpandableQuestionText({required this.text});
+
+  @override
+  State<_ExpandableQuestionText> createState() =>
+      _ExpandableQuestionTextState();
+}
+
+class _ExpandableQuestionTextState extends State<_ExpandableQuestionText> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _isExpanded = !_isExpanded;
+        });
+      },
+      child: AnimatedCrossFade(
+        duration: const Duration(milliseconds: 200),
+        crossFadeState:
+            _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+        firstChild: Text(
+          widget.text,
+          style: AppTextStyles.titleSmall.copyWith(color: Colors.white),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        secondChild: Text(
+          widget.text,
+          style: AppTextStyles.titleSmall.copyWith(color: Colors.white),
+        ),
+      ),
+    );
   }
 }

@@ -51,7 +51,7 @@ class AIService {
 
   // ----------------------------------------------------------------------
   // [Dev Flag] Set to true to bypass AI API and use Mock data
-  static const bool useMockApi = true;
+  static const bool useMockApi = false;
   // ----------------------------------------------------------------------
 
   Future<GradeResult> evaluateAnswer({
