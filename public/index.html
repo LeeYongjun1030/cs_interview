@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocrAItes - Master Tech Interviews with AI</title>
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --bg: #1A1A2E;
+            --surface: #16213E;
+            --text: #ffffff;
+            --text-secondary: #a0a0a0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+
+        .logo-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 0 0 10px;
+            background: linear-gradient(45deg, #6C63FF, #00B4D8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 30px;
+            transition: transform 0.2s;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.05);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 60px 0;
+        }
+
+        .feature-card {
+            background-color: var(--surface);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            margin-top: 0;
+        }
+
+        .privacy-section {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 40px;
+            margin-top: 60px;
+            color: var(--text-secondary);
+        }
+
+        .privacy-content {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <div class="logo-icon">🎓</div>
+            <h1>SocrAItes</h1>
+            <p class="subtitle">Prepare for your dream job with an AI-powered technical interviewer. Real-time feedback,
+                deep follow-up questions, and tailored study paths.</p>
+            <a href="#" class="cta-button">Coming Soon on App Store</a>
+        </header>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3>AI Interviewer</h3>
+                <p>Experience realistic technical interviews with our advanced AI that adapts to your answers.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Real-time Feedback</h3>
+                <p>Get instant grading and actionable advice to improve your answers immediately.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h3>Targeted Topics</h3>
+                <p>Practice specific subjects like OS, Network, Database, and Data Structures.</p>
+            </div>
+        </div>
+
+        <div class="privacy-section" id="privacy">
+            <h2>Privacy Policy</h2>
+            <div class="privacy-content">
+                <p><strong>Last updated: January 24, 2026</strong></p>
+                <p>This Privacy Policy describes how <strong>SocrAItes</strong> (the "App") collects, uses, and
+                    discloses your information.</p>
+
+                <h4>1. Information We Collect</h4>
+                <p><strong>A. Information You Provide</strong><br>
+                    - Account Information: Email address and display name (via Google/GitHub login).<br>
+                    - Voice Data: Processed locally or via speech recognition API for interview answers.</p>
+
+                <p><strong>B. Automatically Collected Information</strong><br>
+                    - Device Information: Type, OS version, identifiers.<br>
+                    - Usage Data: Sessions started, questions answered (for analytics).</p>
+
+                <h4>2. Third-Party Services</h4>
+                <p>- Google AdMob (Advertising)<br>
+                    - Firebase (Auth, Database, Analytics)<br>
+                    - Google Vertex AI (Answer Analysis)</p>
+
+                <h4>3. How We Use Information</h4>
+                <p>- To provide the service and save progress.<br>
+                    - To display personalized ads.<br>
+                    - To improve app stability and features.</p>
+
+                <h4>4. Data Deletion</h4>
+                <p>You can delete your account and data anytime via <strong>Profile > Reset Data</strong> in the App.
+                </p>
+
+                <h4>5. Contact Us</h4>
+                <p>For questions, please contact: <a href="mailto:yiyj1516@gmail.com"
+                        style="color: var(--primary);">yiyj1516@gmail.com</a></p>
+            </div>
+
+            <!-- Korean Privacy Policy -->
+            <div class="privacy-content" style="margin-top: 20px;">
+                <p><strong>최종 수정일: 2026년 1월 24일</strong></p>
+                <p>본 개인정보 처리방침은 <strong>SocrAItes</strong> ("앱")이 사용자의 정보를 어떻게 수집, 이용 및 공개하는지 설명합니다.</p>
+
+                <h4>1. 수집하는 정보</h4>
+                <p><strong>A. 사용자가 제공하는 정보</strong><br>
+                    - 계정 정보: 이메일 주소 및 표시 이름 (Google/GitHub 로그인 시).<br>
+                    - 음성 데이터: 인터뷰 답변을 위해 로컬 또는 음성 인식 API를 통해 처리됩니다.</p>
+
+                <p><strong>B. 자동 수집 정보</strong><br>
+                    - 기기 정보: 기기 종류, OS 버전, 식별자.<br>
+                    - 사용 데이터: 세션 시작, 답변 완료 등 (분석용).</p>
+
+                <h4>2. 제3자 서비스</h4>
+                <p>- Google AdMob (광고)<br>
+                    - Firebase (인증, 데이터베이스, 분석)<br>
+                    - Google Vertex AI (답변 분석)</p>
+
+                <h4>3. 정보 이용 목적</h4>
+                <p>- 서비스 제공 및 진행 상황 저장.<br>
+                    - 맞춤형 광고 표시.<br>
+                    - 앱 안정성 및 기능 개선.</p>
+
+                <h4>4. 데이터 삭제</h4>
+                <p>앱 내 <strong>프로필 > 기록 초기화 (로그아웃)</strong> 기능을 통해 언제든지 계정 및 데이터를 삭제할 수 있습니다.</p>
+
+                <h4>5. 문의하기</h4>
+                <p>문의사항이 있으시면 아래로 연락주세요: <a href="mailto:yiyj1516@gmail.com"
+                        style="color: var(--primary);">yiyj1516@gmail.com</a></p>
+            </div>
+        </div>
+
+        <footer>
+            <p>&copy; 2026 SocrAItes. All rights reserved.</p>
+        </footer>
+    </div>
+
+</body>
+
+</html>

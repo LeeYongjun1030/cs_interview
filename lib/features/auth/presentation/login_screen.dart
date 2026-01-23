@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/services/auth_service.dart';
-import '../../../core/utils/data_seeder.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/language_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -18,10 +19,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
   bool _isGoogleLoading = false;
   bool _isGitHubLoading = false;
-  bool _isSeedLoading = false;
 
-  bool get _isAnyLoading =>
-      _isGoogleLoading || _isGitHubLoading || _isSeedLoading;
+  bool get _isAnyLoading => _isGoogleLoading || _isGitHubLoading;
 
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isGoogleLoading = true);
@@ -61,8 +60,6 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.signInWithGitHub();
     } on FirebaseAuthException catch (e) {
-      print('DEBUG: GitHub Auth Error Code: ${e.code}');
-      print('DEBUG: GitHub Auth Error Message: ${e.message}');
       if (mounted) {
         String message = e.message ?? 'Login failed';
         if (e.code == 'account-exists-with-different-credential') {
@@ -78,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      print('DEBUG: Generic Error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -89,6 +85,17 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } finally {
       if (mounted) setState(() => _isGitHubLoading = false);
+    }
+  }
+
+  Future<void> _launchPrivacyPolicy() async {
+    final Uri url = Uri.parse('https://cs-interview-66fb7.web.app/#privacy');
+    if (!await launchUrl(url)) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not launch Privacy Policy')),
+        );
+      }
     }
   }
 
@@ -172,6 +179,30 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Consent Text
+              GestureDetector(
+                onTap: _launchPrivacyPolicy,
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                    ),
+                    children: [
+                      TextSpan(text: strings.loginConsentStart),
+                      TextSpan(
+                        text: strings.loginConsentLink,
+                        style: const TextStyle(
+                          decoration: TextDecoration.underline,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      TextSpan(text: strings.loginConsentEnd),
+                    ],
                   ),
                 ),
               ),

@@ -61,7 +61,7 @@ class AppStrings {
 
   // Home Screen
   String get appTitle =>
-      language == AppLanguage.korean ? 'CS 면접 코치' : 'CS Interview Coach';
+      language == AppLanguage.korean ? 'SocrAItes' : 'SocrAItes';
   String get recentSessions =>
       language == AppLanguage.korean ? '최근 면접 기록' : 'Recent Sessions';
   String get startNewSession =>
@@ -181,10 +181,10 @@ class AppStrings {
       : 'Failed to load questions:';
 
   // Login Screen
-  String get loginTitle => 'CS Interview Coach';
+  String get loginTitle => 'SocrAItes';
   String get loginSubtitle => language == AppLanguage.korean
-      ? 'AI 면접관과 함께하는 CS 인터뷰 준비'
-      : 'Prepare for CS Interviews with AI Coach';
+      ? 'AI 소크라테스와 함께하는 CS 인터뷰 준비'
+      : 'Prepare for CS Interviews with Socratic AI';
   String get signInGoogle =>
       language == AppLanguage.korean ? 'Google로 시작하기' : 'Sign in with Google';
   String get signInGitHub =>
@@ -194,6 +194,13 @@ class AppStrings {
   String get loginFooter => language == AppLanguage.korean
       ? '수천 명의 개발자와 함께 꿈의 직장을 준비하세요.'
       : 'Join thousands of developers preparing for their dream job.';
+  String get loginConsentStart => language == AppLanguage.korean
+      ? '계속 진행 시 '
+      : 'By continuing, you agree to our ';
+  String get loginConsentLink =>
+      language == AppLanguage.korean ? '개인정보 처리방침' : 'Privacy Policy';
+  String get loginConsentEnd =>
+      language == AppLanguage.korean ? '에 동의하는 것으로 간주합니다.' : '.';
 
   // Common
   String get loading =>
@@ -281,4 +288,11 @@ class AppStrings {
       : 'All interview history will be deleted.\nAre you sure?';
 
   String get deleteAction => language == AppLanguage.korean ? '삭제' : 'Delete';
+
+  // Support
+  String get supportTitle => language == AppLanguage.korean ? '지원' : 'Support';
+  String get contactLabel =>
+      language == AppLanguage.korean ? '문의하기' : 'Contact Us';
+  String get privacyLabel =>
+      language == AppLanguage.korean ? '개인정보 처리방침' : 'Privacy Policy';
 }

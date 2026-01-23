@@ -6,6 +6,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/localization/language_service.dart';
 import '../../interview/data/repositories/interview_repository.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,6 +17,19 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final InterviewRepository _repository = InterviewRepository();
+
+  Future<void> _launchUrl(String urlString) async {
+    final uri = Uri.parse(urlString);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not launch $urlString')),
+        );
+      }
+    }
+  }
 
   Future<void> _clearData() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -288,6 +302,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       title: Text(strings.resetDataLabel,
                           style: const TextStyle(color: Colors.white)),
                       onTap: _clearData,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+              Text(strings.supportTitle,
+                  style: AppTextStyles.titleMedium.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textTertiary)),
+              const SizedBox(height: 16),
+
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.email, color: Colors.white70),
+                      title: Text(strings.contactLabel,
+                          style: const TextStyle(color: Colors.white)),
+                      trailing: const Icon(Icons.arrow_forward_ios,
+                          size: 16, color: Colors.white30),
+                      onTap: () => _launchUrl(
+                          'mailto:yiyj1516@gmail.com?Subject=CS Interview Coach Inquiry'),
+                    ),
+                    const Divider(height: 1, color: Colors.white10),
+                    ListTile(
+                      leading:
+                          const Icon(Icons.privacy_tip, color: Colors.white70),
+                      title: Text(strings.privacyLabel,
+                          style: const TextStyle(color: Colors.white)),
+                      trailing: const Icon(Icons.arrow_forward_ios,
+                          size: 16, color: Colors.white30),
+                      onTap: () => _launchUrl(
+                          'https://cs-interview-66fb7.web.app'), // Placeholder
                     ),
                   ],
                 ),
