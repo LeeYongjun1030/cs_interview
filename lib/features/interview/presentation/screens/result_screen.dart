@@ -4,6 +4,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/localization/language_service.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../../../features/monetization/services/ad_service.dart';
 import '../providers/session_controller.dart';
 
 class InterviewResultScreen extends StatelessWidget {
@@ -77,6 +79,9 @@ class InterviewResultScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 24),
+            // Banner Ad
+            const _BannerAdWidget(),
             const SizedBox(height: 24),
 
             // Details List
@@ -409,6 +414,61 @@ class _ExpandableQuestionTextState extends State<_ExpandableQuestionText> {
           style: AppTextStyles.titleSmall.copyWith(color: Colors.white),
         ),
       ),
+    );
+  }
+}
+
+class _BannerAdWidget extends StatefulWidget {
+  const _BannerAdWidget();
+
+  @override
+  State<_BannerAdWidget> createState() => _BannerAdWidgetState();
+}
+
+class _BannerAdWidgetState extends State<_BannerAdWidget> {
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Use AdService to get Unit ID but create Ad here for state control
+    final adService = Provider.of<AdService>(context, listen: false);
+
+    _bannerAd = BannerAd(
+      adUnitId: adService.bannerAdUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (mounted) {
+            setState(() {
+              _isAdLoaded = true;
+            });
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          print('Banner failed to load: $error');
+        },
+      ),
+    )..load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isAdLoaded || _bannerAd == null) return const SizedBox.shrink();
+    return Container(
+      alignment: Alignment.center,
+      width: _bannerAd!.size.width.toDouble(),
+      height: _bannerAd!.size.height.toDouble(),
+      child: AdWidget(ad: _bannerAd!),
     );
   }
 }

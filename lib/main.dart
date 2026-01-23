@@ -8,17 +8,26 @@ import 'core/localization/language_service.dart';
 import 'features/home/presentation/home_screen.dart';
 import 'features/auth/presentation/login_screen.dart';
 
+import 'features/monetization/data/repositories/credit_repository.dart';
+import 'features/monetization/services/ad_service.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final adService = AdService();
+  // Initialize Firebase & Ads
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    await adService.initialize();
+
     runApp(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => LanguageController()),
+          Provider(create: (_) => CreditRepository()),
+          Provider.value(value: adService),
         ],
         child: const MyApp(),
       ),

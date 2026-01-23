@@ -138,15 +138,26 @@ class SessionController extends ChangeNotifier {
     final isEnglish = languageCode == 'en';
 
     // Set thinking state
+    // Set thinking state
     final thinkingMsg = isEnglish
         ? 'AI Interviewer is analyzing your answer...'
         : 'AI 면접관이 답변을 분석 중입니다...';
-    final nextMsg = isEnglish
-        ? 'Thank you. Preparing next question...'
-        : '답변 감사합니다.\n다음 면접 질문을 준비 중입니다.';
 
-    _setAiThinking(true,
-        message: round.isFollowUpActive ? nextMsg : thinkingMsg);
+    String statusMsg;
+    if (round.isFollowUpActive) {
+      if (_currentIndex >= _rounds.length - 1) {
+        statusMsg =
+            isEnglish ? 'Aggregating final results...' : '최종 결과를 집계 중입니다...';
+      } else {
+        statusMsg = isEnglish
+            ? 'Thank you. Preparing next question...'
+            : '답변 감사합니다.\n다음 면접 질문을 준비 중입니다.';
+      }
+    } else {
+      statusMsg = thinkingMsg;
+    }
+
+    _setAiThinking(true, message: statusMsg);
 
     try {
       if (!round.isFollowUpActive) {
@@ -165,7 +176,7 @@ class SessionController extends ChangeNotifier {
         if (result.followUpQuestion != null) {
           round.followUpQuestion = result.followUpQuestion;
         } else {
-          _moveToNext();
+          await _moveToNext();
         }
       } else {
         // --- 2. Follow-Up Answer Submission ---
@@ -180,31 +191,31 @@ class SessionController extends ChangeNotifier {
         );
 
         round.followUpGrade = result;
-        _moveToNext();
+        await _moveToNext();
       }
     } catch (e) {
       print('Error submitting answer: $e');
-      _moveToNext();
+      await _moveToNext();
     } finally {
       _setAiThinking(false);
     }
   }
 
   // Skip the current follow-up (Pass)
-  void passFollowUp() {
+  Future<void> passFollowUp() async {
     if (currentRound == null || !currentRound!.isFollowUpActive) return;
 
     // Mark as skipped
     currentRound!.followUpAnswer = "[SKIPPED]";
-    _moveToNext();
+    await _moveToNext();
   }
 
-  void _moveToNext() {
+  Future<void> _moveToNext() async {
     _currentIndex++;
     notifyListeners();
 
     if (isSessionFinished) {
-      _saveSessionResults();
+      await _saveSessionResults();
     }
   }
 

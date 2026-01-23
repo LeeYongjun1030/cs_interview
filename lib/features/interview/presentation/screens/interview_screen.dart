@@ -5,7 +5,6 @@ import '../../../../core/theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/localization/language_service.dart';
 import '../providers/session_controller.dart';
-import 'result_screen.dart';
 
 class InterviewScreen extends StatefulWidget {
   final SessionController controller;
@@ -119,30 +118,9 @@ class _InterviewScreenState extends State<InterviewScreen> {
   }
 
   void _navigateToResult() {
-    final rounds = widget.controller.rounds;
-    double totalScore = 0;
-    int count = 0;
-    for (var round in rounds) {
-      if (round.mainGrade != null) {
-        totalScore += round.mainGrade!.score;
-        count++;
-      }
-      if (round.followUpGrade != null) {
-        totalScore += round.followUpGrade!.score;
-        count++;
-      }
-    }
-    final double averageScore = count > 0 ? totalScore / count : 0.0;
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-          builder: (context) => InterviewResultScreen(
-                rounds: rounds,
-                averageScore: averageScore,
-                controller: widget.controller,
-              )),
-    );
+    // Return to Home with 'finished' signal
+    // Home screen will handle navigation to ResultScreen
+    Navigator.pop(context, 'finished');
   }
 
   @override
@@ -309,8 +287,9 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                       .copyWith(color: Colors.white54)),
                               const SizedBox(height: 4),
                               Text(round!.mainAnswer!,
-                                  style:
-                                      const TextStyle(color: Colors.white70)),
+                                  style: const TextStyle(
+                                      color: Colors.white70,
+                                      decoration: TextDecoration.none)),
                             ],
                           ),
                         ),
@@ -443,9 +422,9 @@ class _InterviewScreenState extends State<InterviewScreen> {
                             children: [
                               Expanded(
                                 child: TextButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     // SKIP FOLLOW UP
-                                    widget.controller.passFollowUp();
+                                    await widget.controller.passFollowUp();
                                     _answerController.clear();
                                     if (!context.mounted) return;
                                     if (widget.controller.isSessionFinished) {
@@ -515,15 +494,17 @@ class _InterviewScreenState extends State<InterviewScreen> {
                         const SizedBox(height: 24),
                         Text(
                           widget.controller.thinkingMessage,
-                          style: AppTextStyles.titleMedium
-                              .copyWith(color: Colors.white),
+                          style: AppTextStyles.titleMedium.copyWith(
+                              color: Colors.white,
+                              decoration: TextDecoration.none),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
                         Text(
                           strings.waitMessage,
-                          style: AppTextStyles.bodyMedium
-                              .copyWith(color: Colors.white70),
+                          style: AppTextStyles.bodyMedium.copyWith(
+                              color: Colors.white70,
+                              decoration: TextDecoration.none),
                         ),
                       ],
                     ),

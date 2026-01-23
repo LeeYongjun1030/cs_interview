@@ -49,6 +49,8 @@
 	<string>입력하신 음성을 텍스트로 변환하여 AI에게 전달합니다.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

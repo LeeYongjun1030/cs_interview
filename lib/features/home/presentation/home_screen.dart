@@ -17,6 +17,8 @@ import 'package:intl/intl.dart';
 import '../../../../core/services/ai_service.dart';
 import '../../interview/domain/models/question_model.dart';
 import '../../interview/presentation/screens/result_screen.dart';
+import '../../monetization/data/repositories/credit_repository.dart';
+import '../../monetization/services/ad_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -27,9 +29,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final InterviewRepository _repository = InterviewRepository();
-  List<InterviewSession> _sessions = [];
+  // List<InterviewSession> _sessions = []; // Replaced by Stream
+  Stream<List<InterviewSession>>? _sessionsStream;
   bool _isLoading = true;
   late String _userId;
+  int _credits = 0; // Local credit state
 
   @override
   void initState() {
@@ -37,7 +41,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _userId = user.uid;
-      _fetchSessions();
+      _sessionsStream = _repository.getUserSessionsStream(_userId);
+      // _fetchSessions(); // No-op
+      _fetchCredits();
+      _checkDailyBonus();
     } else {
       _isLoading = false;
     }
@@ -45,6 +52,29 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkLanguageSetup();
     });
+  }
+
+  Future<void> _fetchCredits() async {
+    final repo = Provider.of<CreditRepository>(context, listen: false);
+    final userModel = await repo.getUser(_userId);
+    if (mounted) {
+      setState(() {
+        _credits = userModel.credits;
+      });
+    }
+  }
+
+  Future<void> _checkDailyBonus() async {
+    final repo = Provider.of<CreditRepository>(context, listen: false);
+    final bonus = await repo.claimDailyBonus(_userId);
+    if (bonus && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('🎉 Daily Bonus! +1 Credit Added'),
+            backgroundColor: AppColors.accentGreen),
+      );
+      _fetchCredits();
+    }
   }
 
   void _checkLanguageSetup() {
@@ -126,38 +156,11 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _fetchSessions({bool showLoading = true}) async {
-    try {
-      if (showLoading) {
-        // Only set loading if requested (initial load or explicit refresh)
-        if (mounted) setState(() => _isLoading = true);
-      }
-
-      final sessions = await _repository.fetchUserSessions(_userId);
-      if (mounted) {
-        setState(() {
-          // Filter only completed sessions locally for display
-          _sessions = sessions
-              .where((s) => s.status == SessionStatus.completed)
-              .toList();
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Failed to fetch sessions: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+    // No-op: Stream handles updates
   }
 
   Future<void> _deleteSession(String sessionId) async {
     try {
-      // Optimistic update
-      setState(() {
-        _sessions.removeWhere((s) => s.id == sessionId);
-      });
       await _repository.deleteSession(sessionId);
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -165,8 +168,10 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       print('Failed to delete session: $e');
-      // Re-fetch if failed
-      _fetchSessions();
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Deletion failed: $e')));
+      }
     }
   }
 
@@ -308,11 +313,18 @@ class _HomeScreenState extends State<HomeScreen> {
                       IconButton(
                         icon: const Icon(Icons.refresh, color: Colors.white70),
                         onPressed: () {
-                          // Silent refresh (keep existing list visible while fetching)
-                          if (_sessions.isEmpty) {
-                            setState(() => _isLoading = true);
-                          }
-                          _fetchSessions();
+                          // Force stream refresh
+                          setState(() {
+                            // Re-assign stream to force rebuild/reconnect
+                            _sessionsStream =
+                                _repository.getUserSessionsStream(_userId);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Refreshing list...'),
+                              duration: Duration(seconds: 1),
+                            ),
+                          );
                         },
                       )
                     ],
@@ -322,26 +334,49 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
-          if (_isLoading)
-            const SliverFillRemaining(
-              child: Center(child: CircularProgressIndicator()),
-            )
-          else if (_sessions.isEmpty)
-            SliverFillRemaining(
-              child: _buildEmptyState(strings),
-            )
-          else
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return _buildSessionCard(_sessions[index], strings);
-                  },
-                  childCount: _sessions.length,
+          StreamBuilder<List<InterviewSession>>(
+            stream: _sessionsStream,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (snapshot.hasError) {
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('Error: ${snapshot.error}',
+                        style: const TextStyle(color: Colors.red)),
+                  ),
+                );
+              }
+
+              final sessions = snapshot.data ?? [];
+              final completedSessions = sessions
+                  .where((s) => s.status == SessionStatus.completed)
+                  .toList();
+
+              if (completedSessions.isEmpty) {
+                return SliverFillRemaining(
+                  child: _buildEmptyState(strings),
+                );
+              }
+
+              return SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      return _buildSessionCard(
+                          completedSessions[index], strings);
+                    },
+                    childCount: completedSessions.length,
+                  ),
                 ),
-              ),
-            ),
+              );
+            },
+          ),
           const SliverPadding(padding: EdgeInsets.only(bottom: 120)),
         ],
       ),
@@ -410,7 +445,42 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
-          // Language Toggle
+          // Credit Display
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(20),
+              border:
+                  Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.bolt, color: Colors.yellow, size: 16),
+                const SizedBox(width: 4),
+                Text(
+                  '$_credits', // Credits
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14),
+                ),
+                const SizedBox(width: 4),
+                GestureDetector(
+                  onTap: _showShopDialog,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 14),
+                  ),
+                )
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -657,7 +727,13 @@ class _HomeScreenState extends State<HomeScreen> {
             border: Border.all(color: Colors.white24, width: 1),
           ),
           child: InkWell(
-            onTap: () => _showStartSessionDialog(context),
+            onTap: () {
+              if (_credits > 0) {
+                _showStartSessionDialog(context);
+              } else {
+                _showShopDialog();
+              }
+            },
             borderRadius: BorderRadius.circular(30),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -700,8 +776,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ],
                   ),
-                  const Icon(Icons.arrow_forward_ios,
-                      color: Colors.white70, size: 16),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      const Icon(Icons.bolt, color: Colors.yellow, size: 16),
+                      const SizedBox(width: 4),
+                      const Text('1',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14)),
+                      const SizedBox(width: 12),
+                      const Icon(Icons.arrow_forward_ios,
+                          color: Colors.white70, size: 16),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -1060,6 +1149,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     try {
+      // 0. Deduct Credit
+      final creditRepo = Provider.of<CreditRepository>(context, listen: false);
+      final success = await creditRepo.deductCredit(userId);
+      if (!success) {
+        if (!context.mounted) return;
+        Navigator.pop(context); // Pop loading
+        _showShopDialog(); // Show shop if deduction failed (edge case)
+        return;
+      }
+      // Update local credit display immediately
+      if (mounted) setState(() => _credits -= 1);
+
       await controller.startNewSession(userId, title,
           targetSubjects: targetSubjects, fixedQuestions: fixedQuestions);
 
@@ -1068,19 +1169,156 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!context.mounted) return;
       Navigator.pop(context); // Pop loading
       print('[StartSession] Navigating to InterviewScreen');
-      await Navigator.push(
+      print('[StartSession] Navigating to InterviewScreen');
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => InterviewScreen(controller: controller)),
       );
-      // Refresh list after returning from session (silent)
+
+      // Handle session completion
+      if (result == 'finished') {
+        print('[StartSession] Interview finished. Preparing result screen.');
+
+        // Calculate stats here since we have the controller
+        final rounds = controller.rounds;
+        double totalScore = 0;
+        int count = 0;
+        for (var round in rounds) {
+          if (round.mainGrade != null) {
+            totalScore += round.mainGrade!.score;
+            count++;
+          }
+          if (round.followUpGrade != null) {
+            totalScore += round.followUpGrade!.score;
+            count++;
+          }
+        }
+        final double averageScore = count > 0 ? totalScore / count : 0.0;
+
+        if (!context.mounted) return;
+
+        // Push Result Screen (Normal Push, not Replacement)
+        // We wait for it to pop so we know when to refresh the list
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => InterviewResultScreen(
+              rounds: rounds,
+              averageScore: averageScore,
+              controller: controller,
+            ),
+          ),
+        );
+      }
+
+      // Refresh list after returning from session/result
       _fetchSessions(showLoading: false);
+      _fetchCredits(); // Refresh credits
     } catch (e) {
       if (!context.mounted) return;
       Navigator.pop(context); // Pop loading
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
+  }
+
+  void _showShopDialog() {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Not Enough Energy ⚡',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              '면접을 시작하려면 에너지가 필요합니다.\n광고를 보고 에너지를 충전하시겠습니까?',
+              style: TextStyle(color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.bolt, color: Colors.yellow, size: 24),
+                const SizedBox(width: 8),
+                Text('$_credits',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold)),
+                const Icon(Icons.arrow_forward, color: Colors.white54),
+                const SizedBox(width: 8),
+                const Icon(Icons.bolt, color: Colors.yellow, size: 24),
+                Text('${_credits + 3}',
+                    style: const TextStyle(
+                        color: Colors.greenAccent,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('취소', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              // Capture providers using stable context (this.context)
+              final adService = Provider.of<AdService>(context, listen: false);
+              final creditRepo =
+                  Provider.of<CreditRepository>(context, listen: false);
+
+              Navigator.pop(dialogContext); // Close dialog using dialog context
+
+              // Show loading? RewardedAd usually shows immediately or not.
+              final reward = await adService.showRewardedAd();
+              if (reward != null) {
+                // Add credits using captured repo
+                await creditRepo.addCredit(_userId, reward);
+                await _fetchCredits();
+                if (mounted) {
+                  // Use stable 'context' for the success dialog
+                  showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                            backgroundColor: AppColors.surface,
+                            content: const Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.check_circle,
+                                    color: Colors.green, size: 48),
+                                SizedBox(height: 16),
+                                Text(
+                                  "충전 완료!\n+3 에너지를 획득했습니다.",
+                                  style: TextStyle(color: Colors.white),
+                                  textAlign: TextAlign.center,
+                                )
+                              ],
+                            ),
+                          ));
+                }
+              } else {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('광고를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.')));
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.play_circle_filled),
+            label: const Text('광고 보고 충전하기'),
+          ),
+        ],
+      ),
+    );
   }
 
   Color _getScoreColor(int score) {

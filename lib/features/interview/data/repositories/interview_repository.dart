@@ -103,6 +103,21 @@ class InterviewRepository {
     }
   }
 
+  // Stream version for real-time updates
+  Stream<List<InterviewSession>> getUserSessionsStream(String userId) {
+    return _sessionsRef
+        .where('userId', isEqualTo: userId)
+        .orderBy('startTime', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        final data = doc.data() as Map<String, dynamic>;
+        data['id'] = doc.id;
+        return InterviewSession.fromJson(data);
+      }).toList();
+    });
+  }
+
   Future<void> deleteAllUserSessions(String userId) async {
     try {
       final querySnapshot =
