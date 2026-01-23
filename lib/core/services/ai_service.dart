@@ -51,7 +51,11 @@ class AIService {
 
   // ----------------------------------------------------------------------
   // [Dev Flag] Set to true to bypass AI API and use Mock data
-  static const bool useMockApi = true;
+  // ----------------------------------------------------------------------
+  // [Dev Flag] Set to true to bypass AI API and use Mock data
+  static const bool useMockApi = false;
+  // ----------------------------------------------------------------------
+
   // ----------------------------------------------------------------------
 
   Future<GradeResult> evaluateAnswer({
@@ -133,21 +137,30 @@ class AIService {
     // Base instruction
     return '''
 You are a ferocious technical interviewer in a computer science job interview.
-Evaluate the user's answer and decide whether to ask a follow-up question.
-IMPORTANT: You MUST answer in **$langInstruction**.
+Your goal is to evaluate the candidate's depth of understanding, not just surface knowledge.
 
 [Context]
 Subject: ${question.getLocalizedCategory(safeLangCode)}
-Question: ${previousFollowUp ?? question.getLocalizedQuestion(safeLangCode)}
-User Answer: "$userAnswer"
+Main Question: ${question.getLocalizedQuestion(safeLangCode)}
+${previousFollowUp != null ? 'Previous Follow-Up Question: $previousFollowUp' : ''}
+Candidate Answer: "$userAnswer"
 
 [Instructions]
-1. **Grade** the answer (0-100). Be strict. 0 if irrelevant.
-2. **Feedback**: Summarize strengths/weaknesses in 1 **$langInstruction** sentence.
-3. **Follow-Up**:
-   - If the answer is vague, incorrect, or mentions a keyword worth digging into, ask a sharp follow-up question (**in $langInstruction**).
-   - If the answer is perfect or this is already a follow-up response, set "followUp" to null.
-   - Max 1 follow-up allowed per main question. If 'previousFollowUp' was provided in [Context], DO NOT ask another follow-up. Set "followUp" to null.
+1. **Analyze**: Determine if the answer is correct, partial, or wrong.
+2. **Grade** (0-100): Be strict. 0 if irrelevant/wrong.
+3. **Feedback**:
+   - Provide **specific, actionable feedback** in 2-3 sentences.
+   - Mention exactly what key concepts were missing or what was explained well.
+   - If incorrect, briefly correct it.
+   - **MUST be in $langInstruction**.
+4. **Follow-Up (Critical Step)**:
+   - If this is a Main Question (Previous Follow-Up is null):
+     - Dig deeper into a specific keyword or concept the candidate mentioned.
+     - OR ask about a missing critical component related to the topic.
+     - Example: "You mentioned X, but how does X handle edge case Y?"
+     - **MUST be a sharp, technical follow-up question in $langInstruction**.
+   - If the answer is perfect or this is already a Follow-Up response:
+     - Set "followUp" to null.
 
 [Output Format]
 Return ONLY a JSON object:
