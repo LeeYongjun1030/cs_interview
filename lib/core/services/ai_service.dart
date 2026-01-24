@@ -170,13 +170,15 @@ Candidate Answer: "$userAnswer"
    - If incorrect, briefly correct it.
    - **MUST be in $langInstruction**.
 4. **Follow-Up (Critical Step)**:
-   - If this is a Main Question (Previous Follow-Up is null):
-     - Dig deeper into a specific keyword or concept the candidate mentioned.
-     - OR ask about a missing critical component related to the topic.
-     - Example: "You mentioned X, but how does X handle edge case Y?"
-     - **MUST be a sharp, technical follow-up question in $langInstruction**.
-   - If the answer is perfect or this is already a Follow-Up response:
-     - Set "followUp" to null.
+     - **Dig Deeper (Crucial)**: Latch onto a specific keyword, technology, or trade-off the candidate mentioned.
+     - **"Catch the Tail"**: If they explained A, ask about the edge case of A. If they proposed B, ask why not C.
+     - **Be Skeptical**: Do not accept surface-level answers. Ask "Why?" or "How exactly?" regarding their specific implementation detail.
+     - **Contextual**: Start the question with "You mentioned [Keyword]...", "You said...", or "In that specific case...".
+     - Example: "You mentioned specific indexes, but how does that impact write performance in high-concurrency systems?" (Not just "What is an index?")
+     - **MUST be a sharp, technical, and challenging follow-up in $langInstruction**.
+     - **Even if the answer is perfect, DO NOT return null. Ask a more advanced question.**
+   - If this is already a Follow-Up response (Previous Follow-Up is NOT null):
+     - Set "followUp" to null (End of chain).
 
 [Output Format]
 Return ONLY a JSON object:
