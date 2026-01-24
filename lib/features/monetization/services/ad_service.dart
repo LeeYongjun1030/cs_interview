@@ -95,7 +95,7 @@ class AdService {
       onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
         debugPrint('User earned reward: ${reward.amount} ${reward.type}');
         if (!completer.isCompleted) {
-          completer.complete(3); // Hardcoded +3
+          completer.complete(1); // Hardcoded +1
         }
       },
     );

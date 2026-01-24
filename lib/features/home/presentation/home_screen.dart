@@ -66,11 +66,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _checkDailyBonus() async {
     final repo = Provider.of<CreditRepository>(context, listen: false);
+    final strings = AppStrings(
+        Provider.of<LanguageController>(context, listen: false)
+            .currentLanguage);
     final bonus = await repo.claimDailyBonus(_userId);
     if (bonus && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('🎉 Daily Bonus! +1 Credit Added'),
+        SnackBar(
+            content: Text(strings.dailyBonusMessage),
             backgroundColor: AppColors.accentGreen),
       );
       _fetchCredits();
@@ -740,43 +743,51 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.mic,
+                              color: Colors.white, size: 20),
                         ),
-                        child: const Icon(Icons.mic,
-                            color: Colors.white, size: 20),
-                      ),
-                      const SizedBox(width: 16),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            strings.startInterviewButton,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              letterSpacing: 0.5,
-                            ),
+                        const SizedBox(width: 16),
+                        Flexible(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                strings.startInterviewButton,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              Text(
+                                strings.aiStandbyStatus,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
                           ),
-                          Text(
-                            strings.aiStandbyStatus,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                        ),
+                      ],
+                    ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
                   Row(
                     children: [
                       const Icon(Icons.bolt, color: Colors.yellow, size: 16),
@@ -1224,47 +1235,57 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showShopDialog() {
+    final strings = AppStrings(
+        Provider.of<LanguageController>(context, listen: false)
+            .currentLanguage);
+
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('Not Enough Energy ⚡',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(strings.notEnoughEnergy,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '면접을 시작하려면 에너지가 필요합니다.\n광고를 보고 에너지를 충전하시겠습니까?',
-              style: TextStyle(color: Colors.white70),
+            Text(
+              strings.needEnergyMessage,
+              style: const TextStyle(color: Colors.white70),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.bolt, color: Colors.yellow, size: 24),
-                const SizedBox(width: 8),
-                Text('$_credits',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold)),
-                const Icon(Icons.arrow_forward, color: Colors.white54),
-                const SizedBox(width: 8),
-                const Icon(Icons.bolt, color: Colors.yellow, size: 24),
-                Text('${_credits + 3}',
-                    style: const TextStyle(
-                        color: Colors.greenAccent,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold)),
-              ],
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.bolt, color: Colors.yellow, size: 24),
+                  const SizedBox(width: 8),
+                  Text('$_credits',
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold)),
+                  const Icon(Icons.arrow_forward, color: Colors.white54),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.bolt, color: Colors.yellow, size: 24),
+                  Text('${_credits + 1}',
+                      style: const TextStyle(
+                          color: Colors.greenAccent,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('취소', style: TextStyle(color: Colors.white54)),
+            child: Text(strings.cancelButton,
+                style: const TextStyle(color: Colors.white54)),
           ),
           ElevatedButton.icon(
             onPressed: () async {
@@ -1287,14 +1308,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       context: context,
                       builder: (ctx) => AlertDialog(
                             backgroundColor: AppColors.surface,
-                            content: const Column(
+                            content: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.check_circle,
                                     color: Colors.green, size: 48),
                                 SizedBox(height: 16),
                                 Text(
-                                  "충전 완료!\n+3 에너지를 획득했습니다.",
+                                  strings.rewardSuccessMessage,
                                   style: TextStyle(color: Colors.white),
                                   textAlign: TextAlign.center,
                                 )
@@ -1304,8 +1325,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
               } else {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('광고를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(strings.adLoadFailed)));
                 }
               }
             },
@@ -1314,7 +1335,7 @@ class _HomeScreenState extends State<HomeScreen> {
               foregroundColor: Colors.white,
             ),
             icon: const Icon(Icons.play_circle_filled),
-            label: const Text('광고 보고 충전하기'),
+            label: Text(strings.watchAdAction),
           ),
         ],
       ),
