@@ -734,7 +734,7 @@ class _HomeScreenState extends State<HomeScreen> {
               if (_credits > 0) {
                 _showStartSessionDialog(context);
               } else {
-                _showShopDialog();
+                _showShopDialog(isForced: true);
               }
             },
             borderRadius: BorderRadius.circular(30),
@@ -1166,7 +1166,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!success) {
         if (!context.mounted) return;
         Navigator.pop(context); // Pop loading
-        _showShopDialog(); // Show shop if deduction failed (edge case)
+        _showShopDialog(
+            isForced: true); // Show shop if deduction failed (edge case)
         return;
       }
       // Update local credit display immediately
@@ -1234,16 +1235,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _showShopDialog() {
+  void _showShopDialog({bool isForced = false}) {
     final strings = AppStrings(
         Provider.of<LanguageController>(context, listen: false)
             .currentLanguage);
+
+    final title = isForced ? strings.notEnoughEnergy : strings.shopTitle;
+    final message = isForced
+        ? '${strings.needEnergyMessage}${strings.shopMessage}'
+        : strings.shopMessage;
 
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(strings.notEnoughEnergy,
+        title: Text(title,
             textAlign: TextAlign.center,
             style: const TextStyle(
                 color: Colors.white, fontWeight: FontWeight.bold)),
@@ -1251,7 +1257,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              strings.needEnergyMessage,
+              message,
               style: const TextStyle(color: Colors.white70),
               textAlign: TextAlign.center,
             ),

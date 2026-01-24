@@ -297,11 +297,17 @@ class AppStrings {
       language == AppLanguage.korean ? '개인정보 처리방침' : 'Privacy Policy';
 
   // Ads & Shop
+  String get shopTitle =>
+      language == AppLanguage.korean ? '에너지 충전소 ⚡' : 'Energy Shop ⚡';
+  String get shopMessage => language == AppLanguage.korean
+      ? '광고를 보고 에너지를 충전하시겠습니까?'
+      : 'Watch an ad to recharge energy?';
+
   String get notEnoughEnergy =>
       language == AppLanguage.korean ? '에너지가 부족합니다' : 'Not Enough Energy';
   String get needEnergyMessage => language == AppLanguage.korean
-      ? '면접을 시작하려면 에너지가 필요합니다.\n광고를 보고 에너지를 충전하시겠습니까?'
-      : 'You need energy to start an interview.\nWatch an ad to recharge?';
+      ? '면접을 시작하려면 에너지가 필요합니다.\n'
+      : 'You need energy to start an interview.\n';
   String get watchAdAction =>
       language == AppLanguage.korean ? '광고 보고 충전하기' : 'Watch Ad to Recharge';
   String get dailyBonusMessage => language == AppLanguage.korean
