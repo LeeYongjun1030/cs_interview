@@ -80,9 +80,6 @@ class InterviewResultScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            // Banner Ad
-            const _BannerAdWidget(),
-            const SizedBox(height: 24),
 
             // Details List
             ...rounds.asMap().entries.map((entry) {
@@ -96,6 +93,9 @@ class InterviewResultScreen extends StatelessWidget {
               );
             }),
 
+            // Banner Ad at the bottom of content
+            const SizedBox(height: 32),
+            const _BannerAdWidget(),
             const SizedBox(height: 32),
           ],
         ),
