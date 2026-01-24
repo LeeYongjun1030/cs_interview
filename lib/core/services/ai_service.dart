@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:firebase_ai/firebase_ai.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import '../../features/interview/domain/models/question_model.dart';
 
 class GradeResult {
@@ -35,18 +36,33 @@ class GradeResult {
 }
 
 class AIService {
-  late final GenerativeModel _model;
+  late GenerativeModel _model;
+  final _remoteConfig = FirebaseRemoteConfig.instance;
 
   // Initialize in main.dart or via a provider/singleton
   AIService() {
-    // Uses the 'gemini-1.5-flash' model (optimal for speed/cost)
-    // Using vertexAI() as we are using Vertex AI in Firebase
+    _initModel();
+    _listenForConfigUpdates();
+  }
+
+  void _initModel() {
+    final modelName = _remoteConfig.getString('model_name');
+    print('🤖 AI Service Initialized with Model: $modelName');
+
     _model = FirebaseAI.googleAI().generativeModel(
-      model: 'gemini-2.5-flash',
+      model: modelName,
       generationConfig: GenerationConfig(
         responseMimeType: 'application/json', // Force JSON output
       ),
     );
+  }
+
+  void _listenForConfigUpdates() {
+    _remoteConfig.onConfigUpdated.listen((event) async {
+      await _remoteConfig.activate();
+      print('🔄 Remote Config Updated. Reloading AI Model...');
+      _initModel();
+    });
   }
 
   // ----------------------------------------------------------------------

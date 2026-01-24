@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_app_check/firebase_app_check.dart'; // Added
+import 'package:firebase_remote_config/firebase_remote_config.dart'; // Added
 import 'package:flutter/foundation.dart'; // For kDebugMode
 import 'firebase_options.dart';
 import 'core/theme/app_theme.dart';
@@ -35,6 +36,21 @@ void main() async {
     );
 
     await adService.initialize();
+
+    // Initialize Remote Config
+    final remoteConfig = FirebaseRemoteConfig.instance;
+    await remoteConfig.setConfigSettings(RemoteConfigSettings(
+      fetchTimeout: const Duration(minutes: 1),
+      minimumFetchInterval: kDebugMode
+          ? const Duration(minutes: 5) // 5 min in Debug
+          : const Duration(hours: 12), // 12 hours in Prod
+    ));
+
+    await remoteConfig.setDefaults(const {
+      "model_name": "gemini-2.5-flash-lite",
+    });
+
+    await remoteConfig.fetchAndActivate();
 
     runApp(
       MultiProvider(
