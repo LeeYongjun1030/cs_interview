@@ -7,6 +7,7 @@ import '../../../core/theme/app_text_styles.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/language_service.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -19,8 +20,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final AuthService _authService = AuthService();
   bool _isGoogleLoading = false;
   bool _isGitHubLoading = false;
+  bool _isAppleLoading = false;
 
-  bool get _isAnyLoading => _isGoogleLoading || _isGitHubLoading;
+  bool get _isAnyLoading =>
+      _isGoogleLoading || _isGitHubLoading || _isAppleLoading;
 
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isGoogleLoading = true);
@@ -85,6 +88,39 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } finally {
       if (mounted) setState(() => _isGitHubLoading = false);
+    }
+  }
+
+  Future<void> _handleAppleSignIn() async {
+    setState(() => _isAppleLoading = true);
+    try {
+      await _authService.signInWithApple();
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        String message = e.message ?? 'Login failed';
+        if (e.code == 'account-exists-with-different-credential') {
+          message = Provider.of<LanguageController>(context, listen: false)
+              .strings
+              .errorAccountExistsWithDifferentCredential;
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Login failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isAppleLoading = false);
     }
   }
 
@@ -182,6 +218,34 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+              if (Platform.isIOS) ...[
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: _isAnyLoading ? null : _handleAppleSignIn,
+                  icon: _isAppleLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.apple, color: Colors.white),
+                  label: Text(
+                    _isAppleLoading ? strings.signingIn : strings.signInApple,
+                    style:
+                        AppTextStyles.labelLarge.copyWith(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               // Consent Text
               GestureDetector(
