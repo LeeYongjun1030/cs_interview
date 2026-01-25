@@ -7,6 +7,7 @@ import '../../../../core/localization/language_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../../../../features/monetization/services/ad_service.dart';
 import '../providers/session_controller.dart';
+import '../../../../core/services/ai_service.dart';
 
 class InterviewResultScreen extends StatelessWidget {
   final List<SessionRound> rounds;
@@ -82,19 +83,20 @@ class InterviewResultScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // Details List
+            // Details List
             ...rounds.asMap().entries.map((entry) {
               final index = entry.key;
               final round = entry.value;
+              final isLast = index == rounds.length - 1;
               return Column(
                 children: [
                   _buildRoundCard(index + 1, round, strings),
-                  const SizedBox(height: 16),
+                  if (!isLast) const SizedBox(height: 16),
                 ],
               );
             }),
 
             // Banner Ad at the bottom of content
-            const SizedBox(height: 32),
             const _BannerAdWidget(),
             const SizedBox(height: 32),
           ],
@@ -220,141 +222,162 @@ class InterviewResultScreen extends StatelessWidget {
   }
 
   Widget _buildRoundCard(int index, SessionRound round, AppStrings strings) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text('Q$index',
-                    style: const TextStyle(
-                        color: AppColors.primary, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ExpandableQuestionText(
-                  text: round.mainQuestion
-                      .getLocalizedQuestion(strings.language.code),
-                ),
-              ),
-              if (round.mainGrade != null)
-                Text(
-                  '${round.mainGrade!.score}',
-                  style: TextStyle(
-                      color: _getScoreColor(round.mainGrade!.score),
-                      fontWeight: FontWeight.bold),
-                ),
-            ],
-          ),
-          // Main Answer Display
-          if (round.mainAnswer != null) ...[
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(strings.myAnswer,
-                      style:
-                          const TextStyle(color: Colors.white38, fontSize: 11)),
-                  const SizedBox(height: 4),
-                  Text(round.mainAnswer!,
-                      style:
-                          const TextStyle(color: Colors.white70, fontSize: 14)),
+                  Container(
+                    margin: const EdgeInsets.only(top: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text('Q$index',
+                        style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _ExpandableQuestionText(
+                      text: round.mainQuestion
+                          .getLocalizedQuestion(strings.language.code),
+                    ),
+                  ),
+                  if (round.mainGrade != null)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Text(
+                        '${round.mainGrade!.score}',
+                        style: TextStyle(
+                            color: _getScoreColor(round.mainGrade!.score),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16),
+                      ),
+                    ),
                 ],
               ),
-            ),
-          ],
-          const SizedBox(height: 12),
-          // Main Feedback
-          if (round.mainGrade != null) ...[
-            Text('${strings.aiFeedback}: ${round.mainGrade!.feedback}',
-                style:
-                    const TextStyle(color: AppColors.accentCyan, fontSize: 13)),
-          ] else ...[
-            Text(strings.noFeedback,
-                style: const TextStyle(color: Colors.white38, fontSize: 13)),
-          ],
-
-          // Follow Up Section if exists
-          if (round.followUpQuestion != null) ...[
-            const Divider(color: Colors.white10, height: 24),
-            Row(
-              children: [
-                const Icon(Icons.subdirectory_arrow_right,
-                    color: AppColors.accentRed, size: 16),
-                const SizedBox(width: 8),
-                Text(strings.followUpTitle,
-                    style: const TextStyle(
-                        color: AppColors.accentRed,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold)),
-                const Spacer(),
-                if (round.followUpGrade != null)
-                  Text(
-                    '${round.followUpGrade!.score}',
-                    style: TextStyle(
-                        color: _getScoreColor(round.followUpGrade!.score),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12),
+              // Main Answer Display
+              if (round.mainAnswer != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(
+                      left: 16, right: 0, top: 4, bottom: 4),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      left: BorderSide(color: Colors.white24, width: 2),
+                    ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(round.followUpQuestion!,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500)),
-            if (round.followUpAnswer != null) ...[
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(strings.myAnswer,
+                          style: const TextStyle(
+                              color: Colors.white38, fontSize: 12)),
+                      const SizedBox(height: 6),
+                      Text(round.mainAnswer!,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                              height: 1.5,
+                              letterSpacing: 0.2)),
+                    ],
+                  ),
                 ),
-                child: Column(
+              ],
+              const SizedBox(height: 16),
+              // Main Feedback
+              _buildStructuredFeedback(round.mainGrade, strings),
+
+              // Follow Up Section if exists
+              if (round.followUpQuestion != null) ...[
+                const SizedBox(height: 24),
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(strings.myAnswer,
-                        style: const TextStyle(
-                            color: Colors.white38, fontSize: 11)),
-                    const SizedBox(height: 4),
-                    Text(round.followUpAnswer!,
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 13)),
+                    const Padding(
+                      padding: EdgeInsets.only(top: 3),
+                      child: Icon(Icons.subdirectory_arrow_right,
+                          color: AppColors.accentRed, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(strings.followUpTitle,
+                              style: const TextStyle(
+                                  color: AppColors.accentRed,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 4),
+                          Text(round.followUpQuestion!,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.4)),
+                        ],
+                      ),
+                    ),
+                    if (round.followUpGrade != null)
+                      Text(
+                        '${round.followUpGrade!.score}',
+                        style: TextStyle(
+                            color: _getScoreColor(round.followUpGrade!.score),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14),
+                      ),
                   ],
                 ),
-              ),
+                if (round.followUpAnswer != null) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.only(
+                        left: 16, right: 0, top: 4, bottom: 4),
+                    decoration: const BoxDecoration(
+                      border: Border(
+                        left: BorderSide(color: AppColors.accentRed, width: 2),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(strings.myAnswer,
+                            style: const TextStyle(
+                                color: Colors.white38, fontSize: 12)),
+                        const SizedBox(height: 6),
+                        Text(round.followUpAnswer!,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                height: 1.5,
+                                letterSpacing: 0.2)),
+                      ],
+                    ),
+                  ),
+                ],
+                if (round.followUpGrade != null) ...[
+                  const SizedBox(height: 16),
+                  _buildStructuredFeedback(round.followUpGrade, strings),
+                ]
+              ],
             ],
-            if (round.followUpGrade != null) ...[
-              const SizedBox(height: 8),
-              Text('${strings.aiFeedback}: ${round.followUpGrade!.feedback}',
-                  style: const TextStyle(
-                      color: AppColors.accentCyan, fontSize: 12)),
-            ]
-          ],
-        ],
-      ),
+          ),
+        ),
+        const Divider(color: Colors.white10, height: 32),
+      ],
     );
   }
 
@@ -376,6 +399,99 @@ class InterviewResultScreen extends StatelessWidget {
       if (score >= 50) return 'Good! Let\'s improve the weak points 💪';
       return 'A good start! Keep practicing 🌱';
     }
+  }
+
+  Widget _buildStructuredFeedback(GradeResult? grade, AppStrings strings) {
+    if (grade == null) {
+      return Text(strings.noFeedback,
+          style: const TextStyle(color: Colors.white38, fontSize: 13));
+    }
+
+    // Legacy Fallback: If no structured fields, show old feedback string
+    if (grade.summary == null &&
+        (grade.strengths == null || grade.strengths!.isEmpty) &&
+        (grade.weaknesses == null || grade.weaknesses!.isEmpty)) {
+      if (grade.feedback.isNotEmpty) {
+        return Text('${strings.aiFeedback}: ${grade.feedback}',
+            style: const TextStyle(color: AppColors.accentCyan, fontSize: 13));
+      }
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (grade.summary != null) ...[
+          Text(
+            grade.summary!,
+            style: const TextStyle(
+                color: AppColors.accentCyan,
+                fontSize: 15,
+                fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+        ],
+        if (grade.strengths != null && grade.strengths!.isNotEmpty) ...[
+          ...grade.strengths!.map((s) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('✅ ', style: TextStyle(fontSize: 14)),
+                    Expanded(
+                      child: Text(s,
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 14)),
+                    ),
+                  ],
+                ),
+              )),
+          const SizedBox(height: 8),
+        ],
+        if (grade.weaknesses != null && grade.weaknesses!.isNotEmpty) ...[
+          ...grade.weaknesses!.map((w) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('⚠️ ', style: TextStyle(fontSize: 14)),
+                    Expanded(
+                      child: Text(w,
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 14)),
+                    ),
+                  ],
+                ),
+              )),
+          const SizedBox(height: 8),
+        ],
+        if (grade.tip != null) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.accentCyan.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                  color: AppColors.accentCyan.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.lightbulb_outline,
+                    color: AppColors.accentCyan, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(grade.tip!,
+                      style: const TextStyle(
+                          color: AppColors.accentCyan,
+                          fontSize: 13.5,
+                          fontStyle: FontStyle.italic)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
   }
 }
 
@@ -405,13 +521,15 @@ class _ExpandableQuestionTextState extends State<_ExpandableQuestionText> {
             _isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
         firstChild: Text(
           widget.text,
-          style: AppTextStyles.titleSmall.copyWith(color: Colors.white),
+          style: AppTextStyles.titleSmall.copyWith(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         secondChild: Text(
           widget.text,
-          style: AppTextStyles.titleSmall.copyWith(color: Colors.white),
+          style: AppTextStyles.titleSmall.copyWith(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );

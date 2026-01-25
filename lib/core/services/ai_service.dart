@@ -5,13 +5,23 @@ import '../../features/interview/domain/models/question_model.dart';
 
 class GradeResult {
   final int score;
-  final String feedback;
+  final String feedback; // Legacy or Full Combined Text
   final String? followUpQuestion;
+
+  // New Structured Fields
+  final String? summary;
+  final List<String>? strengths;
+  final List<String>? weaknesses;
+  final String? tip;
 
   GradeResult({
     required this.score,
     required this.feedback,
     this.followUpQuestion,
+    this.summary,
+    this.strengths,
+    this.weaknesses,
+    this.tip,
   });
 
   Map<String, dynamic> toJson() {
@@ -19,6 +29,10 @@ class GradeResult {
       'score': score,
       'feedback': feedback,
       'followUpQuestion': followUpQuestion,
+      'summary': summary,
+      'strengths': strengths,
+      'weaknesses': weaknesses,
+      'tip': tip,
     };
   }
 
@@ -27,12 +41,19 @@ class GradeResult {
       score: json['score'] as int? ?? 0,
       feedback: json['feedback'] as String? ?? '',
       followUpQuestion: json['followUpQuestion'] as String?,
+      summary: json['summary'] as String?,
+      strengths: (json['strengths'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      weaknesses: (json['weaknesses'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList(),
+      tip: json['tip'] as String?,
     );
   }
 
   @override
-  String toString() =>
-      'Score: $score, Feedback: $feedback, FollowUp: $followUpQuestion';
+  String toString() => 'Score: $score, Summary: $summary, Feedback: $feedback';
 }
 
 class AIService {
@@ -104,6 +125,14 @@ class AIService {
         score: data['score'] as int? ?? 0,
         feedback: data['feedback'] as String? ?? 'Analysis Failed',
         followUpQuestion: data['followUp'] as String?,
+        summary: data['summary'] as String?,
+        strengths: (data['strengths'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList(),
+        weaknesses: (data['weaknesses'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList(),
+        tip: data['tip'] as String?,
       );
     } catch (e) {
       return GradeResult(
@@ -132,13 +161,13 @@ class AIService {
 
     return GradeResult(
       score: 85,
-      feedback: isFollowUpResponse
-          ? (isEnglish
-              ? 'Mock: Great answer to the follow-up.'
-              : 'Mock: 꼬리질문에 대한 답변이 훌륭합니다.')
-          : (isEnglish
-              ? 'Mock: You captured the core points well.'
-              : 'Mock: 핵심적인 내용을 잘 짚어주셨습니다.'),
+      feedback: 'Mock Feedback',
+      summary: isEnglish ? 'Good answer!' : '좋은 답변입니다!',
+      strengths: isEnglish
+          ? ['Clear explanation', 'Good terminology']
+          : ['명확한 설명', '적절한 용어 사용'],
+      weaknesses: isEnglish ? ['Missed edge case'] : ['엣지 케이스 누락'],
+      tip: isEnglish ? 'Mention time complexity.' : '시간 복잡도를 언급하면 더 좋습니다.',
       followUpQuestion: mockFollowUp,
     );
   }
@@ -164,10 +193,11 @@ Candidate Answer: "$userAnswer"
 [Instructions]
 1. **Analyze**: Determine if the answer is correct, partial, or wrong.
 2. **Grade** (0-100): Be strict. 0 if irrelevant/wrong.
-3. **Feedback**:
-   - Provide **specific, actionable feedback** in 2-3 sentences.
-   - Mention exactly what key concepts were missing or what was explained well.
-   - If incorrect, briefly correct it.
+3. **Structured Feedback** (Crucial):
+   - **Summary**: A one-line verdict on the answer.
+   - **Strengths**: List 1-3 specific things the candidate did well.
+   - **Weaknesses**: List 1-3 specific things missing or incorrect.
+   - **Pro Tip**: A practical tip or industry insight related to the topic.
    - **MUST be in $langInstruction**.
 4. **Follow-Up (Critical Step)**:
      - **Dig Deeper (Crucial)**: Latch onto a specific keyword, technology, or trade-off the candidate mentioned.
@@ -184,7 +214,11 @@ Candidate Answer: "$userAnswer"
 Return ONLY a JSON object:
 {
   "score": <int>,
-  "feedback": "<string>",
+  "summary": "<string>",
+  "strengths": ["<string>", "<string>"],
+  "weaknesses": ["<string>", "<string>"],
+  "tip": "<string or null>",
+  "feedback": "<string (Legacy, put the summary here too)>",
   "followUp": "<string or null>"
 }
 ''';
