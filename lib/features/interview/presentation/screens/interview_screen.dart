@@ -356,6 +356,20 @@ class _InterviewScreenState extends State<InterviewScreen> {
                             TextField(
                               controller: _answerController,
                               maxLines: 5,
+                              maxLength: 500, // Limit input
+                              buildCounter: (context,
+                                      {required currentLength,
+                                      required isFocused,
+                                      required maxLength}) =>
+                                  Text(
+                                '$currentLength/$maxLength',
+                                style: TextStyle(
+                                  color: currentLength == maxLength
+                                      ? AppColors.accentRed
+                                      : Colors.white30,
+                                  fontSize: 11,
+                                ),
+                              ),
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
                                 hintText: _isListening
