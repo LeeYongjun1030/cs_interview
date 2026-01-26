@@ -61,7 +61,7 @@ class AppStrings {
 
   // Home Screen
   String get appTitle =>
-      language == AppLanguage.korean ? 'SocrAItes' : 'SocrAItes';
+      language == AppLanguage.korean ? 'Socraites' : 'Socraites';
   String get recentSessions =>
       language == AppLanguage.korean ? '최근 면접 기록' : 'Recent Sessions';
   String get startNewSession =>
@@ -181,7 +181,7 @@ class AppStrings {
       : 'Failed to load questions:';
 
   // Login Screen
-  String get loginTitle => 'SocrAItes';
+  String get loginTitle => 'Socraites';
   String get loginSubtitle => language == AppLanguage.korean
       ? 'AI 소크라테스와 함께하는 CS 인터뷰 준비'
       : 'Prepare for CS Interviews with Socratic AI';

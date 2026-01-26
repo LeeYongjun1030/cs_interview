@@ -115,7 +115,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SocrAItes',
+      title: 'Socraites',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
       home: const AuthWrapper(),
