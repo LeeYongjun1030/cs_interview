@@ -5,115 +5,253 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Socraites - Master Tech Interviews with AI</title>
+    <!-- Google Fonts for Modern Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #6C63FF;
-            --bg: #1A1A2E;
-            --surface: #16213E;
-            --text: #ffffff;
-            --text-secondary: #a0a0a0;
+            --primary: #6366F1;
+            --secondary: #D946EF;
+            --accent: #38bdf8;
+            --bg: #1a1b26;
+            /* Lighter dark blue-gray */
+            --surface: rgba(255, 255, 255, 0.05);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #F8FAFC;
+            --text-secondary: #94a3b8;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Outfit', sans-serif;
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
             line-height: 1.6;
+            overflow-x: hidden;
+            /* Softer, more welcoming dark gradient */
+            background: linear-gradient(to bottom, #1a1b26 0%, #24283b 100%);
         }
 
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 40px 20px;
         }
 
+        /* Modern Language Toggle */
+        .lang-switch {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-bottom: 60px;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .lang-btn.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-color: var(--primary);
+            color: white;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+        }
+
+        .lang-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Hero Section */
         header {
             text-align: center;
-            padding: 60px 0 40px;
+            padding: 60px 0 80px;
+            position: relative;
         }
 
         .logo-icon {
-            font-size: 48px;
-            margin-bottom: 10px;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 24px;
             display: inline-block;
+            filter: drop-shadow(0 0 30px rgba(99, 102, 241, 0.4));
+            animation: float 6s ease-in-out infinite;
+            border-radius: 28px;
+        }
+
+        .logo-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 28px;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
         }
 
         h1 {
-            font-size: 2.5rem;
-            margin: 0 0 10px;
-            background: linear-gradient(45deg, #6C63FF, #00B4D8);
+            font-size: 3.5rem;
+            margin: 0 0 20px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .subtitle {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto;
+            max-width: 650px;
+            margin: 0 auto 40px;
+            font-weight: 300;
+            line-height: 1.6;
         }
 
         .cta-button {
             display: inline-block;
-            background-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
-            padding: 12px 30px;
-            border-radius: 30px;
+            padding: 16px 40px;
+            border-radius: 50px;
             text-decoration: none;
-            font-weight: bold;
-            margin-top: 30px;
-            transition: transform 0.2s;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.25);
+            border: none;
+            cursor: pointer;
         }
 
         .cta-button:hover {
-            transform: scale(1.05);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.4);
         }
 
+        /* Features Grid */
         .features {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin: 60px 0;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin: 80px 0;
         }
 
         .feature-card {
-            background-color: var(--surface);
-            padding: 25px;
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: var(--surface);
+            padding: 32px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
         .feature-icon {
-            font-size: 24px;
-            margin-bottom: 15px;
+            font-size: 32px;
+            margin-bottom: 20px;
+            display: inline-block;
         }
 
         h3 {
-            margin-top: 0;
+            margin: 0 0 12px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #F8FAFC;
         }
 
-        .privacy-section {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 40px;
-            margin-top: 60px;
+        p {
+            margin: 0;
             color: var(--text-secondary);
+        }
+
+        /* Privacy Section */
+        .privacy-section {
+            margin-top: 120px;
+        }
+
+        .privacy-header {
+            text-align: center;
+            margin-bottom: 30px;
         }
 
         .privacy-content {
             background: rgba(0, 0, 0, 0.2);
-            padding: 20px;
-            border-radius: 10px;
-            font-size: 0.9rem;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            font-size: 0.95rem;
             max-height: 400px;
             overflow-y: auto;
+            backdrop-filter: blur(20px);
         }
 
+        .privacy-content h4 {
+            color: var(--text);
+            margin-top: 24px;
+            margin-bottom: 12px;
+        }
+
+        .privacy-content a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Footer */
         footer {
             text-align: center;
-            padding: 40px 0;
+            padding: 60px 0;
             color: var(--text-secondary);
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            margin-top: 80px;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>
@@ -121,137 +259,186 @@
 <body>
 
     <div class="container">
-        <header>
-            <div class="logo-icon">🎓</div>
-            <h1>Socraites</h1>
-            <p class="subtitle">Prepare for your dream job with an AI-powered technical interviewer. Real-time feedback,
-                deep follow-up questions, and tailored study paths.</p>
-            <a href="#" class="cta-button">Coming Soon on App Store</a>
-        </header>
+        <!-- Language Toggle -->
+        <div class="lang-switch">
+            <button onclick="setLanguage('en')" id="btn-en" class="lang-btn active">English</button>
+            <button onclick="setLanguage('ko')" id="btn-ko" class="lang-btn">한국어</button>
+        </div>
 
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">🤖</div>
-                <h3>AI Interviewer</h3>
-                <p>Experience realistic technical interviews with our advanced AI that adapts to your answers.</p>
+        <!-- English Content -->
+        <div id="content-en" class="content-wrapper">
+            <header>
+                <div class="logo-icon"><img src="app_icon.png" alt="Socraites Logo"></div>
+                <h1>Master Tech Interviews<br>with <span class="highlight">Socraites</span></h1>
+                <p class="subtitle">Prepare for your next technical interview with an AI partner. Master core CS
+                    concepts like OS, Network, Database, and Data Structures.</p>
+                <span class="cta-button">Coming Soon on App Store</span>
+            </header>
+
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI Interviewer</h3>
+                    <p>Experience realistic technical interviews with our advanced AI that adapts to your answers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-time Feedback</h3>
+                    <p>Get instant grading, strengths analysis, and actionable advice to improve immediately.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Targeted Topics</h3>
+                    <p>Focus on specific subjects including Operating Systems, Network, Databases, and more.</p>
+                </div>
             </div>
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Real-time Feedback</h3>
-                <p>Get instant grading and actionable advice to improve your answers immediately.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <h3>Targeted Topics</h3>
-                <p>Practice specific subjects like OS, Network, Database, and Data Structures.</p>
+
+            <div class="privacy-section">
+                <div class="privacy-header">
+                    <h2>Privacy Policy</h2>
+                </div>
+                <div class="privacy-content">
+                    <p><strong>Last updated: January 24, 2026</strong></p>
+                    <p>This Privacy Policy describes how <strong>Socraites</strong> (the "App") collects, uses, and
+                        discloses your information.</p>
+
+                    <h4>1. Information We Collect</h4>
+                    <p><strong>A. Information You Provide</strong><br>
+                        - Account Information: Email address and display name (via Google/GitHub login).<br>
+                        - Voice Data: Processed locally or via speech recognition API for interview answers.</p>
+
+                    <p><strong>B. Automatically Collected Information</strong><br>
+                        - Device Information: Type, OS version, identifiers.<br>
+                        - Usage Data: Sessions started, questions answered (for analytics).</p>
+
+                    <h4>2. Third-Party Services</h4>
+                    <p>- Google AdMob (Advertising)<br>
+                        - Firebase (Auth, Database, Analytics)<br>
+                        - Google Vertex AI (Answer Analysis)</p>
+
+                    <h4>3. How We Use Information</h4>
+                    <p>- To provide the service and save progress.<br>
+                        - To display personalized ads.<br>
+                        - To improve app stability and features.</p>
+
+                    <h4>4. Data Deletion</h4>
+                    <p>You can delete your account and data anytime via <strong>Profile > Reset Data</strong> in the
+                        App.</p>
+
+                    <h4>5. Contact Us</h4>
+                    <p>For questions, please contact: <a href="mailto:yiyj1516@gmail.com">yiyj1516@gmail.com</a></p>
+                </div>
             </div>
         </div>
 
-        <div class="privacy-section" id="privacy">
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-                <button onclick="showPrivacy('en')" class="cta-button"
-                    style="padding: 8px 16px; margin: 0; background: #6C63FF;">English</button>
-                <button onclick="showPrivacy('ko')" class="cta-button"
-                    style="padding: 8px 16px; margin: 0; background: #2A2A40; border: 1px solid #6C63FF;">한국어</button>
+        <!-- Korean Content -->
+        <div id="content-ko" class="content-wrapper" style="display: none;">
+            <header>
+                <div class="logo-icon"><img src="app_icon.png" alt="Socraites Logo"></div>
+                <h1>기술 면접의 모든 것,<br><span class="highlight">Socraites</span>와 함께</h1>
+                <p class="subtitle">AI 파트너와 함께 실전처럼 면접을 준비하세요. 운영체제, 네트워크, 데이터베이스 등 핵심 CS 전공 지식을 완벽하게 대비할 수 있습니다.</p>
+                <span class="cta-button">App Store 출시 예정</span>
+            </header>
+
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3>AI 면접관</h3>
+                    <p>내 답변에 맞춰 깊이 있는 질문을 던지는 고성능 AI와 실전처럼 연습하세요.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>실시간 피드백</h3>
+                    <p>답변 직후 채점 결과와 구체적인 개선 팁을 받아 실력을 빠르게 향상시키세요.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>과목별 집중 공략</h3>
+                    <p>운영체제, 네트워크, 자료구조 등 부족한 과목만 골라 빈틈없이 준비하세요.</p>
+                </div>
             </div>
 
-            <div id="privacy-en" class="privacy-content">
-                <h2>Privacy Policy</h2>
-                <p><strong>Last updated: January 24, 2026</strong></p>
-                <p>This Privacy Policy describes how <strong>Socraites</strong> (the "App") collects, uses, and
-                    discloses your information.</p>
+            <div class="privacy-section">
+                <div class="privacy-header">
+                    <h2>개인정보 처리방침</h2>
+                </div>
+                <div class="privacy-content">
+                    <p><strong>최종 수정일: 2026년 1월 24일</strong></p>
+                    <p>본 개인정보 처리방침은 <strong>Socraites</strong> ("앱")이 사용자의 정보를 어떻게 수집, 이용 및 공개하는지 설명합니다.</p>
 
-                <h4>1. Information We Collect</h4>
-                <p><strong>A. Information You Provide</strong><br>
-                    - Account Information: Email address and display name (via Google/GitHub login).<br>
-                    - Voice Data: Processed locally or via speech recognition API for interview answers.</p>
+                    <h4>1. 수집하는 정보</h4>
+                    <p><strong>A. 사용자가 제공하는 정보</strong><br>
+                        - 계정 정보: 이메일 주소 및 표시 이름 (Google/GitHub 로그인 시).<br>
+                        - 음성 데이터: 인터뷰 답변을 위해 로컬 또는 음성 인식 API를 통해 처리됩니다.</p>
 
-                <p><strong>B. Automatically Collected Information</strong><br>
-                    - Device Information: Type, OS version, identifiers.<br>
-                    - Usage Data: Sessions started, questions answered (for analytics).</p>
+                    <p><strong>B. 자동 수집 정보</strong><br>
+                        - 기기 정보: 기기 종류, OS 버전, 식별자.<br>
+                        - 사용 데이터: 세션 시작, 답변 완료 등 (분석용).</p>
 
-                <h4>2. Third-Party Services</h4>
-                <p>- Google AdMob (Advertising)<br>
-                    - Firebase (Auth, Database, Analytics)<br>
-                    - Google Vertex AI (Answer Analysis)</p>
+                    <h4>2. 제3자 서비스</h4>
+                    <p>- Google AdMob (광고)<br>
+                        - Firebase (인증, 데이터베이스, 분석)<br>
+                        - Google Vertex AI (답변 분석)</p>
 
-                <h4>3. How We Use Information</h4>
-                <p>- To provide the service and save progress.<br>
-                    - To display personalized ads.<br>
-                    - To improve app stability and features.</p>
+                    <h4>3. 정보 이용 목적</h4>
+                    <p>- 서비스 제공 및 진행 상황 저장.<br>
+                        - 맞춤형 광고 표시.<br>
+                        - 앱 안정성 및 기능 개선.</p>
 
-                <h4>4. Data Deletion</h4>
-                <p>You can delete your account and data anytime via <strong>Profile > Reset Data</strong> in the App.
-                </p>
+                    <h4>4. 데이터 삭제</h4>
+                    <p>앱 내 <strong>프로필 > 기록 초기화 (로그아웃)</strong> 기능을 통해 언제든지 계정 및 데이터를 삭제할 수 있습니다.</p>
 
-                <h4>5. Contact Us</h4>
-                <p>For questions, please contact: <a href="mailto:yiyj1516@gmail.com"
-                        style="color: var(--primary);">yiyj1516@gmail.com</a></p>
+                    <h4>5. 문의하기</h4>
+                    <p>문의사항이 있으시면 아래로 연락주세요: <a href="mailto:yiyj1516@gmail.com">yiyj1516@gmail.com</a></p>
+                </div>
             </div>
-
-            <!-- Korean Privacy Policy -->
-            <div id="privacy-ko" class="privacy-content" style="display: none;">
-                <h2>개인정보 처리방침</h2>
-                <p><strong>최종 수정일: 2026년 1월 24일</strong></p>
-                <p>본 개인정보 처리방침은 <strong>Socraites</strong> ("앱")이 사용자의 정보를 어떻게 수집, 이용 및 공개하는지 설명합니다.</p>
-
-                <h4>1. 수집하는 정보</h4>
-                <p><strong>A. 사용자가 제공하는 정보</strong><br>
-                    - 계정 정보: 이메일 주소 및 표시 이름 (Google/GitHub 로그인 시).<br>
-                    - 음성 데이터: 인터뷰 답변을 위해 로컬 또는 음성 인식 API를 통해 처리됩니다.</p>
-
-                <p><strong>B. 자동 수집 정보</strong><br>
-                    - 기기 정보: 기기 종류, OS 버전, 식별자.<br>
-                    - 사용 데이터: 세션 시작, 답변 완료 등 (분석용).</p>
-
-                <h4>2. 제3자 서비스</h4>
-                <p>- Google AdMob (광고)<br>
-                    - Firebase (인증, 데이터베이스, 분석)<br>
-                    - Google Vertex AI (답변 분석)</p>
-
-                <h4>3. 정보 이용 목적</h4>
-                <p>- 서비스 제공 및 진행 상황 저장.<br>
-                    - 맞춤형 광고 표시.<br>
-                    - 앱 안정성 및 기능 개선.</p>
-
-                <h4>4. 데이터 삭제</h4>
-                <p>앱 내 <strong>프로필 > 기록 초기화 (로그아웃)</strong> 기능을 통해 언제든지 계정 및 데이터를 삭제할 수 있습니다.</p>
-
-                <h4>5. 문의하기</h4>
-                <p>문의사항이 있으시면 아래로 연락주세요: <a href="mailto:yiyj1516@gmail.com"
-                        style="color: var(--primary);">yiyj1516@gmail.com</a></p>
-            </div>
-
-            <script>
-                function showPrivacy(lang) {
-                    const en = document.getElementById('privacy-en');
-                    const ko = document.getElementById('privacy-ko');
-                    const btns = document.querySelectorAll('.privacy-section button');
-
-                    if (lang === 'en') {
-                        en.style.display = 'block';
-                        ko.style.display = 'none';
-                        btns[0].style.background = '#6C63FF';
-                        btns[1].style.background = '#2A2A40';
-                    } else {
-                        en.style.display = 'none';
-                        ko.style.display = 'block';
-                        btns[0].style.background = '#2A2A40';
-                        btns[1].style.background = '#6C63FF';
-                    }
-                }
-
-                // Auto-detect Korean
-                if (navigator.language.startsWith('ko')) {
-                    showPrivacy('ko');
-                }
-            </script>
         </div>
 
         <footer>
             <p>&copy; 2026 Socraites. All rights reserved.</p>
         </footer>
     </div>
+
+    <script>
+        function setLanguage(lang) {
+            const en = document.getElementById('content-en');
+            const ko = document.getElementById('content-ko');
+            const btnEn = document.getElementById('btn-en');
+            const btnKo = document.getElementById('btn-ko');
+
+            // Add fade animation
+            const target = lang === 'en' ? en : ko;
+            target.style.opacity = '0';
+            target.style.transform = 'translateY(20px)';
+
+            if (lang === 'en') {
+                en.style.display = 'block';
+                ko.style.display = 'none';
+                btnEn.classList.add('active');
+                btnKo.classList.remove('active');
+            } else {
+                en.style.display = 'none';
+                ko.style.display = 'block';
+                btnEn.classList.remove('active');
+                btnKo.classList.add('active');
+            }
+
+            // Trigger animation
+            setTimeout(() => {
+                target.style.transition = 'all 0.5s ease-out';
+                target.style.opacity = '1';
+                target.style.transform = 'translateY(0)';
+            }, 10);
+        }
+
+        // Auto-detect Korean
+        if (navigator.language.startsWith('ko')) {
+            setLanguage('ko');
+        } else {
+            // Initial animation for English
+            setLanguage('en');
+        }
+    </script>
 
 </body>
 
