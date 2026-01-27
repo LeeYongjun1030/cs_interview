@@ -25,11 +25,19 @@ class _LoginScreenState extends State<LoginScreen> {
   bool get _isAnyLoading =>
       _isGoogleLoading || _isGitHubLoading || _isAppleLoading;
 
+  bool _isCancelledError(dynamic e) {
+    final msg = e.toString().toLowerCase();
+    return msg.contains('cancel') ||
+        msg.contains('popup_closed') ||
+        msg.contains('web_context_cancelled');
+  }
+
   Future<void> _handleGoogleSignIn() async {
     setState(() => _isGoogleLoading = true);
     try {
       await _authService.signInWithGoogle();
     } on FirebaseAuthException catch (e) {
+      if (_isCancelledError(e.code) || _isCancelledError(e.message)) return;
       if (mounted) {
         String message = e.message ?? 'Login failed';
         if (e.code == 'account-exists-with-different-credential') {
@@ -45,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
+      if (_isCancelledError(e)) return;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -63,6 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.signInWithGitHub();
     } on FirebaseAuthException catch (e) {
+      if (_isCancelledError(e.code) || _isCancelledError(e.message)) return;
       if (mounted) {
         String message = e.message ?? 'Login failed';
         if (e.code == 'account-exists-with-different-credential') {
@@ -78,6 +88,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
+      if (_isCancelledError(e)) return;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -96,6 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _authService.signInWithApple();
     } on FirebaseAuthException catch (e) {
+      if (_isCancelledError(e.code) || _isCancelledError(e.message)) return;
       if (mounted) {
         String message = e.message ?? 'Login failed';
         if (e.code == 'account-exists-with-different-credential') {
@@ -111,6 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
+      if (_isCancelledError(e)) return;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

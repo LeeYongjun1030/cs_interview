@@ -148,8 +148,15 @@
         </div>
 
         <div class="privacy-section" id="privacy">
-            <h2>Privacy Policy</h2>
-            <div class="privacy-content">
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <button onclick="showPrivacy('en')" class="cta-button"
+                    style="padding: 8px 16px; margin: 0; background: #6C63FF;">English</button>
+                <button onclick="showPrivacy('ko')" class="cta-button"
+                    style="padding: 8px 16px; margin: 0; background: #2A2A40; border: 1px solid #6C63FF;">한국어</button>
+            </div>
+
+            <div id="privacy-en" class="privacy-content">
+                <h2>Privacy Policy</h2>
                 <p><strong>Last updated: January 24, 2026</strong></p>
                 <p>This Privacy Policy describes how <strong>Socraites</strong> (the "App") collects, uses, and
                     discloses your information.</p>
@@ -183,7 +190,8 @@
             </div>
 
             <!-- Korean Privacy Policy -->
-            <div class="privacy-content" style="margin-top: 20px;">
+            <div id="privacy-ko" class="privacy-content" style="display: none;">
+                <h2>개인정보 처리방침</h2>
                 <p><strong>최종 수정일: 2026년 1월 24일</strong></p>
                 <p>본 개인정보 처리방침은 <strong>Socraites</strong> ("앱")이 사용자의 정보를 어떻게 수집, 이용 및 공개하는지 설명합니다.</p>
 
@@ -213,6 +221,31 @@
                 <p>문의사항이 있으시면 아래로 연락주세요: <a href="mailto:yiyj1516@gmail.com"
                         style="color: var(--primary);">yiyj1516@gmail.com</a></p>
             </div>
+
+            <script>
+                function showPrivacy(lang) {
+                    const en = document.getElementById('privacy-en');
+                    const ko = document.getElementById('privacy-ko');
+                    const btns = document.querySelectorAll('.privacy-section button');
+
+                    if (lang === 'en') {
+                        en.style.display = 'block';
+                        ko.style.display = 'none';
+                        btns[0].style.background = '#6C63FF';
+                        btns[1].style.background = '#2A2A40';
+                    } else {
+                        en.style.display = 'none';
+                        ko.style.display = 'block';
+                        btns[0].style.background = '#2A2A40';
+                        btns[1].style.background = '#6C63FF';
+                    }
+                }
+
+                // Auto-detect Korean
+                if (navigator.language.startsWith('ko')) {
+                    showPrivacy('ko');
+                }
+            </script>
         </div>
 
         <footer>

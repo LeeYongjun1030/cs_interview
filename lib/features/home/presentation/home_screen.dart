@@ -589,21 +589,22 @@ class _HomeScreenState extends State<HomeScreen> {
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: AppColors.surface,
-            title: const Text('기록 삭제', style: TextStyle(color: Colors.white)),
-            content: const Text('이 인터뷰 기록을 삭제하시겠습니까?',
-                style: TextStyle(color: Colors.white70)),
+            title: Text(strings.resetDialogTitle,
+                style: const TextStyle(color: Colors.white)),
+            content: Text(strings.resetDialogContent,
+                style: const TextStyle(color: Colors.white70)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
-                child:
-                    const Text('취소', style: TextStyle(color: Colors.white54)),
+                child: Text(strings.cancelButton,
+                    style: const TextStyle(color: Colors.white54)),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
                 style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.accentRed),
-                child: const Text('삭제',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                child: Text(strings.deleteAction,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -626,22 +627,22 @@ class _HomeScreenState extends State<HomeScreen> {
               context: context,
               builder: (context) => AlertDialog(
                 backgroundColor: AppColors.surface,
-                title:
-                    const Text('기록 삭제', style: TextStyle(color: Colors.white)),
-                content: const Text('이 인터뷰 기록을 삭제하시겠습니까?',
-                    style: TextStyle(color: Colors.white70)),
+                title: Text(strings.resetDialogTitle,
+                    style: const TextStyle(color: Colors.white)),
+                content: Text(strings.resetDialogContent,
+                    style: const TextStyle(color: Colors.white70)),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
-                    child: const Text('취소',
-                        style: TextStyle(color: Colors.white54)),
+                    child: Text(strings.cancelButton,
+                        style: const TextStyle(color: Colors.white54)),
                   ),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context, true),
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accentRed),
-                    child: const Text('삭제',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text(strings.deleteAction,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -835,28 +836,34 @@ class _HomeScreenState extends State<HomeScreen> {
     final isSelected = _selectedIndex == index;
     final color = isSelected ? AppColors.primary : Colors.grey;
 
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: color, fontSize: 10)),
-          if (isSelected)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              width: 4,
-              height: 4,
-              decoration: const BoxDecoration(
-                  color: AppColors.primary, shape: BoxShape.circle),
-            ),
-        ],
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          height: double.infinity,
+          color: Colors.transparent,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(height: 4),
+              Text(label, style: TextStyle(color: color, fontSize: 10)),
+              if (isSelected)
+                Container(
+                  margin: const EdgeInsets.only(top: 4),
+                  width: 4,
+                  height: 4,
+                  decoration: const BoxDecoration(
+                      color: AppColors.primary, shape: BoxShape.circle),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -1288,60 +1295,69 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(strings.cancelButton,
-                style: const TextStyle(color: Colors.white54)),
-          ),
-          ElevatedButton.icon(
-            onPressed: () async {
-              // Capture providers using stable context (this.context)
-              final adService = Provider.of<AdService>(context, listen: false);
-              final creditRepo =
-                  Provider.of<CreditRepository>(context, listen: false);
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  // Capture providers using stable context (this.context)
+                  final adService =
+                      Provider.of<AdService>(context, listen: false);
+                  final creditRepo =
+                      Provider.of<CreditRepository>(context, listen: false);
 
-              Navigator.pop(dialogContext); // Close dialog using dialog context
+                  Navigator.pop(
+                      dialogContext); // Close dialog using dialog context
 
-              // Show loading? RewardedAd usually shows immediately or not.
-              final reward = await adService.showRewardedAd();
-              if (reward != null) {
-                // Add credits using captured repo
-                await creditRepo.addCredit(_userId, reward);
-                await _fetchCredits();
-                if (mounted) {
-                  // Use stable 'context' for the success dialog
-                  showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                            backgroundColor: AppColors.surface,
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.check_circle,
-                                    color: Colors.green, size: 48),
-                                SizedBox(height: 16),
-                                Text(
-                                  strings.rewardSuccessMessage,
-                                  style: TextStyle(color: Colors.white),
-                                  textAlign: TextAlign.center,
-                                )
-                              ],
-                            ),
-                          ));
-                }
-              } else {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(strings.adLoadFailed)));
-                }
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            icon: const Icon(Icons.play_circle_filled),
-            label: Text(strings.watchAdAction),
+                  // Show loading? RewardedAd usually shows immediately or not.
+                  final reward = await adService.showRewardedAd();
+                  if (reward != null) {
+                    // Add credits using captured repo
+                    await creditRepo.addCredit(_userId, reward);
+                    await _fetchCredits();
+                    if (mounted) {
+                      // Use stable 'context' for the success dialog
+                      showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                                backgroundColor: AppColors.surface,
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.check_circle,
+                                        color: Colors.green, size: 48),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      strings.rewardSuccessMessage,
+                                      style: TextStyle(color: Colors.white),
+                                      textAlign: TextAlign.center,
+                                    )
+                                  ],
+                                ),
+                              ));
+                    }
+                  } else {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(strings.adLoadFailed)));
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                icon: const Icon(Icons.play_circle_filled),
+                label: Text(strings.watchAdAction),
+              ),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: Text(strings.cancelButton,
+                    style: const TextStyle(color: Colors.white54)),
+              ),
+            ],
           ),
         ],
       ),
