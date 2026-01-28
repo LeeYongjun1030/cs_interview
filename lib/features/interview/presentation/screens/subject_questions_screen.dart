@@ -75,8 +75,11 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
           _selectedIds.add(id);
         } else {
           // Max reached
+          final strings = AppStrings(
+              Provider.of<LanguageController>(context, listen: false)
+                  .currentLanguage);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('You can select up to 3 questions.')),
+            SnackBar(content: Text(strings.maxSelectionMessage)),
           );
         }
       }
@@ -178,9 +181,13 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
       if (!success) {
         if (!context.mounted) return;
         Navigator.pop(context); // Pop loading
+
+        final strings = AppStrings(
+            Provider.of<LanguageController>(context, listen: false)
+                .currentLanguage);
         // Show simplified 'Not Enough Energy' message since we are deep in a sub-screen
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Not enough energy. Please recharge.')),
+          SnackBar(content: Text(strings.notEnoughEnergySnack)),
         );
         return;
       }
@@ -367,7 +374,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                             backgroundColor: AppColors.primary,
                             icon: const Icon(Icons.play_arrow),
                             label: Text(
-                              'Start Interview (${_selectedIds.length}/$MAX_SELECTION)',
+                              '${strings.startInterview} (${_selectedIds.length}/$MAX_SELECTION)',
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold),
                             ),

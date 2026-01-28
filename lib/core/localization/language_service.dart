@@ -179,6 +179,11 @@ class AppStrings {
   String get loadFail => language == AppLanguage.korean
       ? '질문을 불러오는데 실패했습니다:'
       : 'Failed to load questions:';
+  String get maxSelectionMessage => language == AppLanguage.korean
+      ? '최대 3개의 질문까지 선택할 수 있습니다.'
+      : 'You can select up to 3 questions.';
+  String get startInterview =>
+      language == AppLanguage.korean ? '인터뷰 시작' : 'Start Interview';
 
   // Login Screen
   String get loginTitle => 'Socraites';
@@ -321,6 +326,9 @@ class AppStrings {
   String get rewardSuccessMessage => language == AppLanguage.korean
       ? '충전 완료!\n+1 에너지를 획득했습니다.'
       : 'Recharge Complete!\n+1 Energy added.';
+  String get notEnoughEnergySnack => language == AppLanguage.korean
+      ? '에너지가 부족합니다. 충전소에서 충전해주세요.'
+      : 'Not enough energy. Please recharge.';
 
   // Max Credit Warning
   String get maxCreditReachedTitle =>
