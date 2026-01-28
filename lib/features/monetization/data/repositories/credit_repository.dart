@@ -8,6 +8,8 @@ class CreditRepository {
   CreditRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  static const int MAX_CREDITS = 50;
+
   CollectionReference get _usersRef => _firestore.collection('users');
 
   /// Fetch user data. If not exists, create with default credits.
@@ -51,13 +53,33 @@ class CreditRepository {
     }
   }
 
-  /// Add credits (e.g., from Ad reward)
-  Future<void> addCredit(String uid, int amount) async {
+  /// Add credits. Returns true if successful, false if max reached or error.
+  Future<bool> addCredit(String uid, int amount) async {
     final docRef = _usersRef.doc(uid);
     try {
-      await docRef.update({'credits': FieldValue.increment(amount)});
+      return await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) return false;
+
+        final currentCredits = snapshot.get('credits') as int? ?? 0;
+
+        // Check hard limit
+        if (currentCredits >= MAX_CREDITS) return false;
+
+        // Cap update to MAX_CREDITS if adding amount would exceed it?
+        // Rules say: request...credits <= 50.
+        // So we strictly ensure we don't exceed 50.
+        int newCredits = currentCredits + amount;
+        if (newCredits > MAX_CREDITS) {
+          newCredits = MAX_CREDITS;
+        }
+
+        transaction.update(docRef, {'credits': newCredits});
+        return true;
+      });
     } catch (e) {
       debugPrint('CreditRepository: addCredit error: $e');
+      return false;
     }
   }
 
@@ -70,6 +92,11 @@ class CreditRepository {
         if (!snapshot.exists) return false; // Should exist if getUser called
 
         final data = snapshot.data() as Map<String, dynamic>;
+
+        // 1. Check Max Credit Limit
+        final currentCredits = data['credits'] as int? ?? 0;
+        if (currentCredits >= MAX_CREDITS) return false;
+
         final lastBonusStr = data['lastDailyBonus'] as String?;
         final lastBonus =
             lastBonusStr != null ? DateTime.parse(lastBonusStr) : null;
@@ -83,8 +110,6 @@ class CreditRepository {
           if (isSameDay) return false;
         }
 
-        // Add 1 credit and update date
-        final currentCredits = data['credits'] as int? ?? 0;
         transaction.update(docRef, {
           'credits': currentCredits + 1,
           'lastDailyBonus': now.toIso8601String(),

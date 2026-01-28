@@ -321,4 +321,11 @@ class AppStrings {
   String get rewardSuccessMessage => language == AppLanguage.korean
       ? '충전 완료!\n+1 에너지를 획득했습니다.'
       : 'Recharge Complete!\n+1 Energy added.';
+
+  // Max Credit Warning
+  String get maxCreditReachedTitle =>
+      language == AppLanguage.korean ? '최대 충전 한도 도달' : 'Max Limit Reached';
+  String get maxCreditReachedMessage => language == AppLanguage.korean
+      ? '현재 최대 한도(50개)까지 에너지가 충전되어 있습니다.\n면접 연습을 통해 에너지를 사용하신 후 다시 충전해주세요!'
+      : 'You have reached the maximum limit of 50 credits.\nPlease use some credits to practice first!';
 }

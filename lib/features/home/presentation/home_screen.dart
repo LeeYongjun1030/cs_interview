@@ -1247,6 +1247,43 @@ class _HomeScreenState extends State<HomeScreen> {
         Provider.of<LanguageController>(context, listen: false)
             .currentLanguage);
 
+    // Check Max Credit Logic
+    if (_credits >= CreditRepository.MAX_CREDITS) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: const Icon(Icons.lock_clock, color: Colors.yellow, size: 48),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Text(
+                strings.maxCreditReachedTitle,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                strings.maxCreditReachedMessage,
+                style: const TextStyle(color: Colors.white70),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('OK', style: TextStyle(color: Colors.white)),
+            )
+          ],
+        ),
+      );
+      return;
+    }
+
     final title = isForced ? strings.notEnoughEnergy : strings.shopTitle;
     final message = isForced
         ? '${strings.needEnergyMessage}${strings.shopMessage}'
@@ -1313,28 +1350,37 @@ class _HomeScreenState extends State<HomeScreen> {
                   final reward = await adService.showRewardedAd();
                   if (reward != null) {
                     // Add credits using captured repo
-                    await creditRepo.addCredit(_userId, reward);
+                    final success = await creditRepo.addCredit(_userId, reward);
                     await _fetchCredits();
+
                     if (mounted) {
-                      // Use stable 'context' for the success dialog
-                      showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                                backgroundColor: AppColors.surface,
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.check_circle,
-                                        color: Colors.green, size: 48),
-                                    SizedBox(height: 16),
-                                    Text(
-                                      strings.rewardSuccessMessage,
-                                      style: TextStyle(color: Colors.white),
-                                      textAlign: TextAlign.center,
-                                    )
-                                  ],
-                                ),
-                              ));
+                      if (success) {
+                        // Use stable 'context' for the success dialog
+                        showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                                  backgroundColor: AppColors.surface,
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.check_circle,
+                                          color: Colors.green, size: 48),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        strings.rewardSuccessMessage,
+                                        style: const TextStyle(
+                                            color: Colors.white),
+                                        textAlign: TextAlign.center,
+                                      )
+                                    ],
+                                  ),
+                                ));
+                      } else {
+                        // Failed (likely max limit reached during ad watch)
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                            content:
+                                Text('Could not add credits. Limit reached?')));
+                      }
                     }
                   } else {
                     if (mounted) {
