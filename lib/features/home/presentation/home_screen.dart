@@ -609,7 +609,29 @@ class _HomeScreenState extends State<HomeScreen> {
     if (session.status != SessionStatus.completed)
       return const SizedBox.shrink();
 
-    final dateStr = DateFormat('yyyy.MM.dd HH:mm').format(session.startTime);
+    // Date formatting logic
+    final now = DateTime.now();
+    final diff = now.difference(session.startTime);
+    String relativeTime;
+    final exactTime = DateFormat('yyyy.MM.dd HH:mm').format(session.startTime);
+
+    if (diff.inMinutes < 1) {
+      relativeTime = strings.justNow;
+    } else if (diff.inMinutes < 60) {
+      relativeTime = '${diff.inMinutes}${strings.minutesAgo}';
+    } else if (diff.inHours < 24) {
+      relativeTime = '${diff.inHours}${strings.hoursAgo}';
+    } else if (diff.inDays < 2) {
+      relativeTime = strings.yesterday;
+    } else if (diff.inDays < 7) {
+      relativeTime = '${diff.inDays}${strings.daysAgo}';
+    } else {
+      relativeTime = ''; // Show only date if older than a week
+    }
+
+    // Format: "1 hour ago (2024.01.28 12:00)" or just date if old
+    final dateStr =
+        relativeTime.isNotEmpty ? '$relativeTime ($exactTime)' : exactTime;
 
     return Dismissible(
       key: Key(session.id),

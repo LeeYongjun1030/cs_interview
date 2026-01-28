@@ -336,4 +336,11 @@ class AppStrings {
   String get maxCreditReachedMessage => language == AppLanguage.korean
       ? '현재 최대 한도(50개)까지 에너지가 충전되어 있습니다.\n면접 연습을 통해 에너지를 사용하신 후 다시 충전해주세요!'
       : 'You have reached the maximum limit of 50 credits.\nPlease use some credits to practice first!';
+  // Time Ago
+  String get justNow => language == AppLanguage.korean ? '방금 전' : 'Just now';
+  String get minutesAgo =>
+      language == AppLanguage.korean ? '분 전' : 'minutes ago';
+  String get hoursAgo => language == AppLanguage.korean ? '시간 전' : 'hours ago';
+  String get daysAgo => language == AppLanguage.korean ? '일 전' : 'days ago';
+  String get yesterday => language == AppLanguage.korean ? '어제' : 'Yesterday';
 }
