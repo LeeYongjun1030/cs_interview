@@ -35,6 +35,17 @@ class CreditRepository {
     }
   }
 
+  /// Get real-time user stream
+  Stream<UserModel> getUserStream(String uid) {
+    return _usersRef.doc(uid).snapshots().map((snapshot) {
+      if (snapshot.exists) {
+        return UserModel.fromJson(snapshot.data() as Map<String, dynamic>);
+      }
+      // Return default if not exists (UI handles creation via getUser if needed, or we just show 0)
+      return UserModel(uid: uid, email: '', credits: 0);
+    });
+  }
+
   /// Deduct 1 credit. Returns true if successful, false if insufficient.
   Future<bool> deductCredit(String uid) async {
     final docRef = _usersRef.doc(uid);

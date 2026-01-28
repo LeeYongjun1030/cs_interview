@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../auth/domain/models/user_model.dart';
 
 import '../../interview/presentation/screens/interview_screen.dart';
 import '../../interview/presentation/providers/session_controller.dart';
@@ -31,9 +33,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final InterviewRepository _repository = InterviewRepository();
   // List<InterviewSession> _sessions = []; // Replaced by Stream
   Stream<List<InterviewSession>>? _sessionsStream;
+  StreamSubscription<UserModel>? _userSubscription; // Add subscription
   bool _isLoading = true;
   late String _userId;
-  int _credits = 0; // Local credit state
+  int? _credits; // Nullable for loading state
 
   @override
   void initState() {
@@ -43,7 +46,18 @@ class _HomeScreenState extends State<HomeScreen> {
       _userId = user.uid;
       _sessionsStream = _repository.getUserSessionsStream(_userId);
       // _fetchSessions(); // No-op
-      _fetchCredits();
+      // _fetchCredits(); // Replaced by stream listener
+
+      // Subscribe to user stream for real-time credit updates
+      final creditRepo = Provider.of<CreditRepository>(context, listen: false);
+      _userSubscription = creditRepo.getUserStream(_userId).listen((user) {
+        if (mounted) {
+          setState(() {
+            _credits = user.credits;
+          });
+        }
+      });
+
       _checkDailyBonus();
     } else {
       _isLoading = false;
@@ -54,14 +68,16 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  @override
+  void dispose() {
+    _userSubscription?.cancel();
+    super.dispose();
+  }
+
+  // _fetchCredits Removed/Deprecated as it is replaced by stream
+  // keeping empty method to avoid breaking other calls if any (though we should remove calls)
   Future<void> _fetchCredits() async {
-    final repo = Provider.of<CreditRepository>(context, listen: false);
-    final userModel = await repo.getUser(_userId);
-    if (mounted) {
-      setState(() {
-        _credits = userModel.credits;
-      });
-    }
+    // No-op: Stream handles updates
   }
 
   Future<void> _checkDailyBonus() async {
@@ -463,29 +479,39 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           // Credit Display
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(20),
-              border:
-                  Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.bolt, color: Colors.yellow, size: 16),
-                const SizedBox(width: 4),
-                Text(
-                  '$_credits', // Credits
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14),
-                ),
-                const SizedBox(width: 4),
-                GestureDetector(
-                  onTap: _showShopDialog,
-                  child: Container(
+          GestureDetector(
+            onTap: _showShopDialog,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border:
+                    Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.bolt, color: Colors.yellow, size: 16),
+                  const SizedBox(width: 4),
+                  if (_credits == null)
+                    const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  else
+                    Text(
+                      '$_credits', // Credits
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14),
+                    ),
+                  const SizedBox(width: 8),
+                  Container(
                     width: 20,
                     height: 20,
                     decoration: const BoxDecoration(
@@ -493,9 +519,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.add, color: Colors.white, size: 14),
-                  ),
-                )
-              ],
+                  )
+                ],
+              ),
             ),
           ),
         ],
@@ -746,7 +772,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: InkWell(
             onTap: () {
-              if (_credits > 0) {
+              // Default to 0 if null, but usually disabled if loading?
+              // Better: check if not null & > 0
+              if ((_credits ?? 0) > 0) {
                 _showStartSessionDialog(context);
               } else {
                 _showShopDialog(isForced: true);
@@ -1191,8 +1219,11 @@ class _HomeScreenState extends State<HomeScreen> {
             isForced: true); // Show shop if deduction failed (edge case)
         return;
       }
-      // Update local credit display immediately
-      if (mounted) setState(() => _credits -= 1);
+      // Update local set state is handled by stream, but optimistic update might be okay
+      // However, since we use stream, setting it manually might conflict or be redundant.
+      // But deduplication happens on server.
+      // For now, let's just rely on stream update which should be fast.
+      // if (mounted) setState(() => _credits -= 1);
 
       await controller.startNewSession(userId, title,
           targetSubjects: targetSubjects, fixedQuestions: fixedQuestions);
@@ -1262,7 +1293,7 @@ class _HomeScreenState extends State<HomeScreen> {
             .currentLanguage);
 
     // Check Max Credit Logic
-    if (_credits >= CreditRepository.MAX_CREDITS) {
+    if ((_credits ?? 0) >= CreditRepository.MAX_CREDITS) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -1327,7 +1358,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   const Icon(Icons.bolt, color: Colors.yellow, size: 24),
                   const SizedBox(width: 8),
-                  Text('$_credits',
+                  Text('${_credits ?? 0}',
                       style: const TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -1335,7 +1366,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   const Icon(Icons.arrow_forward, color: Colors.white54),
                   const SizedBox(width: 8),
                   const Icon(Icons.bolt, color: Colors.yellow, size: 24),
-                  Text('${_credits + 1}',
+                  Text('${(_credits ?? 0) + 1}',
                       style: const TextStyle(
                           color: Colors.greenAccent,
                           fontSize: 24,
