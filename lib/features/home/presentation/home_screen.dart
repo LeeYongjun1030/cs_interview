@@ -69,13 +69,27 @@ class _HomeScreenState extends State<HomeScreen> {
     final strings = AppStrings(
         Provider.of<LanguageController>(context, listen: false)
             .currentLanguage);
-    final bonus = await repo.claimDailyBonus(_userId);
-    if (bonus && mounted) {
+
+    final status = await repo.claimDailyBonus(_userId);
+
+    if (!mounted) return;
+
+    if (status == DailyBonusStatus.success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text(strings.dailyBonusMessage),
             backgroundColor: AppColors.accentGreen),
       );
+      _fetchCredits();
+    } else if (status == DailyBonusStatus.maxCreditsReached) {
+      // Show simpler toast for daily bonus skip, or reusing the max message?
+      // Since it's automatic on login, a SnackBar is less intrusive than a Dialog.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(strings.maxCreditReachedMessage),
+            backgroundColor: Colors.orange),
+      );
+      // Still fetch credits to ensure UI is in sync
       _fetchCredits();
     }
   }

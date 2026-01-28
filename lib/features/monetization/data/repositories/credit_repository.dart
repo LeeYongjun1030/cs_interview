@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../features/auth/domain/models/user_model.dart';
 import 'package:flutter/foundation.dart';
 
+enum DailyBonusStatus { success, alreadyClaimed, maxCreditsReached, error }
+
 class CreditRepository {
   final FirebaseFirestore _firestore;
 
@@ -84,18 +86,20 @@ class CreditRepository {
   }
 
   /// Check and claim daily bonus (1 credit)
-  Future<bool> claimDailyBonus(String uid) async {
+  Future<DailyBonusStatus> claimDailyBonus(String uid) async {
     final docRef = _usersRef.doc(uid);
     try {
       return await _firestore.runTransaction((transaction) async {
         final snapshot = await transaction.get(docRef);
-        if (!snapshot.exists) return false; // Should exist if getUser called
+        if (!snapshot.exists)
+          return DailyBonusStatus.error; // Should exist if getUser called
 
         final data = snapshot.data() as Map<String, dynamic>;
 
         // 1. Check Max Credit Limit
         final currentCredits = data['credits'] as int? ?? 0;
-        if (currentCredits >= MAX_CREDITS) return false;
+        if (currentCredits >= MAX_CREDITS)
+          return DailyBonusStatus.maxCreditsReached;
 
         final lastBonusStr = data['lastDailyBonus'] as String?;
         final lastBonus =
@@ -107,18 +111,18 @@ class CreditRepository {
           final isSameDay = lastBonus.year == now.year &&
               lastBonus.month == now.month &&
               lastBonus.day == now.day;
-          if (isSameDay) return false;
+          if (isSameDay) return DailyBonusStatus.alreadyClaimed;
         }
 
         transaction.update(docRef, {
           'credits': currentCredits + 1,
           'lastDailyBonus': now.toIso8601String(),
         });
-        return true;
+        return DailyBonusStatus.success;
       });
     } catch (e) {
       debugPrint('CreditRepository: claimDailyBonus error: $e');
-      return false;
+      return DailyBonusStatus.error;
     }
   }
 }
