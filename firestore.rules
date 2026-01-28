@@ -14,10 +14,13 @@ service cloud.firestore {
       // Update: Prevent massive credit hacks (e.g., +1000)
       // Allow update only if: 
       // 1. Credits are decreasing (spending) OR
-      // 2. Credits are increasing by at most 5 (Ad reward max) OR
+      // 2. Credits are increasing by at most 5 (Ad reward max) AND Total is <= 50
       // 3. Credits are unchanged (updating other fields)
       allow update: if request.auth != null && request.auth.uid == userId
-                    && request.resource.data.credits <= resource.data.credits + 5;
+                    && (
+                      request.resource.data.credits <= resource.data.credits // Spending
+                      || (request.resource.data.credits <= resource.data.credits + 5 && request.resource.data.credits <= 50) // Earning (Max 5 increase, Max 50 total)
+                    );
     }
 
     // 2. Sessions Collection (Interview Records)
