@@ -5,7 +5,19 @@ service cloud.firestore {
     // 1. Users Collection (Credits, Daily Bonus)
     // Only the user themselves can read or write their own document.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
+      
+      // Initial creation: Must start with 3 credits
+      allow create: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.credits == 3;
+
+      // Update: Prevent massive credit hacks (e.g., +1000)
+      // Allow update only if: 
+      // 1. Credits are decreasing (spending) OR
+      // 2. Credits are increasing by at most 5 (Ad reward max) OR
+      // 3. Credits are unchanged (updating other fields)
+      allow update: if request.auth != null && request.auth.uid == userId
+                    && request.resource.data.credits <= resource.data.credits + 5;
     }
 
     // 2. Sessions Collection (Interview Records)
