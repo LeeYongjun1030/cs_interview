@@ -277,92 +277,160 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
               ? _buildEmptyState(strings)
               : Stack(
                   children: [
-                    ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(
-                          16, 16, 16, 100), // Bottom padding for FAB
-                      itemCount: _questions.length,
-                      itemBuilder: (context, index) {
-                        final question = _questions[index];
-                        final isSelected = _selectedIds.contains(question.id);
-
-                        return GestureDetector(
-                          onTap: () => _toggleSelection(question.id),
-                          child: Container(
-                            margin: const EdgeInsets.only(bottom: 12),
+                    CustomScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      slivers: [
+                        // Guidance Header (Design 3: Accent Border Clean Style)
+                        SliverToBoxAdapter(
+                          child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.primary.withValues(alpha: 0.2)
-                                  : AppColors.surface,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: isSelected
-                                      ? AppColors.primary
-                                      : Colors.white10),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Content
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Builder(builder: (context) {
-                                        final categoryText = question
-                                            .getLocalizedCategory(languageCode);
-                                        const categoryColor = Colors.white70;
-                                        return Container(
-                                          margin:
-                                              const EdgeInsets.only(bottom: 4),
-                                          child: Text(
-                                            categoryText,
-                                            style: AppTextStyles.labelSmall
-                                                .copyWith(
-                                              color: categoryColor,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                      Text(
-                                        question
-                                            .getLocalizedQuestion(languageCode),
-                                        style: AppTextStyles.bodyLarge.copyWith(
-                                            color: Colors.white, height: 1.4),
-                                      ),
-                                    ],
+                                horizontal: 16, vertical: 20),
+                            child: IntrinsicHeight(
+                              child: Row(
+                                children: [
+                                  // Accent Line
+                                  Container(
+                                    width: 3,
+                                    decoration: BoxDecoration(
+                                      color: widget.themeColor
+                                          .withValues(alpha: 0.8),
+                                      borderRadius: BorderRadius.circular(1.5),
+                                    ),
                                   ),
-                                ),
-                                // Checkbox Indicator (Moved to Right)
-                                Container(
-                                  margin:
-                                      const EdgeInsets.only(top: 4, left: 16),
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                      // shape: BoxShape.rectangle, // Default
-                                      borderRadius: BorderRadius.circular(8),
+                                  const SizedBox(width: 16),
+                                  // Text
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          strings.subjectQuestionsGuide,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                            height: 1.4,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          strings.maxSelectionMessage,
+                                          style: TextStyle(
+                                            color: Colors.white
+                                                .withValues(alpha: 0.5),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Question List
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final question = _questions[index];
+                                final isSelected =
+                                    _selectedIds.contains(question.id);
+
+                                return GestureDetector(
+                                  onTap: () => _toggleSelection(question.id),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(bottom: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
                                       color: isSelected
                                           ? AppColors.primary
-                                          : Colors.transparent,
+                                              .withValues(alpha: 0.2)
+                                          : AppColors.surface,
+                                      borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                           color: isSelected
                                               ? AppColors.primary
-                                              : Colors.white24,
-                                          width: 2)),
-                                  child: isSelected
-                                      ? const Icon(Icons.check,
-                                          size: 16, color: Colors.white)
-                                      : null,
-                                ),
-                              ],
+                                              : Colors.white10),
+                                    ),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        // Content
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Builder(builder: (context) {
+                                                final categoryText = question
+                                                    .getLocalizedCategory(
+                                                        languageCode);
+                                                const categoryColor =
+                                                    Colors.white70;
+                                                return Container(
+                                                  margin: const EdgeInsets.only(
+                                                      bottom: 4),
+                                                  child: Text(
+                                                    categoryText,
+                                                    style: AppTextStyles
+                                                        .labelSmall
+                                                        .copyWith(
+                                                      color: categoryColor,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                );
+                                              }),
+                                              Text(
+                                                question.getLocalizedQuestion(
+                                                    languageCode),
+                                                style: AppTextStyles.bodyLarge
+                                                    .copyWith(
+                                                        color: Colors.white,
+                                                        height: 1.4),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        // Checkbox Indicator (Right)
+                                        Container(
+                                          margin: const EdgeInsets.only(
+                                              top: 4, left: 16),
+                                          width: 24,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              color: isSelected
+                                                  ? AppColors.primary
+                                                  : Colors.transparent,
+                                              border: Border.all(
+                                                  color: isSelected
+                                                      ? AppColors.primary
+                                                      : Colors.white24,
+                                                  width: 2)),
+                                          child: isSelected
+                                              ? const Icon(Icons.check,
+                                                  size: 16, color: Colors.white)
+                                              : null,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                              childCount: _questions.length,
                             ),
                           ),
-                        );
-                      },
+                        ),
+                      ],
                     ),
                     if (_selectedIds.isNotEmpty)
                       Positioned(

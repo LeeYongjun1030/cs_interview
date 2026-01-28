@@ -343,4 +343,8 @@ class AppStrings {
   String get hoursAgo => language == AppLanguage.korean ? '시간 전' : 'hours ago';
   String get daysAgo => language == AppLanguage.korean ? '일 전' : 'days ago';
   String get yesterday => language == AppLanguage.korean ? '어제' : 'Yesterday';
+
+  String get subjectQuestionsGuide => language == AppLanguage.korean
+      ? '학습하고 싶은 질문을 선택하여 나만의 세션을 만들어보세요.'
+      : 'Select questions to create a custom study session.';
 }
