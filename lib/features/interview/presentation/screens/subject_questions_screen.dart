@@ -304,27 +304,6 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Checkbox Indicator
-                                Container(
-                                  margin:
-                                      const EdgeInsets.only(top: 4, right: 12),
-                                  width: 24,
-                                  height: 24,
-                                  decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: isSelected
-                                          ? AppColors.primary
-                                          : Colors.transparent,
-                                      border: Border.all(
-                                          color: isSelected
-                                              ? AppColors.primary
-                                              : Colors.white24,
-                                          width: 2)),
-                                  child: isSelected
-                                      ? const Icon(Icons.check,
-                                          size: 16, color: Colors.white)
-                                      : null,
-                                ),
                                 // Content
                                 Expanded(
                                   child: Column(
@@ -356,6 +335,28 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                       ),
                                     ],
                                   ),
+                                ),
+                                // Checkbox Indicator (Moved to Right)
+                                Container(
+                                  margin:
+                                      const EdgeInsets.only(top: 4, left: 16),
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                      // shape: BoxShape.rectangle, // Default
+                                      borderRadius: BorderRadius.circular(8),
+                                      color: isSelected
+                                          ? AppColors.primary
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                          color: isSelected
+                                              ? AppColors.primary
+                                              : Colors.white24,
+                                          width: 2)),
+                                  child: isSelected
+                                      ? const Icon(Icons.check,
+                                          size: 16, color: Colors.white)
+                                      : null,
                                 ),
                               ],
                             ),

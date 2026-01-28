@@ -14,8 +14,10 @@ class InterviewRepository {
 
   Future<List<Question>> fetchQuestionsBySubject(String subject) async {
     try {
-      final querySnapshot =
-          await _questionsRef.where('subject', isEqualTo: subject).get();
+      final querySnapshot = await _questionsRef
+          .where('subject', isEqualTo: subject)
+          .get()
+          .timeout(const Duration(seconds: 10));
 
       return querySnapshot.docs
           .map((doc) => Question.fromJson(doc.data() as Map<String, dynamic>))
