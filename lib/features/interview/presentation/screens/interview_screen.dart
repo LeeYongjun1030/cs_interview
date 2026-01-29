@@ -145,354 +145,364 @@ class _InterviewScreenState extends State<InterviewScreen> {
 
           return Stack(
             children: [
-              Scaffold(
-                backgroundColor: AppColors.background,
-                appBar: AppBar(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  leading: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  title: Text(
-                    widget.controller.sessionTitle,
-                    style:
-                        AppTextStyles.titleMedium.copyWith(color: Colors.white),
-                  ),
-                  actions: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: Center(
-                        child: Text(
-                          '${widget.controller.currentIndex + 1}/${widget.controller.totalQuestions}',
-                          style: AppTextStyles.titleLarge
-                              .copyWith(color: AppColors.accentCyan),
+              GestureDetector(
+                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                child: Scaffold(
+                  backgroundColor: AppColors.background,
+                  appBar: AppBar(
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    leading: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    title: Text(
+                      widget.controller.sessionTitle,
+                      style: AppTextStyles.titleMedium
+                          .copyWith(color: Colors.white),
+                    ),
+                    actions: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 16),
+                        child: Center(
+                          child: Text(
+                            '${widget.controller.currentIndex + 1}/${widget.controller.totalQuestions}',
+                            style: AppTextStyles.titleLarge
+                                .copyWith(color: AppColors.accentCyan),
+                          ),
                         ),
-                      ),
-                    )
-                  ],
-                ),
-                body: SingleChildScrollView(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // --- Main Question Card ---
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white10),
-                          boxShadow: AppColors.neonShadow,
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              '${_getSubjectName(currentQuestion.subject, strings)} • ${currentQuestion.getLocalizedCategory(langController.currentLanguage.code).toUpperCase()}',
-                              style: AppTextStyles.labelSmall.copyWith(
-                                  color: AppColors.primary, letterSpacing: 2),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              currentQuestion.getLocalizedQuestion(
-                                  langController.currentLanguage.code),
-                              style: AppTextStyles.headlineSmall.copyWith(
-                                  fontWeight: FontWeight.bold, height: 1.4),
-                              textAlign: TextAlign.center,
-                            ),
-                            // Tip Section
-                            const SizedBox(height: 16),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _isTipVisible = !_isTipVisible;
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.05),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      _isTipVisible
-                                          ? Icons.visibility_off
-                                          : Icons.lightbulb_outline,
-                                      color: _isTipVisible
-                                          ? Colors.grey
-                                          : AppColors.accentGreen,
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      _isTipVisible
-                                          ? strings.tipHide
-                                          : strings.tipShow,
-                                      style: AppTextStyles.labelSmall.copyWith(
+                      )
+                    ],
+                  ),
+                  body: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // --- Main Question Card ---
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white10),
+                            boxShadow: AppColors.neonShadow,
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                '${_getSubjectName(currentQuestion.subject, strings)} • ${currentQuestion.getLocalizedCategory(langController.currentLanguage.code).toUpperCase()}',
+                                style: AppTextStyles.labelSmall.copyWith(
+                                    color: AppColors.primary, letterSpacing: 2),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                currentQuestion.getLocalizedQuestion(
+                                    langController.currentLanguage.code),
+                                style: AppTextStyles.headlineSmall.copyWith(
+                                    fontWeight: FontWeight.bold, height: 1.4),
+                                textAlign: TextAlign.center,
+                              ),
+                              // Tip Section
+                              const SizedBox(height: 16),
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _isTipVisible = !_isTipVisible;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.05),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        _isTipVisible
+                                            ? Icons.visibility_off
+                                            : Icons.lightbulb_outline,
                                         color: _isTipVisible
                                             ? Colors.grey
                                             : AppColors.accentGreen,
+                                        size: 18,
                                       ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        _isTipVisible
+                                            ? strings.tipHide
+                                            : strings.tipShow,
+                                        style:
+                                            AppTextStyles.labelSmall.copyWith(
+                                          color: _isTipVisible
+                                              ? Colors.grey
+                                              : AppColors.accentGreen,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (_isTipVisible) ...[
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.accentGreen
+                                        .withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    currentQuestion
+                                            .getLocalizedTip(langController
+                                                .currentLanguage.code)
+                                            .isEmpty
+                                        ? strings.noTip
+                                        : currentQuestion.getLocalizedTip(
+                                            langController
+                                                .currentLanguage.code),
+                                    style: AppTextStyles.bodyMedium
+                                        .copyWith(color: AppColors.accentGreen),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ]
+                            ],
+                          ),
+                        ),
+
+                        // --- Previous Answer (Main) ---
+                        if (isFollowUp && round?.mainAnswer != null) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(strings.yourAnswer,
+                                    style: AppTextStyles.labelSmall
+                                        .copyWith(color: Colors.white54)),
+                                const SizedBox(height: 4),
+                                Text(round!.mainAnswer!,
+                                    style: const TextStyle(
+                                        color: Colors.white70,
+                                        decoration: TextDecoration.none)),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        // --- Follow-Up Question Card ---
+                        if (isFollowUp) ...[
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: AppColors.accentRed.withValues(
+                                  alpha: 0.1), // Danger/Attention color
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColors.accentRed),
+                            ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.psychology,
+                                        color: AppColors.accentRed),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      strings.followUpTitle,
+                                      style: AppTextStyles.labelSmall.copyWith(
+                                          color: AppColors.accentRed,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  round?.followUpQuestion ?? '',
+                                  style: AppTextStyles.titleMedium.copyWith(
+                                      fontWeight: FontWeight.bold, height: 1.4),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        const SizedBox(height: 32),
+
+                        // --- Input Area ---
+                        Text(strings.inputLabel, // Simplified & Localized
+                            style: AppTextStyles.labelLarge),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: _isListening
+                                  ? AppColors.accentRed
+                                  : Colors.white10,
+                              width: _isListening ? 2 : 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              TextField(
+                                controller: _answerController,
+                                maxLines: 5,
+                                maxLength: 500, // Limit input
+                                buildCounter: (context,
+                                        {required currentLength,
+                                        required isFocused,
+                                        required maxLength}) =>
+                                    Text(
+                                  '$currentLength/$maxLength',
+                                  style: TextStyle(
+                                    color: currentLength == maxLength
+                                        ? AppColors.accentRed
+                                        : Colors.white30,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                style: const TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  hintText: _isListening
+                                      ? strings.listening
+                                      : (isFollowUp
+                                          ? strings.inputPlaceholderFollowUp
+                                          : strings.inputPlaceholderMain),
+                                  hintStyle: TextStyle(
+                                      color:
+                                          Colors.white.withValues(alpha: 0.3)),
+                                  filled: true,
+                                  fillColor: Colors.transparent,
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.all(16),
+                                ),
+                              ),
+                              // Toolbar
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                      top: BorderSide(color: Colors.white10)),
+                                ),
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        _isListening
+                                            ? Icons.mic
+                                            : Icons.mic_none,
+                                        color: _isListening
+                                            ? AppColors.accentRed
+                                            : Colors.white70,
+                                      ),
+                                      onPressed: _toggleListening,
+                                    ),
+                                    if (_isListening)
+                                      FadeTransition(
+                                        opacity: const AlwaysStoppedAnimation(
+                                            1.0), // Can animate later
+                                        child: Text(strings.listening,
+                                            style: const TextStyle(
+                                                color: AppColors.accentRed,
+                                                fontSize: 12)),
+                                      ),
+                                    const Spacer(),
+                                    IconButton(
+                                      icon: const Icon(Icons.send,
+                                          color: AppColors.primary),
+                                      onPressed: _handleSubmit,
                                     ),
                                   ],
                                 ),
                               ),
-                            ),
-                            if (_isTipVisible) ...[
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: AppColors.accentGreen
-                                      .withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  currentQuestion
-                                          .getLocalizedTip(langController
-                                              .currentLanguage.code)
-                                          .isEmpty
-                                      ? strings.noTip
-                                      : currentQuestion.getLocalizedTip(
-                                          langController.currentLanguage.code),
-                                  style: AppTextStyles.bodyMedium
-                                      .copyWith(color: AppColors.accentGreen),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ]
-                          ],
-                        ),
-                      ),
-
-                      // --- Previous Answer (Main) ---
-                      if (isFollowUp && round?.mainAnswer != null) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(strings.yourAnswer,
-                                  style: AppTextStyles.labelSmall
-                                      .copyWith(color: Colors.white54)),
-                              const SizedBox(height: 4),
-                              Text(round!.mainAnswer!,
-                                  style: const TextStyle(
-                                      color: Colors.white70,
-                                      decoration: TextDecoration.none)),
                             ],
                           ),
                         ),
                       ],
-
-                      // --- Follow-Up Question Card ---
-                      if (isFollowUp) ...[
-                        const SizedBox(height: 24),
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: AppColors.accentRed.withValues(
-                                alpha: 0.1), // Danger/Attention color
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.accentRed),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.psychology,
-                                      color: AppColors.accentRed),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    strings.followUpTitle,
-                                    style: AppTextStyles.labelSmall.copyWith(
-                                        color: AppColors.accentRed,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                round?.followUpQuestion ?? '',
-                                style: AppTextStyles.titleMedium.copyWith(
-                                    fontWeight: FontWeight.bold, height: 1.4),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-
-                      const SizedBox(height: 32),
-
-                      // --- Input Area ---
-                      Text(strings.inputLabel, // Simplified & Localized
-                          style: AppTextStyles.labelLarge),
-                      const SizedBox(height: 8),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: _isListening
-                                ? AppColors.accentRed
-                                : Colors.white10,
-                            width: _isListening ? 2 : 1,
-                          ),
-                        ),
-                        child: Column(
-                          children: [
-                            TextField(
-                              controller: _answerController,
-                              maxLines: 5,
-                              maxLength: 500, // Limit input
-                              buildCounter: (context,
-                                      {required currentLength,
-                                      required isFocused,
-                                      required maxLength}) =>
-                                  Text(
-                                '$currentLength/$maxLength',
-                                style: TextStyle(
-                                  color: currentLength == maxLength
-                                      ? AppColors.accentRed
-                                      : Colors.white30,
-                                  fontSize: 11,
-                                ),
-                              ),
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                hintText: _isListening
-                                    ? strings.listening
-                                    : (isFollowUp
-                                        ? strings.inputPlaceholderFollowUp
-                                        : strings.inputPlaceholderMain),
-                                hintStyle: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.3)),
-                                filled: true,
-                                fillColor: Colors.transparent,
-                                border: InputBorder.none,
-                                contentPadding: const EdgeInsets.all(16),
-                              ),
-                            ),
-                            // Toolbar
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: const BoxDecoration(
-                                border: Border(
-                                    top: BorderSide(color: Colors.white10)),
-                              ),
-                              child: Row(
-                                children: [
-                                  IconButton(
-                                    icon: Icon(
-                                      _isListening ? Icons.mic : Icons.mic_none,
-                                      color: _isListening
-                                          ? AppColors.accentRed
-                                          : Colors.white70,
-                                    ),
-                                    onPressed: _toggleListening,
-                                  ),
-                                  if (_isListening)
-                                    FadeTransition(
-                                      opacity: const AlwaysStoppedAnimation(
-                                          1.0), // Can animate later
-                                      child: Text(strings.listening,
-                                          style: const TextStyle(
-                                              color: AppColors.accentRed,
-                                              fontSize: 12)),
-                                    ),
-                                  const Spacer(),
-                                  IconButton(
-                                    icon: const Icon(Icons.send,
-                                        color: AppColors.primary),
-                                    onPressed: _handleSubmit,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                bottomNavigationBar: isFollowUp
-                    ? SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextButton(
-                                  onPressed: () async {
-                                    // SKIP FOLLOW UP
-                                    await widget.controller.passFollowUp();
-                                    _answerController.clear();
-                                    if (!context.mounted) return;
-                                    if (widget.controller.isSessionFinished) {
-                                      _navigateToResult();
-                                    }
-                                  },
-                                  style: TextButton.styleFrom(
-                                    foregroundColor: Colors.white54,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
+                  bottomNavigationBar: isFollowUp
+                      ? SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextButton(
+                                    onPressed: () async {
+                                      // SKIP FOLLOW UP
+                                      await widget.controller.passFollowUp();
+                                      _answerController.clear();
+                                      if (!context.mounted) return;
+                                      if (widget.controller.isSessionFinished) {
+                                        _navigateToResult();
+                                      }
+                                    },
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.white54,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16),
+                                    ),
+                                    child: Text(strings.passButton),
                                   ),
-                                  child: Text(strings.passButton),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                flex: 2,
-                                child: ElevatedButton(
-                                  onPressed: _handleSubmit,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.accentRed,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(16)),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  flex: 2,
+                                  child: ElevatedButton(
+                                    onPressed: _handleSubmit,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.accentRed,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(16)),
+                                    ),
+                                    child: Text(strings.submitButton,
+                                        style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold)),
                                   ),
-                                  child: Text(strings.submitButton,
-                                      style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold)),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: ElevatedButton(
-                            onPressed: _handleSubmit,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
+                              ],
                             ),
-                            child: Text(strings.submitButton,
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                        )
+                      : SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: ElevatedButton(
+                              onPressed: _handleSubmit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
+                              ),
+                              child: Text(strings.submitButton,
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold)),
+                            ),
                           ),
                         ),
-                      ),
+                ),
               ),
 
               // --- AI Thinking Overlay ---
