@@ -689,9 +689,9 @@ class _HomeScreenState extends State<HomeScreen> {
               context: context,
               builder: (context) => AlertDialog(
                 backgroundColor: AppColors.surface,
-                title: Text(strings.resetDialogTitle,
+                title: Text(strings.deleteSessionTitle,
                     style: const TextStyle(color: Colors.white)),
-                content: Text(strings.resetDialogContent,
+                content: Text(strings.deleteSessionContent,
                     style: const TextStyle(color: Colors.white70)),
                 actions: [
                   TextButton(

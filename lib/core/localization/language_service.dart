@@ -294,6 +294,12 @@ class AppStrings {
       ? '모든 인터뷰 기록이 영구적으로 삭제됩니다.\n정말 삭제하시겠습니까?'
       : 'All interview history will be deleted.\nAre you sure?';
 
+  String get deleteSessionTitle =>
+      language == AppLanguage.korean ? '세션 삭제' : 'Delete Session';
+  String get deleteSessionContent => language == AppLanguage.korean
+      ? '이 인터뷰 세션이 영구적으로 삭제됩니다.\n정말 삭제하시겠습니까?'
+      : 'This session will be permanently deleted.\nAre you sure?';
+
   String get deleteAction => language == AppLanguage.korean ? '삭제' : 'Delete';
 
   // Support
