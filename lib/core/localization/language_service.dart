@@ -283,6 +283,12 @@ class AppStrings {
   String get accountTitle => language == AppLanguage.korean ? '계정' : 'Account';
   String get languageSettingTitle =>
       language == AppLanguage.korean ? '언어 설정' : 'Language Settings';
+  String get themeSettingTitle =>
+      language == AppLanguage.korean ? '테마 설정' : 'Theme Settings';
+  String get themeLight =>
+      language == AppLanguage.korean ? '라이트 모드' : 'Light Mode';
+  String get themeDark =>
+      language == AppLanguage.korean ? '다크 모드' : 'Dark Mode';
 
   String get logoutLabel => language == AppLanguage.korean ? '로그아웃' : 'Logout';
   String get resetDataLabel =>

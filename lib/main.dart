@@ -13,6 +13,7 @@ import 'features/auth/presentation/login_screen.dart';
 
 import 'features/monetization/data/repositories/credit_repository.dart';
 import 'features/monetization/services/ad_service.dart';
+import 'core/theme/theme_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +57,7 @@ void main() async {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => LanguageController()),
+          ChangeNotifierProvider(create: (_) => ThemeController()),
           Provider(create: (_) => CreditRepository()),
           Provider.value(value: adService),
         ],
@@ -114,10 +116,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Listen to theme changes to support dynamic switching
+    context.watch<ThemeController>();
+
     return MaterialApp(
       title: 'Socraites',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.theme,
       home: const AuthWrapper(),
     );
   }

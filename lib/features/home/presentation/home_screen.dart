@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/theme/theme_controller.dart';
 import '../../auth/domain/models/user_model.dart';
 
 import '../../interview/presentation/screens/interview_screen.dart';
@@ -141,19 +142,22 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: AppColors.surface,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            title: const Text('Select Language / 언어 선택',
+            title: Text('Select Language / 언어 선택',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
+                    color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 10),
-                _buildLanguageOption(
-                    context, '🇰🇷 한국어', AppLanguage.korean, Colors.white10),
+                _buildLanguageOption(context, '🇰🇷 한국어', AppLanguage.korean,
+                    AppColors.textDisabled.withValues(alpha: 0.1)),
                 const SizedBox(height: 12),
-                _buildLanguageOption(context, '🇺🇸 English',
-                    AppLanguage.english, Colors.white10),
+                _buildLanguageOption(
+                    context,
+                    '🇺🇸 English',
+                    AppLanguage.english,
+                    AppColors.textDisabled.withValues(alpha: 0.1)),
               ],
             ),
           ),
@@ -172,7 +176,8 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          side: const BorderSide(color: Colors.white10),
+          side:
+              BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.1)),
         ),
         onPressed: () {
           Provider.of<LanguageController>(context, listen: false)
@@ -181,8 +186,10 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         child: Text(
           label,
-          style: const TextStyle(
-              color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -214,6 +221,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     // Watch language changes to rebuild the entire screen
     final language = Provider.of<LanguageController>(context).currentLanguage;
+    // Watch ThemeController to rebuild on theme change
+    context.watch<ThemeController>();
     final strings = AppStrings(language);
 
     return Scaffold(
@@ -344,7 +353,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             .copyWith(fontWeight: FontWeight.bold),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.refresh, color: Colors.white70),
+                        icon:
+                            Icon(Icons.refresh, color: AppColors.textSecondary),
                         onPressed: () {
                           // Force stream refresh
                           setState(() {
@@ -380,7 +390,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text('Error: ${snapshot.error}',
-                        style: const TextStyle(color: Colors.red)),
+                        style: const TextStyle(color: AppColors.error)),
                   ),
                 );
               }
@@ -445,9 +455,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           'https://lh3.googleusercontent.com/aida-public/AB6AXuBRAYUH3XVSo2OHGdcW1Y2yctt6VetQby1-9G3jFKgvWK3vnVd-FUHUpqwkpiljrGU2Eag2tLtYm3wW8UdZZDnzWHJEmj3eHZh5A4L3guFmS81Kwb0FMrL-AaMnzNqQn_bB47z6Ny-_OtXIEHvhEsWoi_gF-nUSqMbc9OM2P7S-LOLxyqh5krmYasAqZDo3rHj0c5HkgMehOGsP0kT4wdzzSBZxiVGEq2HG-dDIsv8JGcaIlfEF40lAAAraxWGlqvR3KP6SZm_YdpA',
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        return const Center(
+                        return Center(
                           child: Icon(Icons.person,
-                              color: Colors.white54, size: 24),
+                              color: AppColors.textSecondary, size: 24),
                         );
                       },
                       loadingBuilder: (context, child, loadingProgress) {
@@ -505,8 +515,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   else
                     Text(
                       '$_credits', // Credits
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 14),
                     ),
@@ -514,7 +524,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     width: 20,
                     height: 20,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.primary,
                       shape: BoxShape.circle,
                     ),
@@ -535,13 +545,15 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.history_toggle_off,
-              size: 60, color: Colors.white.withValues(alpha: 0.2)),
+              size: 60, color: AppColors.textTertiary),
           const SizedBox(height: 16),
           Text(strings.recentSessions,
-              style: AppTextStyles.bodyLarge.copyWith(color: Colors.white54)),
+              style: AppTextStyles.bodyLarge
+                  .copyWith(color: AppColors.textSecondary)),
           const SizedBox(height: 8),
           Text(strings.startNewSession,
-              style: AppTextStyles.labelMedium.copyWith(color: Colors.white30)),
+              style: AppTextStyles.labelMedium
+                  .copyWith(color: AppColors.textTertiary)),
         ],
       ),
     );
@@ -574,7 +586,8 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             color: AppColors.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white10),
+            border: Border.all(
+                color: AppColors.textDisabled.withValues(alpha: 0.1)),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -652,14 +665,14 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context) => AlertDialog(
             backgroundColor: AppColors.surface,
             title: Text(strings.deleteSessionTitle,
-                style: const TextStyle(color: Colors.white)),
+                style: TextStyle(color: AppColors.textPrimary)),
             content: Text(strings.deleteSessionContent,
-                style: const TextStyle(color: Colors.white70)),
+                style: TextStyle(color: AppColors.textSecondary)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text(strings.cancelButton,
-                    style: const TextStyle(color: Colors.white54)),
+                    style: TextStyle(color: AppColors.textSecondary)),
               ),
               ElevatedButton(
                 onPressed: () => Navigator.pop(context, true),
@@ -680,7 +693,8 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white10),
+          border:
+              Border.all(color: AppColors.textDisabled.withValues(alpha: 0.1)),
         ),
         child: InkWell(
           onTap: () => _openSessionDetail(session),
@@ -690,14 +704,14 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context) => AlertDialog(
                 backgroundColor: AppColors.surface,
                 title: Text(strings.deleteSessionTitle,
-                    style: const TextStyle(color: Colors.white)),
+                    style: TextStyle(color: AppColors.textPrimary)),
                 content: Text(strings.deleteSessionContent,
-                    style: const TextStyle(color: Colors.white70)),
+                    style: TextStyle(color: AppColors.textSecondary)),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context, false),
                     child: Text(strings.cancelButton,
-                        style: const TextStyle(color: Colors.white54)),
+                        style: TextStyle(color: AppColors.textSecondary)),
                   ),
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context, true),
@@ -724,7 +738,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(dateStr,
                         style: AppTextStyles.labelSmall
-                            .copyWith(color: Colors.white38)),
+                            .copyWith(color: AppColors.textTertiary)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -922,7 +936,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   margin: const EdgeInsets.only(top: 4),
                   width: 4,
                   height: 4,
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                       color: AppColors.primary, shape: BoxShape.circle),
                 ),
             ],
@@ -950,27 +964,33 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text(strings.startNewSession,
-            style: const TextStyle(color: Colors.white)),
+            style: TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(strings.sessionGoalHint,
-                style: const TextStyle(color: Colors.white70)),
+                style: TextStyle(color: AppColors.textSecondary)),
             const SizedBox(height: 16),
             TextField(
               controller: titleController,
               autofocus: true,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.textPrimary),
               maxLength: 30,
               decoration: InputDecoration(
                 hintText: strings.sessionTitleHint,
-                hintStyle: const TextStyle(color: Colors.white30),
-                counterStyle: const TextStyle(color: Colors.white30),
+                hintStyle: TextStyle(color: AppColors.textTertiary),
+                counterStyle: TextStyle(color: AppColors.textTertiary),
                 labelText: strings.sessionNameLabel,
-                labelStyle: const TextStyle(color: AppColors.accentCyan),
+                labelStyle: TextStyle(color: AppColors.textSecondary),
+                filled: true,
+                fillColor: AppColors.textDisabled.withValues(alpha: 0.05),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.white54),
+                  icon: Icon(Icons.clear, color: AppColors.textTertiary),
                   onPressed: () => titleController.clear(),
                 ),
               ),
@@ -981,7 +1001,7 @@ class _HomeScreenState extends State<HomeScreen> {
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(strings.cancelButton,
-                style: const TextStyle(color: Colors.white54)),
+                style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -1028,7 +1048,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return AlertDialog(
               backgroundColor: AppColors.surface,
               title: Text(strings.selectSubjectTitle,
-                  style: const TextStyle(color: Colors.white)),
+                  style: TextStyle(color: AppColors.textPrimary)),
               content: SizedBox(
                 width: double.maxFinite,
                 child: SingleChildScrollView(
@@ -1038,8 +1058,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         strings.selectSubjectSubtitle,
-                        style: const TextStyle(
-                            color: Colors.white70, fontSize: 13),
+                        style: TextStyle(
+                            color: AppColors.textSecondary, fontSize: 13),
                       ),
                       const SizedBox(height: 16),
                       Wrap(
@@ -1059,14 +1079,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 }
                               });
                             },
-                            backgroundColor: Colors.white10,
+                            backgroundColor:
+                                AppColors.textDisabled.withValues(alpha: 0.1),
                             selectedColor:
                                 AppColors.primary.withValues(alpha: 0.3),
                             checkmarkColor: AppColors.accentCyan,
                             labelStyle: TextStyle(
                               color: isSelected
                                   ? AppColors.accentCyan
-                                  : Colors.white70,
+                                  : AppColors.textSecondary,
                               fontWeight: isSelected
                                   ? FontWeight.bold
                                   : FontWeight.normal,
@@ -1090,7 +1111,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 TextButton(
                   onPressed: () => Navigator.pop(dialogContext),
                   child: Text(strings.cancelButton,
-                      style: const TextStyle(color: Colors.white54)),
+                      style: TextStyle(color: AppColors.textSecondary)),
                 ),
                 ElevatedButton(
                   onPressed: selectedKeys.isEmpty
@@ -1104,7 +1125,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    disabledBackgroundColor: Colors.white10,
+                    disabledBackgroundColor:
+                        AppColors.textDisabled.withValues(alpha: 0.1),
                   ),
                   child: Text(strings.startInterviewButton,
                       style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -1327,15 +1349,15 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 12),
               Text(
                 strings.maxCreditReachedTitle,
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 18),
               ),
               const SizedBox(height: 8),
               Text(
                 strings.maxCreditReachedMessage,
-                style: const TextStyle(color: Colors.white70),
+                style: TextStyle(color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -1343,7 +1365,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('OK', style: TextStyle(color: Colors.white)),
+              child: Text('OK', style: TextStyle(color: AppColors.textPrimary)),
             )
           ],
         ),
@@ -1362,14 +1384,14 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.surface,
         title: Text(title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(
+                color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               message,
-              style: const TextStyle(color: Colors.white70),
+              style: TextStyle(color: AppColors.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -1381,11 +1403,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   const Icon(Icons.bolt, color: Colors.yellow, size: 24),
                   const SizedBox(width: 8),
                   Text('${_credits ?? 0}',
-                      style: const TextStyle(
-                          color: Colors.white,
+                      style: TextStyle(
+                          color: AppColors.textPrimary,
                           fontSize: 24,
                           fontWeight: FontWeight.bold)),
-                  const Icon(Icons.arrow_forward, color: Colors.white54),
+                  Icon(Icons.arrow_forward, color: AppColors.textTertiary),
                   const SizedBox(width: 8),
                   const Icon(Icons.bolt, color: Colors.yellow, size: 24),
                   Text('${(_credits ?? 0) + 1}',
@@ -1435,8 +1457,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       const SizedBox(height: 16),
                                       Text(
                                         strings.rewardSuccessMessage,
-                                        style: const TextStyle(
-                                            color: Colors.white),
+                                        style: TextStyle(
+                                            color: AppColors.textPrimary),
                                         textAlign: TextAlign.center,
                                       )
                                     ],
@@ -1468,7 +1490,7 @@ class _HomeScreenState extends State<HomeScreen> {
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
                 child: Text(strings.cancelButton,
-                    style: const TextStyle(color: Colors.white54)),
+                    style: TextStyle(color: AppColors.textSecondary)),
               ),
             ],
           ),

@@ -273,7 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextSpan(text: strings.loginConsentStart),
                       TextSpan(
                         text: strings.loginConsentLink,
-                        style: const TextStyle(
+                        style: TextStyle(
                           decoration: TextDecoration.underline,
                           color: AppColors.primary,
                         ),

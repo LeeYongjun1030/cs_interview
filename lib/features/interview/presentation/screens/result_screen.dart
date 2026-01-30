@@ -31,11 +31,11 @@ class InterviewResultScreen extends StatelessWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(strings.resultReportTitle,
-            style: const TextStyle(color: Colors.white)),
+            style: TextStyle(color: AppColors.textPrimary)),
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
-        leading: const BackButton(color: Colors.white),
+        leading: BackButton(color: AppColors.textPrimary),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -111,13 +111,13 @@ class InterviewResultScreen extends StatelessWidget {
               OutlinedButton(
                 onPressed: () => _handleRetry(context, strings),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.primary),
+                  side: BorderSide(color: AppColors.primary),
                   minimumSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                 ),
                 child: Text(strings.retrySameQuestions,
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: AppColors.primary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
@@ -128,14 +128,15 @@ class InterviewResultScreen extends StatelessWidget {
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white10,
+                  backgroundColor:
+                      AppColors.textDisabled.withValues(alpha: 0.1),
                   minimumSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                 ),
                 child: Text(strings.homeButton,
-                    style: const TextStyle(
-                        color: Colors.white,
+                    style: TextStyle(
+                        color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold)),
               ),
@@ -157,26 +158,26 @@ class InterviewResultScreen extends StatelessWidget {
         return AlertDialog(
           backgroundColor: AppColors.surface,
           title: Text(strings.retryTitleDialog,
-              style: const TextStyle(color: Colors.white, fontSize: 18)),
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 18)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(strings.retryContentDialog,
-                  style: const TextStyle(color: Colors.white70)),
+                  style: TextStyle(color: AppColors.textSecondary)),
               const SizedBox(height: 16),
               TextField(
                 controller: titleController,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: AppColors.textPrimary),
                 decoration: InputDecoration(
                   labelText: strings.sessionNameLabel,
-                  labelStyle: const TextStyle(color: Colors.white54),
+                  labelStyle: TextStyle(color: AppColors.textTertiary),
                   filled: true,
                   fillColor: Colors.black12,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   suffixIcon: IconButton(
-                    icon: const Icon(Icons.clear, color: Colors.white54),
+                    icon: Icon(Icons.clear, color: AppColors.textTertiary),
                     onPressed: () => titleController.clear(),
                   ),
                 ),
@@ -187,7 +188,7 @@ class InterviewResultScreen extends StatelessWidget {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(strings.cancelButton,
-                  style: const TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -241,7 +242,7 @@ class InterviewResultScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text('Q$index',
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 12)),
@@ -273,21 +274,23 @@ class InterviewResultScreen extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.only(
                       left: 16, right: 0, top: 4, bottom: 4),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     border: Border(
-                      left: BorderSide(color: Colors.white24, width: 2),
+                      left: BorderSide(
+                          color: AppColors.textDisabled.withValues(alpha: 0.2),
+                          width: 2),
                     ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(strings.myAnswer,
-                          style: const TextStyle(
-                              color: Colors.white38, fontSize: 12)),
+                          style: TextStyle(
+                              color: AppColors.textTertiary, fontSize: 12)),
                       const SizedBox(height: 6),
                       Text(round.mainAnswer!,
-                          style: const TextStyle(
-                              color: Colors.white,
+                          style: TextStyle(
+                              color: AppColors.textPrimary,
                               fontSize: 15,
                               height: 1.5,
                               letterSpacing: 0.2)),
@@ -305,7 +308,7 @@ class InterviewResultScreen extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.only(top: 3),
                       child: Icon(Icons.subdirectory_arrow_right,
                           color: AppColors.accentRed, size: 20),
@@ -316,14 +319,14 @@ class InterviewResultScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(strings.followUpTitle,
-                              style: const TextStyle(
+                              style: TextStyle(
                                   color: AppColors.accentRed,
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
                           Text(round.followUpQuestion!,
-                              style: const TextStyle(
-                                  color: Colors.white,
+                              style: TextStyle(
+                                  color: AppColors.textPrimary,
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   height: 1.4)),
@@ -346,7 +349,7 @@ class InterviewResultScreen extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.only(
                         left: 16, right: 0, top: 4, bottom: 4),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       border: Border(
                         left: BorderSide(color: AppColors.accentRed, width: 2),
                       ),
@@ -355,12 +358,12 @@ class InterviewResultScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(strings.myAnswer,
-                            style: const TextStyle(
-                                color: Colors.white38, fontSize: 12)),
+                            style: TextStyle(
+                                color: AppColors.textTertiary, fontSize: 12)),
                         const SizedBox(height: 6),
                         Text(round.followUpAnswer!,
-                            style: const TextStyle(
-                                color: Colors.white,
+                            style: TextStyle(
+                                color: AppColors.textPrimary,
                                 fontSize: 15,
                                 height: 1.5,
                                 letterSpacing: 0.2)),
@@ -376,7 +379,7 @@ class InterviewResultScreen extends StatelessWidget {
             ],
           ),
         ),
-        const Divider(color: Colors.white10, height: 32),
+        const Divider(color: Colors.black12, height: 32),
       ],
     );
   }
@@ -404,7 +407,7 @@ class InterviewResultScreen extends StatelessWidget {
   Widget _buildStructuredFeedback(GradeResult? grade, AppStrings strings) {
     if (grade == null) {
       return Text(strings.noFeedback,
-          style: const TextStyle(color: Colors.white38, fontSize: 13));
+          style: TextStyle(color: AppColors.textTertiary, fontSize: 13));
     }
 
     // Legacy Fallback: If no structured fields, show old feedback string
@@ -413,7 +416,7 @@ class InterviewResultScreen extends StatelessWidget {
         (grade.weaknesses == null || grade.weaknesses!.isEmpty)) {
       if (grade.feedback.isNotEmpty) {
         return Text('${strings.aiFeedback}: ${grade.feedback}',
-            style: const TextStyle(color: AppColors.accentCyan, fontSize: 13));
+            style: TextStyle(color: AppColors.accentCyan, fontSize: 13));
       }
       return const SizedBox.shrink();
     }
@@ -424,7 +427,7 @@ class InterviewResultScreen extends StatelessWidget {
         if (grade.summary != null) ...[
           Text(
             grade.summary!,
-            style: const TextStyle(
+            style: TextStyle(
                 color: AppColors.accentCyan,
                 fontSize: 15,
                 fontWeight: FontWeight.bold),
@@ -440,8 +443,8 @@ class InterviewResultScreen extends StatelessWidget {
                     const Text('✅ ', style: TextStyle(fontSize: 14)),
                     Expanded(
                       child: Text(s,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 14)),
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 14)),
                     ),
                   ],
                 ),
@@ -457,8 +460,8 @@ class InterviewResultScreen extends StatelessWidget {
                     const Text('⚠️ ', style: TextStyle(fontSize: 14)),
                     Expanded(
                       child: Text(w,
-                          style: const TextStyle(
-                              color: Colors.white70, fontSize: 14)),
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 14)),
                     ),
                   ],
                 ),
@@ -476,12 +479,12 @@ class InterviewResultScreen extends StatelessWidget {
             ),
             child: Row(
               children: [
-                const Icon(Icons.lightbulb_outline,
+                Icon(Icons.lightbulb_outline,
                     color: AppColors.accentCyan, size: 18),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(grade.tip!,
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: AppColors.accentCyan,
                           fontSize: 13.5,
                           fontStyle: FontStyle.italic)),
@@ -522,14 +525,18 @@ class _ExpandableQuestionTextState extends State<_ExpandableQuestionText> {
         firstChild: Text(
           widget.text,
           style: AppTextStyles.titleSmall.copyWith(
-              color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         secondChild: Text(
           widget.text,
           style: AppTextStyles.titleSmall.copyWith(
-              color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.bold),
         ),
       ),
     );

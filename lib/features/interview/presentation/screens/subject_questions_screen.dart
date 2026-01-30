@@ -105,27 +105,33 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text(strings.startNewSession,
-            style: const TextStyle(color: Colors.white)),
+            style: TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(strings.sessionGoalHint,
-                style: const TextStyle(color: Colors.white70)),
+                style: TextStyle(color: AppColors.textSecondary)),
             const SizedBox(height: 16),
             TextField(
               controller: titleController,
               autofocus: true,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.textPrimary),
               maxLength: 30,
               decoration: InputDecoration(
                 hintText: strings.sessionTitleHint,
-                hintStyle: const TextStyle(color: Colors.white30),
-                counterStyle: const TextStyle(color: Colors.white30),
+                hintStyle: TextStyle(color: AppColors.textTertiary),
+                counterStyle: TextStyle(color: AppColors.textTertiary),
                 labelText: strings.sessionNameLabel,
-                labelStyle: const TextStyle(color: AppColors.accentCyan),
+                labelStyle: TextStyle(color: AppColors.textSecondary),
+                filled: true,
+                fillColor: AppColors.textDisabled.withValues(alpha: 0.05),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
                 suffixIcon: IconButton(
-                  icon: const Icon(Icons.clear, color: Colors.white54),
+                  icon: Icon(Icons.clear, color: AppColors.textTertiary),
                   onPressed: () => titleController.clear(),
                 ),
               ),
@@ -136,7 +142,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(strings.cancelButton,
-                style: const TextStyle(color: Colors.white54)),
+                style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -264,7 +270,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: const BackButton(color: Colors.white),
+        leading: BackButton(color: AppColors.textPrimary),
         title: Text(widget.subjectName, style: AppTextStyles.titleMedium),
         actions: [
           Icon(widget.icon, color: widget.themeColor),
@@ -306,8 +312,8 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                       children: [
                                         Text(
                                           strings.subjectQuestionsGuide,
-                                          style: const TextStyle(
-                                            color: Colors.white,
+                                          style: TextStyle(
+                                            color: AppColors.textPrimary,
                                             fontSize: 14,
                                             height: 1.4,
                                             fontWeight: FontWeight.w500,
@@ -317,7 +323,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                         Text(
                                           strings.maxSelectionMessage,
                                           style: TextStyle(
-                                            color: Colors.white
+                                            color: AppColors.textSecondary
                                                 .withValues(alpha: 0.5),
                                             fontSize: 12,
                                           ),
@@ -355,7 +361,8 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                       border: Border.all(
                                           color: isSelected
                                               ? AppColors.primary
-                                              : Colors.white10),
+                                              : AppColors.textDisabled
+                                                  .withValues(alpha: 0.1)),
                                     ),
                                     child: Row(
                                       crossAxisAlignment:
@@ -371,8 +378,8 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                                 final categoryText = question
                                                     .getLocalizedCategory(
                                                         languageCode);
-                                                const categoryColor =
-                                                    Colors.white70;
+                                                final categoryColor =
+                                                    AppColors.textSecondary;
                                                 return Container(
                                                   margin: const EdgeInsets.only(
                                                       bottom: 4),
@@ -393,7 +400,8 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                                     languageCode),
                                                 style: AppTextStyles.bodyLarge
                                                     .copyWith(
-                                                        color: Colors.white,
+                                                        color: AppColors
+                                                            .textPrimary,
                                                         height: 1.4),
                                               ),
                                             ],
@@ -414,7 +422,9 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                               border: Border.all(
                                                   color: isSelected
                                                       ? AppColors.primary
-                                                      : Colors.white24,
+                                                      : AppColors.textDisabled
+                                                          .withValues(
+                                                              alpha: 0.1),
                                                   width: 2)),
                                           child: isSelected
                                               ? const Icon(Icons.check,
@@ -461,11 +471,12 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.library_books_outlined,
-              size: 60, color: Colors.white.withValues(alpha: 0.2)),
+              size: 60, color: AppColors.textTertiary),
           const SizedBox(height: 16),
           Text(
             strings.noQuestions,
-            style: AppTextStyles.bodyLarge.copyWith(color: Colors.white54),
+            style:
+                AppTextStyles.bodyLarge.copyWith(color: AppColors.textTertiary),
           ),
         ],
       ),

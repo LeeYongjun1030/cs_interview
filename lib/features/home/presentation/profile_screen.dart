@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/services/auth_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/theme/theme_controller.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/localization/language_service.dart';
 import '../../interview/data/repositories/interview_repository.dart';
@@ -43,14 +44,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: Text(strings.resetDialogTitle,
-            style: const TextStyle(color: Colors.white)),
+            style: TextStyle(color: AppColors.textPrimary)),
         content: Text(strings.resetDialogContent,
-            style: const TextStyle(color: Colors.white70)),
+            style: TextStyle(color: AppColors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(strings.cancelButton,
-                style: const TextStyle(color: Colors.white54)),
+                style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -85,6 +86,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     // Access strings via LanguageController
     final strings = Provider.of<LanguageController>(context).strings;
+    // Watch ThemeController to rebuild on theme change
+    context.watch<ThemeController>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -142,7 +145,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             FirebaseAuth.instance.currentUser?.email ??
                                 'No Email',
                             style: AppTextStyles.bodyMedium
-                                .copyWith(color: Colors.white54)),
+                                .copyWith(color: AppColors.textSecondary)),
                       ],
                     ),
                   ],
@@ -175,12 +178,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.language,
-                                      color: Colors.white70),
+                                  Icon(Icons.language,
+                                      color: AppColors.textSecondary),
                                   const SizedBox(width: 12),
                                   Text(
                                     strings.languageSettingTitle,
-                                    style: const TextStyle(color: Colors.white),
+                                    style:
+                                        TextStyle(color: AppColors.textPrimary),
                                   ),
                                 ],
                               ),
@@ -204,7 +208,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           border: Border.all(
                                             color: controller.isKorean
                                                 ? AppColors.primary
-                                                : Colors.white10,
+                                                : AppColors.textDisabled
+                                                    .withValues(alpha: 0.1),
                                           ),
                                         ),
                                         alignment: Alignment.center,
@@ -213,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           style: TextStyle(
                                             color: controller.isKorean
                                                 ? Colors.white
-                                                : Colors.white54,
+                                                : AppColors.textSecondary,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -238,7 +243,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           border: Border.all(
                                             color: !controller.isKorean
                                                 ? AppColors.primary
-                                                : Colors.white10,
+                                                : AppColors.textDisabled
+                                                    .withValues(alpha: 0.1),
                                           ),
                                         ),
                                         alignment: Alignment.center,
@@ -247,7 +253,106 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                           style: TextStyle(
                                             color: !controller.isKorean
                                                 ? Colors.white
-                                                : Colors.white54,
+                                                : AppColors.textSecondary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(height: 1, color: Colors.black12),
+                    Consumer<ThemeController>(
+                      builder: (context, themeController, child) {
+                        return Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.brightness_6,
+                                      color: AppColors.textSecondary),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    strings.themeSettingTitle,
+                                    style:
+                                        TextStyle(color: AppColors.textPrimary),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => themeController
+                                          .setThemeMode(ThemeMode.light),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: !themeController.isDarkMode
+                                              ? AppColors.primary
+                                              : Colors.white
+                                                  .withValues(alpha: 0.05),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: !themeController.isDarkMode
+                                                ? AppColors.primary
+                                                : AppColors.textDisabled
+                                                    .withValues(alpha: 0.1),
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          strings.themeLight,
+                                          style: TextStyle(
+                                            color: !themeController.isDarkMode
+                                                ? Colors.white
+                                                : AppColors.textSecondary,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () => themeController
+                                          .setThemeMode(ThemeMode.dark),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: themeController.isDarkMode
+                                              ? AppColors.primary
+                                              : Colors.white
+                                                  .withValues(alpha: 0.05),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: themeController.isDarkMode
+                                                ? AppColors.primary
+                                                : AppColors.textDisabled
+                                                    .withValues(alpha: 0.1),
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          strings.themeDark,
+                                          style: TextStyle(
+                                            color: themeController.isDarkMode
+                                                ? Colors.white
+                                                : AppColors.textSecondary,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -276,14 +381,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(
+                      color: AppColors.textDisabled.withValues(alpha: 0.1)),
                 ),
                 child: Column(
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.white70),
+                      leading:
+                          Icon(Icons.logout, color: AppColors.textSecondary),
                       title: Text(strings.logoutLabel,
-                          style: const TextStyle(color: Colors.white)),
+                          style: TextStyle(color: AppColors.textPrimary)),
                       onTap: () async {
                         try {
                           await AuthService().signOut();
@@ -296,11 +403,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }
                       },
                     ),
-                    const Divider(height: 1, color: Colors.white10),
+                    const Divider(height: 1, color: Colors.black12),
                     ListTile(
-                      leading: const Icon(Icons.refresh, color: Colors.white70),
+                      leading:
+                          Icon(Icons.refresh, color: AppColors.textSecondary),
                       title: Text(strings.resetDataLabel,
-                          style: const TextStyle(color: Colors.white)),
+                          style: TextStyle(color: AppColors.textPrimary)),
                       onTap: _clearData,
                     ),
                   ],
@@ -318,27 +426,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(
+                      color: AppColors.textDisabled.withValues(alpha: 0.1)),
                 ),
                 child: Column(
                   children: [
                     ListTile(
-                      leading: const Icon(Icons.email, color: Colors.white70),
+                      leading:
+                          Icon(Icons.email, color: AppColors.textSecondary),
                       title: Text(strings.contactLabel,
-                          style: const TextStyle(color: Colors.white)),
-                      trailing: const Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.white30),
+                          style: TextStyle(color: AppColors.textPrimary)),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          size: 16, color: AppColors.textTertiary),
                       onTap: () => _launchUrl(
                           'mailto:yiyj1516@gmail.com?Subject=CS Interview Coach Inquiry'),
                     ),
-                    const Divider(height: 1, color: Colors.white10),
+                    const Divider(height: 1, color: Colors.black12),
                     ListTile(
-                      leading:
-                          const Icon(Icons.privacy_tip, color: Colors.white70),
+                      leading: Icon(Icons.privacy_tip,
+                          color: AppColors.textSecondary),
                       title: Text(strings.privacyLabel,
-                          style: const TextStyle(color: Colors.white)),
-                      trailing: const Icon(Icons.arrow_forward_ios,
-                          size: 16, color: Colors.white30),
+                          style: TextStyle(color: AppColors.textPrimary)),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          size: 16, color: AppColors.textTertiary),
                       onTap: () => _launchUrl(
                           'https://cs-interview-66fb7.web.app'), // Placeholder
                     ),
@@ -346,9 +456,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              const Center(
+              Center(
                   child: Text('Version 1.0.0',
-                      style: TextStyle(color: Colors.white30, fontSize: 12))),
+                      style: TextStyle(
+                          color: AppColors.textTertiary, fontSize: 12))),
               const SizedBox(height: 100), // Bottom padding for nav bar
             ],
           ),

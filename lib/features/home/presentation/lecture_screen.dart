@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/localization/language_service.dart';
+import '../../../../core/theme/theme_controller.dart';
 
 class LectureScreen extends StatelessWidget {
   const LectureScreen({super.key});
@@ -17,6 +18,8 @@ class LectureScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Watch ThemeController to rebuild on theme change
+    context.watch<ThemeController>();
     final strings = Provider.of<LanguageController>(context).strings;
 
     // Lecture Data (Title, Subtitle, URL)
@@ -85,14 +88,14 @@ class LectureScreen extends StatelessWidget {
                 strings.lectureScreenTitle,
                 style: AppTextStyles.headlineSmall.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 strings.lectureScreenSubtitle,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: Colors.white70,
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 24),
@@ -132,7 +135,8 @@ class LectureScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white10),
+        border:
+            Border.all(color: AppColors.textDisabled.withValues(alpha: 0.1)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -159,7 +163,7 @@ class LectureScreen extends StatelessWidget {
                       Text(
                         title,
                         style: AppTextStyles.titleMedium.copyWith(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
                         ),
                         maxLines: 1,
@@ -169,14 +173,14 @@ class LectureScreen extends StatelessWidget {
                       Text(
                         subtitle,
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: Colors.white38,
+                          color: AppColors.textTertiary,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios,
-                    color: Colors.white10, size: 16),
+                Icon(Icons.arrow_forward_ios,
+                    color: AppColors.textTertiary, size: 16),
               ],
             ),
           ),

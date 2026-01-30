@@ -153,13 +153,13 @@ class _InterviewScreenState extends State<InterviewScreen> {
                     backgroundColor: Colors.transparent,
                     elevation: 0,
                     leading: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
+                      icon: Icon(Icons.close, color: AppColors.textPrimary),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     title: Text(
                       widget.controller.sessionTitle,
                       style: AppTextStyles.titleMedium
-                          .copyWith(color: Colors.white),
+                          .copyWith(color: AppColors.textPrimary),
                     ),
                     actions: [
                       Padding(
@@ -185,7 +185,9 @@ class _InterviewScreenState extends State<InterviewScreen> {
                           decoration: BoxDecoration(
                             color: AppColors.surface,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white10),
+                            border: Border.all(
+                                color: AppColors.textDisabled
+                                    .withValues(alpha: 0.1)),
                             boxShadow: AppColors.neonShadow,
                           ),
                           child: Column(
@@ -215,7 +217,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12, vertical: 8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.05),
+                                    color: AppColors.textPrimary
+                                        .withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Row(
@@ -280,19 +283,20 @@ class _InterviewScreenState extends State<InterviewScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
+                              color:
+                                  AppColors.textPrimary.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(strings.yourAnswer,
-                                    style: AppTextStyles.labelSmall
-                                        .copyWith(color: Colors.white54)),
+                                    style: AppTextStyles.labelSmall.copyWith(
+                                        color: AppColors.textSecondary)),
                                 const SizedBox(height: 4),
                                 Text(round!.mainAnswer!,
-                                    style: const TextStyle(
-                                        color: Colors.white70,
+                                    style: TextStyle(
+                                        color: AppColors.textPrimary,
                                         decoration: TextDecoration.none)),
                               ],
                             ),
@@ -315,7 +319,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    const Icon(Icons.psychology,
+                                    Icon(Icons.psychology,
                                         color: AppColors.accentRed),
                                     const SizedBox(width: 8),
                                     Text(
@@ -351,7 +355,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
                             border: Border.all(
                               color: _isListening
                                   ? AppColors.accentRed
-                                  : Colors.white10,
+                                  : AppColors.textDisabled
+                                      .withValues(alpha: 0.1),
                               width: _isListening ? 2 : 1,
                             ),
                           ),
@@ -370,11 +375,11 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                   style: TextStyle(
                                     color: currentLength == maxLength
                                         ? AppColors.accentRed
-                                        : Colors.white30,
+                                        : AppColors.textTertiary,
                                     fontSize: 11,
                                   ),
                                 ),
-                                style: const TextStyle(color: Colors.white),
+                                style: TextStyle(color: AppColors.textPrimary),
                                 decoration: InputDecoration(
                                   hintText: _isListening
                                       ? strings.listening
@@ -382,8 +387,8 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                           ? strings.inputPlaceholderFollowUp
                                           : strings.inputPlaceholderMain),
                                   hintStyle: TextStyle(
-                                      color:
-                                          Colors.white.withValues(alpha: 0.3)),
+                                      color: AppColors.textPrimary
+                                          .withValues(alpha: 0.3)),
                                   filled: true,
                                   fillColor: Colors.transparent,
                                   border: InputBorder.none,
@@ -394,9 +399,11 @@ class _InterviewScreenState extends State<InterviewScreen> {
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   border: Border(
-                                      top: BorderSide(color: Colors.white10)),
+                                      top: BorderSide(
+                                          color: AppColors.textDisabled
+                                              .withValues(alpha: 0.1))),
                                 ),
                                 child: Row(
                                   children: [
@@ -407,7 +414,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                             : Icons.mic_none,
                                         color: _isListening
                                             ? AppColors.accentRed
-                                            : Colors.white70,
+                                            : AppColors.textSecondary,
                                       ),
                                       onPressed: _toggleListening,
                                     ),
@@ -416,13 +423,13 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                         opacity: const AlwaysStoppedAnimation(
                                             1.0), // Can animate later
                                         child: Text(strings.listening,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                                 color: AppColors.accentRed,
                                                 fontSize: 12)),
                                       ),
                                     const Spacer(),
                                     IconButton(
-                                      icon: const Icon(Icons.send,
+                                      icon: Icon(Icons.send,
                                           color: AppColors.primary),
                                       onPressed: _handleSubmit,
                                     ),
@@ -453,7 +460,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                       }
                                     },
                                     style: TextButton.styleFrom(
-                                      foregroundColor: Colors.white54,
+                                      foregroundColor: AppColors.textSecondary,
                                       padding: const EdgeInsets.symmetric(
                                           vertical: 16),
                                     ),
@@ -513,8 +520,7 @@ class _InterviewScreenState extends State<InterviewScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const CircularProgressIndicator(
-                            color: AppColors.accentCyan),
+                        CircularProgressIndicator(color: AppColors.accentCyan),
                         const SizedBox(height: 24),
                         Text(
                           widget.controller.thinkingMessage,
