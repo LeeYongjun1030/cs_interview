@@ -5,7 +5,7 @@ import '../../features/interview/domain/models/question_model.dart';
 
 class GradeResult {
   final int score;
-  final String feedback; // Legacy or Full Combined Text
+
   final String? followUpQuestion;
 
   // New Structured Fields
@@ -16,7 +16,6 @@ class GradeResult {
 
   GradeResult({
     required this.score,
-    required this.feedback,
     this.followUpQuestion,
     this.summary,
     this.strengths,
@@ -27,7 +26,6 @@ class GradeResult {
   Map<String, dynamic> toJson() {
     return {
       'score': score,
-      'feedback': feedback,
       'followUpQuestion': followUpQuestion,
       'summary': summary,
       'strengths': strengths,
@@ -39,7 +37,6 @@ class GradeResult {
   factory GradeResult.fromJson(Map<String, dynamic> json) {
     return GradeResult(
       score: json['score'] as int? ?? 0,
-      feedback: json['feedback'] as String? ?? '',
       followUpQuestion: json['followUpQuestion'] as String?,
       summary: json['summary'] as String?,
       strengths: (json['strengths'] as List<dynamic>?)
@@ -53,7 +50,7 @@ class GradeResult {
   }
 
   @override
-  String toString() => 'Score: $score, Summary: $summary, Feedback: $feedback';
+  String toString() => 'Score: $score, Summary: $summary';
 }
 
 class AIService {
@@ -123,7 +120,6 @@ class AIService {
 
       return GradeResult(
         score: data['score'] as int? ?? 0,
-        feedback: data['feedback'] as String? ?? 'Analysis Failed',
         followUpQuestion: data['followUp'] as String?,
         summary: data['summary'] as String?,
         strengths: (data['strengths'] as List<dynamic>?)
@@ -137,7 +133,7 @@ class AIService {
     } catch (e) {
       return GradeResult(
         score: 0,
-        feedback: 'AI Error: $e',
+        summary: 'AI Error: $e',
         followUpQuestion: null,
       );
     }
@@ -161,7 +157,6 @@ class AIService {
 
     return GradeResult(
       score: 85,
-      feedback: 'Mock Feedback',
       summary: isEnglish ? 'Good answer!' : '좋은 답변입니다!',
       strengths: isEnglish
           ? ['Clear explanation', 'Good terminology']
@@ -203,8 +198,9 @@ Candidate Answer: "$userAnswer"
      - **Dig Deeper (Crucial)**: Latch onto a specific keyword, technology, or trade-off the candidate mentioned.
      - **"Catch the Tail"**: If they explained A, ask about the edge case of A. If they proposed B, ask why not C.
      - **Be Skeptical**: Do not accept surface-level answers. Ask "Why?" or "How exactly?" regarding their specific implementation detail.
-     - **Contextual**: Start the question with "You mentioned [Keyword]...", "You said...", or "In that specific case...".
-     - Example: "You mentioned specific indexes, but how does that impact write performance in high-concurrency systems?" (Not just "What is an index?")
+     - **Contextual**: IF the user mentioned a specific keyword, start with "You mentioned...". IF NOT, simply ask a relevant advanced question.
+     - **No Hallucinations**: Do NOT claim the user said something they didn't. If the answer is brief, ask a general follow-up related to the topic.
+     - Example: "How does that impact write performance in high-concurrency systems?" (Instead of "You said X...")
      - **MUST be a sharp, technical, and challenging follow-up in $langInstruction**.
      - **Even if the answer is perfect, DO NOT return null. Ask a more advanced question.**
    - If this is already a Follow-Up response (Previous Follow-Up is NOT null):
@@ -218,7 +214,7 @@ Return ONLY a JSON object:
   "strengths": ["<string>", "<string>"],
   "weaknesses": ["<string>", "<string>"],
   "tip": "<string or null>",
-  "feedback": "<string (Legacy, put the summary here too)>",
+
   "followUp": "<string or null>"
 }
 ''';

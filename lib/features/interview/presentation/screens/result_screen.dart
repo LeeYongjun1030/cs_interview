@@ -496,22 +496,11 @@ class _ResultFeedbackCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If no structured fields, show old feedback string
+    // If no structured fields, try to use summary or show error
     if (grade.summary == null &&
         (grade.strengths == null || grade.strengths!.isEmpty) &&
         (grade.weaknesses == null || grade.weaknesses!.isEmpty)) {
-      if (grade.feedback.isEmpty) return const SizedBox.shrink();
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.surfaceVariant.withValues(alpha: 0.3),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          '${strings.aiFeedback}: ${grade.feedback}',
-          style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     return Container(
