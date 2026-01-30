@@ -76,6 +76,14 @@ class InterviewRepository {
     }
   }
 
+  Future<void> saveSession(InterviewSession session) async {
+    try {
+      await _sessionsRef.add(session.toJson());
+    } catch (e) {
+      throw Exception('Failed to save session: $e');
+    }
+  }
+
   Future<void> updateSession({
     required String sessionId,
     required Map<String, dynamic> data,
