@@ -154,8 +154,9 @@ class AppStrings {
   String get resultReportTitle =>
       language == AppLanguage.korean ? '면접 결과 리포트' : 'Interview Result Report';
   String get myAnswer => language == AppLanguage.korean ? '나의 답변' : 'My Answer';
-  String get aiFeedback =>
-      language == AppLanguage.korean ? 'AI 피드백' : 'AI Feedback';
+  String get aiFeedback => language == AppLanguage.korean
+      ? 'AI 면접관의 피드백'
+      : 'AI Interviewer\'s Feedback';
   String get noFeedback =>
       language == AppLanguage.korean ? '피드백 없음' : 'No Feedback';
   String get retrySameQuestions => language == AppLanguage.korean
