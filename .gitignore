@@ -71,3 +71,4 @@ app.*.map.json
 pwa_react/node_modules/
 pwa_react/build/
 pwa_react/.env
+.firebase/
