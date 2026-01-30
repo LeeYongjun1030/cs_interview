@@ -984,10 +984,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 labelText: strings.sessionNameLabel,
                 labelStyle: TextStyle(color: AppColors.textSecondary),
                 filled: true,
-                fillColor: AppColors.textDisabled.withValues(alpha: 0.05),
+                fillColor: AppColors.surfaceVariant.withValues(alpha: 0.5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                      color: AppColors.textDisabled.withValues(alpha: 0.2)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: AppColors.textDisabled.withValues(alpha: 0.2)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.primary),
                 ),
                 suffixIcon: IconButton(
                   icon: Icon(Icons.clear, color: AppColors.textTertiary),
@@ -1397,25 +1407,44 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: 20),
             FittedBox(
               fit: BoxFit.scaleDown,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.bolt, color: Colors.yellow, size: 24),
-                  const SizedBox(width: 8),
-                  Text('${_credits ?? 0}',
-                      style: TextStyle(
-                          color: AppColors.textPrimary,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold)),
-                  Icon(Icons.arrow_forward, color: AppColors.textTertiary),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.bolt, color: Colors.yellow, size: 24),
-                  Text('${(_credits ?? 0) + 1}',
-                      style: const TextStyle(
-                          color: Colors.greenAccent,
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold)),
-                ],
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Before
+                    Row(
+                      children: [
+                        const Icon(Icons.bolt, color: Colors.yellow, size: 24),
+                        const SizedBox(width: 4),
+                        Text('${_credits ?? 0}',
+                            style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    // Arrow
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Icon(Icons.arrow_forward_rounded,
+                          color: AppColors.textTertiary, size: 20),
+                    ),
+                    // After
+                    Row(
+                      children: [
+                        const Icon(Icons.bolt, color: Colors.yellow, size: 24),
+                        const SizedBox(width: 4),
+                        Text('${(_credits ?? 0) + 1}',
+                            style: const TextStyle(
+                                color: Colors.greenAccent,
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

@@ -125,10 +125,20 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                 labelText: strings.sessionNameLabel,
                 labelStyle: TextStyle(color: AppColors.textSecondary),
                 filled: true,
-                fillColor: AppColors.textDisabled.withValues(alpha: 0.05),
+                fillColor: AppColors.surfaceVariant.withValues(alpha: 0.5),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+                  borderSide: BorderSide(
+                      color: AppColors.textDisabled.withValues(alpha: 0.2)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(
+                      color: AppColors.textDisabled.withValues(alpha: 0.2)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: AppColors.primary),
                 ),
                 suffixIcon: IconButton(
                   icon: Icon(Icons.clear, color: AppColors.textTertiary),
