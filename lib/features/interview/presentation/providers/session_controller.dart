@@ -111,15 +111,6 @@ class SessionController extends ChangeNotifier {
       _rounds =
           selectedQuestions.map((q) => SessionRound(mainQuestion: q)).toList();
 
-      // 3. Create Session in DB (DEPRECATED: Now saving only on completion)
-      // final sessionId = await _repository.createSession(
-      //   userId: userId,
-      //   title: title,
-      //   questions: selectedQuestions,
-      // );
-
-      // _currentSessionId = sessionId; // Removed
-      // print('[StartSession] Created session with ID: $sessionId');
       return ''; // No ID initially
     } catch (e) {
       print('[StartSession] Error: $e');
@@ -141,7 +132,6 @@ class SessionController extends ChangeNotifier {
     final round = currentRound!;
     final isEnglish = languageCode == 'en';
 
-    // Set thinking state
     // Set thinking state
     final thinkingMsg = isEnglish
         ? 'AI Interviewer is analyzing your answer...'
