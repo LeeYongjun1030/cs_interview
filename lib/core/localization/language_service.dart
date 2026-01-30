@@ -61,7 +61,7 @@ class AppStrings {
 
   // Home Screen
   String get appTitle =>
-      language == AppLanguage.korean ? 'Socraites' : 'Socraites';
+      language == AppLanguage.korean ? 'SocrAItes' : 'SocrAItes';
   String get recentSessions =>
       language == AppLanguage.korean ? '최근 면접 기록' : 'Recent Sessions';
   String get startNewSession =>
@@ -191,10 +191,10 @@ class AppStrings {
       language == AppLanguage.korean ? '인터뷰 시작' : 'Start Interview';
 
   // Login Screen
-  String get loginTitle => 'Socraites';
+  String get loginTitle => 'SocrAItes';
   String get loginSubtitle => language == AppLanguage.korean
       ? 'AI 소크라테스와 함께하는 CS 인터뷰 준비'
-      : 'Prepare for CS Interviews with Socratic AI';
+      : 'Prepare for CS Interviews with AI Socrates';
   String get signInGoogle =>
       language == AppLanguage.korean ? 'Google로 시작하기' : 'Sign in with Google';
   String get signInGitHub =>
