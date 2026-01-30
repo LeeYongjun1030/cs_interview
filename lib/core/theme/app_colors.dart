@@ -44,10 +44,11 @@ class AppColors {
   static const Color _surfaceVariantDark = Color(0xFF2C2C2C);
 
   // Light
-  static const Color _backgroundLight = Color(0xFFF2F4F8); // Soft Gray/Blue
+  static const Color _backgroundLight =
+      Color(0xFFEEF2F6); // Soft Gray/Blue (Darker)
   static const Color _surfaceLight = Color(0xFFFFFFFF); // White
   static const Color _surfaceContainerLight = Color(0xFFFFFFFF);
-  static const Color _surfaceVariantLight = Color(0xFFE0E0E0);
+  static const Color _surfaceVariantLight = Color(0xFFEAECF0); // Gray 200
 
   static Color get background =>
       isDarkMode ? _backgroundDark : _backgroundLight;

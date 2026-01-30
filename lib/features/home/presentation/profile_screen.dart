@@ -165,7 +165,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(
+                      color: AppColors.textDisabled.withValues(alpha: 0.2)),
                 ),
                 child: Column(
                   children: [
@@ -201,15 +202,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         decoration: BoxDecoration(
                                           color: controller.isKorean
                                               ? AppColors.primary
-                                              : Colors.white
-                                                  .withValues(alpha: 0.05),
+                                              : AppColors.surfaceVariant,
                                           borderRadius:
                                               BorderRadius.circular(12),
                                           border: Border.all(
                                             color: controller.isKorean
                                                 ? AppColors.primary
                                                 : AppColors.textDisabled
-                                                    .withValues(alpha: 0.1),
+                                                    .withValues(alpha: 0.2),
                                           ),
                                         ),
                                         alignment: Alignment.center,
@@ -236,15 +236,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         decoration: BoxDecoration(
                                           color: !controller.isKorean
                                               ? AppColors.primary
-                                              : Colors.white
-                                                  .withValues(alpha: 0.05),
+                                              : AppColors.surfaceVariant,
                                           borderRadius:
                                               BorderRadius.circular(12),
                                           border: Border.all(
                                             color: !controller.isKorean
                                                 ? AppColors.primary
                                                 : AppColors.textDisabled
-                                                    .withValues(alpha: 0.1),
+                                                    .withValues(alpha: 0.2),
                                           ),
                                         ),
                                         alignment: Alignment.center,
@@ -300,15 +299,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         decoration: BoxDecoration(
                                           color: !themeController.isDarkMode
                                               ? AppColors.primary
-                                              : Colors.white
-                                                  .withValues(alpha: 0.05),
+                                              : AppColors.surfaceVariant,
                                           borderRadius:
                                               BorderRadius.circular(12),
                                           border: Border.all(
                                             color: !themeController.isDarkMode
                                                 ? AppColors.primary
                                                 : AppColors.textDisabled
-                                                    .withValues(alpha: 0.1),
+                                                    .withValues(alpha: 0.2),
                                           ),
                                         ),
                                         alignment: Alignment.center,
@@ -335,15 +333,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         decoration: BoxDecoration(
                                           color: themeController.isDarkMode
                                               ? AppColors.primary
-                                              : Colors.white
-                                                  .withValues(alpha: 0.05),
+                                              : AppColors.surfaceVariant,
                                           borderRadius:
                                               BorderRadius.circular(12),
                                           border: Border.all(
                                             color: themeController.isDarkMode
                                                 ? AppColors.primary
                                                 : AppColors.textDisabled
-                                                    .withValues(alpha: 0.1),
+                                                    .withValues(alpha: 0.2),
                                           ),
                                         ),
                                         alignment: Alignment.center,
