@@ -166,6 +166,10 @@ class AppStrings {
   String get retryContentDialog => language == AppLanguage.korean
       ? '이전 세션과 동일한 질문으로\n새로운 세션을 시작합니다.'
       : 'Start a new session with the\nsame questions as before.';
+  String get strengthsTitle =>
+      language == AppLanguage.korean ? '잘한 점' : 'Strengths';
+  String get weaknessesTitle =>
+      language == AppLanguage.korean ? '아쉬운 점' : 'Areas for Improvement';
   String get sessionNameLabel =>
       language == AppLanguage.korean ? '세션 이름' : 'Session Name';
   String get startAction => language == AppLanguage.korean ? '시작' : 'Start';
