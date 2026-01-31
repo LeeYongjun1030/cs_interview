@@ -60,16 +60,7 @@ class AppStrings {
   AppStrings(this.language);
 
   // Home Screen
-  String get appTitle =>
-      language == AppLanguage.korean ? 'SoarQ' : 'SoarQ'; // Keep consistent
-
-  // ... (Lines 65-193 omitted for brevity, assuming tool allows contiguous block or I need multiple chunks. Wait, I should use multi_replace for non-contiguous)
-
-  // Login Screen
-  String get loginTitle => 'SoarQ';
-  String get loginSubtitle => language == AppLanguage.korean
-      ? 'SoarQ와 함께하는 CS 인터뷰 준비'
-      : 'Prepare for CS Interviews with SoarQ';
+  String get appTitle => language == AppLanguage.korean ? 'SoarQ' : 'SoarQ';
   String get recentSessions =>
       language == AppLanguage.korean ? '최근 면접 기록' : 'Recent Sessions';
   String get startNewSession =>
