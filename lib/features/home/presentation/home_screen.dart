@@ -230,21 +230,24 @@ class _HomeScreenState extends State<HomeScreen> {
       extendBody: true,
       body: Stack(
         children: [
-          // Global Background
+          // Global Background (Modern Top Glow)
           Positioned(
-            top: -100,
-            left: -100,
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 400,
             child: Container(
-              width: 300,
-              height: 300,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: [
-                    AppColors.primary.withValues(alpha: 0.3),
+                    AppColors.primary.withValues(
+                        alpha: Theme.of(context).brightness == Brightness.dark
+                            ? 0.15 // Dark mode: subtle glow
+                            : 0.05), // Light mode: very faint wash
                     Colors.transparent,
                   ],
-                  stops: const [0.0, 0.7],
                 ),
               ),
             ),
