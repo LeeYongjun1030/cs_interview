@@ -61,7 +61,15 @@ class AppStrings {
 
   // Home Screen
   String get appTitle =>
-      language == AppLanguage.korean ? 'SocrAItes' : 'SocrAItes';
+      language == AppLanguage.korean ? 'SoarQ' : 'SoarQ'; // Keep consistent
+
+  // ... (Lines 65-193 omitted for brevity, assuming tool allows contiguous block or I need multiple chunks. Wait, I should use multi_replace for non-contiguous)
+
+  // Login Screen
+  String get loginTitle => 'SoarQ';
+  String get loginSubtitle => language == AppLanguage.korean
+      ? 'SoarQ와 함께하는 CS 인터뷰 준비'
+      : 'Prepare for CS Interviews with SoarQ';
   String get recentSessions =>
       language == AppLanguage.korean ? '최근 면접 기록' : 'Recent Sessions';
   String get startNewSession =>
@@ -191,10 +199,10 @@ class AppStrings {
       language == AppLanguage.korean ? '인터뷰 시작' : 'Start Interview';
 
   // Login Screen
-  String get loginTitle => 'SocrAItes';
+  String get loginTitle => 'SoarQ';
   String get loginSubtitle => language == AppLanguage.korean
-      ? 'AI 소크라테스와 함께하는 CS 인터뷰 준비'
-      : 'Prepare for CS Interviews with AI Socrates';
+      ? 'SoarQ와 함께하는 CS 인터뷰 준비'
+      : 'Prepare for CS Interviews with SoarQ';
   String get signInGoogle =>
       language == AppLanguage.korean ? 'Google로 시작하기' : 'Sign in with Google';
   String get signInGitHub =>

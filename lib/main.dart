@@ -129,7 +129,7 @@ class MyApp extends StatelessWidget {
     context.watch<ThemeController>();
 
     return MaterialApp(
-      title: 'SocrAItes',
+      title: 'SoarQ',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
       home: const AuthWrapper(),
