@@ -109,13 +109,20 @@
         }
 
         h1 {
-            font-size: 3.5rem;
+            font-size: 3rem;
             margin: 0 0 20px;
             background: linear-gradient(135deg, #FFFFFF 0%, #cbd5e1 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: 800;
             letter-spacing: -1px;
+            word-break: keep-all;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
         }
 
         .highlight {
