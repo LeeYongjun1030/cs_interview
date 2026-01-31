@@ -25,7 +25,29 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // Activate App Check
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => LanguageController()),
+          ChangeNotifierProvider(create: (_) => ThemeController()),
+          Provider(create: (_) => CreditRepository()),
+          Provider.value(value: adService), // Inject service
+        ],
+        child: const MyApp(),
+      ),
+    );
+
+    // Run heavy initializations in background after UI mount
+    _initializeServices(adService);
+  } catch (e, stackTrace) {
+    print("Failed to initialize Firebase: $e");
+    runApp(ErrorApp(error: e.toString(), stackTrace: stackTrace));
+  }
+}
+
+Future<void> _initializeServices(AdService adService) async {
+  try {
+    // 1. Activate App Check
     await FirebaseAppCheck.instance.activate(
       providerAndroid: kDebugMode
           ? const AndroidDebugProvider()
@@ -33,40 +55,27 @@ void main() async {
       providerApple: kDebugMode
           ? const AppleDebugProvider()
           : const AppleDeviceCheckProvider(),
-      providerWeb: ReCaptchaV3Provider('recaptcha-v3-site-key'), // Placeholder
+      providerWeb: ReCaptchaV3Provider('recaptcha-v3-site-key'),
     );
 
+    // 2. Initialize Ads
     await adService.initialize();
 
-    // Initialize Remote Config
+    // 3. Initialize Remote Config
     final remoteConfig = FirebaseRemoteConfig.instance;
     await remoteConfig.setConfigSettings(RemoteConfigSettings(
       fetchTimeout: const Duration(minutes: 1),
-      minimumFetchInterval: kDebugMode
-          ? const Duration(minutes: 5) // 5 min in Debug
-          : const Duration(hours: 12), // 12 hours in Prod
+      minimumFetchInterval:
+          kDebugMode ? const Duration(minutes: 5) : const Duration(hours: 12),
     ));
 
-    await remoteConfig.setDefaults(const {
+    await remoteConfig.setDefaults({
       "model_name": "gemini-2.5-flash-lite",
     });
 
     await remoteConfig.fetchAndActivate();
-
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => LanguageController()),
-          ChangeNotifierProvider(create: (_) => ThemeController()),
-          Provider(create: (_) => CreditRepository()),
-          Provider.value(value: adService),
-        ],
-        child: const MyApp(),
-      ),
-    );
-  } catch (e, stackTrace) {
-    print("Failed to initialize Firebase: $e");
-    runApp(ErrorApp(error: e.toString(), stackTrace: stackTrace));
+  } catch (e) {
+    debugPrint("Background Initialization Failed: $e");
   }
 }
 
