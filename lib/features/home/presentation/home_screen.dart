@@ -83,6 +83,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _checkDailyBonus() async {
     final repo = Provider.of<CreditRepository>(context, listen: false);
+
+    // Ensure user document exists (creates if missing with default credits)
+    final currentUser = FirebaseAuth.instance.currentUser;
+    await repo.getUser(_userId, email: currentUser?.email);
+
     final strings = AppStrings(
         Provider.of<LanguageController>(context, listen: false)
             .currentLanguage);

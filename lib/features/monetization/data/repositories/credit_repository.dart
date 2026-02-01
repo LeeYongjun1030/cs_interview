@@ -72,16 +72,27 @@ class CreditRepository {
     try {
       return await _firestore.runTransaction((transaction) async {
         final snapshot = await transaction.get(docRef);
-        if (!snapshot.exists) return false;
+
+        if (!snapshot.exists) {
+          // Self-healing: If user doc is missing (e.g. initial creation failed),
+          // create it now. Rule requires initial credits to be 3.
+          // We then add the reward on top of that.
+          final newUser = UserModel(uid: uid, email: '', credits: 3);
+          transaction.set(docRef, newUser.toJson());
+
+          // Apply the reward (amount)
+          int newCredits = 3 + amount;
+          if (newCredits > MAX_CREDITS) newCredits = MAX_CREDITS;
+
+          transaction.update(docRef, {'credits': newCredits});
+          return true;
+        }
 
         final currentCredits = snapshot.get('credits') as int? ?? 0;
 
         // Check hard limit
         if (currentCredits >= MAX_CREDITS) return false;
 
-        // Cap update to MAX_CREDITS if adding amount would exceed it?
-        // Rules say: request...credits <= 50.
-        // So we strictly ensure we don't exceed 50.
         int newCredits = currentCredits + amount;
         if (newCredits > MAX_CREDITS) {
           newCredits = MAX_CREDITS;
