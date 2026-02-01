@@ -312,6 +312,24 @@ class AppStrings {
 
   String get deleteAction => language == AppLanguage.korean ? '삭제' : 'Delete';
 
+  String get deleteAccountLabel =>
+      language == AppLanguage.korean ? '회원 탈퇴' : 'Delete Account';
+
+  String get deleteAccountDialogTitle =>
+      language == AppLanguage.korean ? '회원 탈퇴' : 'Delete Account';
+
+  String get deleteAccountDialogContent => language == AppLanguage.korean
+      ? '계정을 삭제하면 모든 인터뷰 기록과 보유 크레딧이 영구적으로 삭제되며 복구할 수 없습니다.\n정말 탈퇴하시겠습니까?'
+      : 'Deleting your account will permanently remove all interview records and credits. This action cannot be undone.\nAre you sure?';
+
+  String get deleteAccountSuccess => language == AppLanguage.korean
+      ? '회원 탈퇴가 완료되었습니다.'
+      : 'Account deleted successfully.';
+
+  String get deleteAccountReauth => language == AppLanguage.korean
+      ? '보안을 위해 다시 로그인 후 시도해주세요.'
+      : 'Please sign in again to confirm deletion.';
+
   // Support
   String get supportTitle => language == AppLanguage.korean ? '지원' : 'Support';
   String get contactLabel =>

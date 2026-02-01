@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/localization/language_service.dart';
 import '../../interview/data/repositories/interview_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../monetization/data/repositories/credit_repository.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -71,6 +72,103 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('모든 데이터가 초기화되었습니다.')),
           );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('오류 발생: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final strings =
+        Provider.of<LanguageController>(context, listen: false).strings;
+    final creditRepo = Provider.of<CreditRepository>(context, listen: false);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Text(strings.deleteAccountDialogTitle,
+            style: TextStyle(color: AppColors.textPrimary)),
+        content: Text(strings.deleteAccountDialogContent,
+            style: TextStyle(color: AppColors.textSecondary)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(strings.cancelButton,
+                style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppColors.accentRed),
+            child: Text(strings.deleteAction,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        // 1. Delete Sessions (Firestore)
+        await _repository.deleteAllUserSessions(user.uid);
+
+        // 2. Delete User Data (Credits, etc.) (Firestore)
+        await creditRepo.deleteUser(user.uid);
+
+        // 3. Delete Auth Account (Firebase Auth)
+        await AuthService().deleteAccount();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(strings.deleteAccountSuccess)),
+          );
+          // Force UI to Login Screen immediately (Remove all previous routes)
+          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        }
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'requires-recent-login') {
+          if (mounted) {
+            // Sign out to force re-login
+            await AuthService().signOut();
+
+            // Show dialog explaining why
+            await showDialog(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                      backgroundColor: AppColors.surface,
+                      title: Text(strings.deleteAccountDialogTitle,
+                          style: TextStyle(color: AppColors.textPrimary)),
+                      content: Text(strings.deleteAccountReauth,
+                          style: TextStyle(color: AppColors.textSecondary)),
+                      actions: [
+                        TextButton(
+                            onPressed: () => Navigator.of(ctx).pop(),
+                            child: Text('OK',
+                                style: TextStyle(color: AppColors.primary)))
+                      ],
+                    ));
+
+            // Navigate to Login Screen
+            if (mounted) {
+              Navigator.of(context)
+                  .pushNamedAndRemoveUntil('/', (route) => false);
+            }
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: ${e.message}')),
+            );
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -407,6 +505,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       title: Text(strings.resetDataLabel,
                           style: TextStyle(color: AppColors.textPrimary)),
                       onTap: _clearData,
+                    ),
+                    const Divider(height: 1, color: Colors.black12),
+                    ListTile(
+                      leading:
+                          Icon(Icons.person_off, color: AppColors.accentRed),
+                      title: Text(strings.deleteAccountLabel,
+                          style: TextStyle(color: AppColors.accentRed)),
+                      onTap: _deleteAccount,
                     ),
                   ],
                 ),

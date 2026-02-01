@@ -92,6 +92,13 @@ class AuthService {
     await _auth.signOut();
   }
 
+  // Delete Account
+  Future<void> deleteAccount() async {
+    // Note: detailed error handling (requires-recent-login) should be handled by UI/Caller
+    await _googleSignIn.disconnect(); // Disconnect Google if connected
+    await _auth.currentUser?.delete();
+  }
+
   // --- Helpers for Apple Sign In ---
   String _generateNonce([int length = 32]) {
     const charset =

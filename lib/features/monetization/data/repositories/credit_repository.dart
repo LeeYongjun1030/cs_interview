@@ -147,4 +147,14 @@ class CreditRepository {
       return DailyBonusStatus.error;
     }
   }
+
+  /// Delete user document (Full Account Deletion)
+  Future<void> deleteUser(String uid) async {
+    try {
+      await _usersRef.doc(uid).delete();
+    } catch (e) {
+      debugPrint('CreditRepository: deleteUser error: $e');
+      throw e;
+    }
+  }
 }

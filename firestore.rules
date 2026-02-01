@@ -21,6 +21,9 @@ service cloud.firestore {
                       request.resource.data.credits <= resource.data.credits // Spending
                       || (request.resource.data.credits <= resource.data.credits + 5 && request.resource.data.credits <= 50) // Earning (Max 5 increase, Max 50 total)
                     );
+      
+      // Allow delete (Account Deletion)
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
     // 2. Sessions Collection (Interview Records)
