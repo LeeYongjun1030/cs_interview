@@ -54,7 +54,7 @@ Future<void> _initializeServices(AdService adService) async {
           : const AndroidPlayIntegrityProvider(),
       providerApple: kDebugMode
           ? const AppleDebugProvider()
-          : const AppleDeviceCheckProvider(),
+          : const AppleAppAttestProvider(),
       providerWeb: ReCaptchaV3Provider('recaptcha-v3-site-key'),
     );
 
