@@ -7,6 +7,7 @@ class GradeResult {
   final int score;
 
   final String? followUpQuestion;
+  final String? followUpModelAnswer; // New field
 
   // New Structured Fields
   final String? summary;
@@ -17,6 +18,7 @@ class GradeResult {
   GradeResult({
     required this.score,
     this.followUpQuestion,
+    this.followUpModelAnswer,
     this.summary,
     this.strengths,
     this.weaknesses,
@@ -27,6 +29,7 @@ class GradeResult {
     return {
       'score': score,
       'followUpQuestion': followUpQuestion,
+      'followUpModelAnswer': followUpModelAnswer,
       'summary': summary,
       'strengths': strengths,
       'weaknesses': weaknesses,
@@ -38,6 +41,7 @@ class GradeResult {
     return GradeResult(
       score: json['score'] as int? ?? 0,
       followUpQuestion: json['followUpQuestion'] as String?,
+      followUpModelAnswer: json['followUpModelAnswer'] as String?,
       summary: json['summary'] as String?,
       strengths: (json['strengths'] as List<dynamic>?)
           ?.map((e) => e.toString())
@@ -121,6 +125,7 @@ class AIService {
       return GradeResult(
         score: data['score'] as int? ?? 0,
         followUpQuestion: data['followUp'] as String?,
+        followUpModelAnswer: data['followUpModelAnswer'] as String?,
         summary: data['summary'] as String?,
         strengths: (data['strengths'] as List<dynamic>?)
             ?.map((e) => e.toString())
@@ -138,6 +143,8 @@ class AIService {
       );
     }
   }
+
+  // --- 2. Get Model Answer (Immediate Feedback) ---
 
   // --- Mock Logic for Development ---
   Future<GradeResult> _simulateMockResponse(
@@ -164,6 +171,11 @@ class AIService {
       weaknesses: isEnglish ? ['Missed edge case'] : ['엣지 케이스 누락'],
       tip: isEnglish ? 'Mention time complexity.' : '시간 복잡도를 언급하면 더 좋습니다.',
       followUpQuestion: mockFollowUp,
+      followUpModelAnswer: isFollowUpResponse
+          ? null
+          : (isEnglish
+              ? 'This is a mock model answer for the follow-up question.'
+              : '이것은 꼬리질문에 대한 모의 모범 답안입니다.'),
     );
   }
 
@@ -192,19 +204,17 @@ Candidate Answer: "$userAnswer"
    - **Summary**: A one-line verdict on the answer.
    - **Strengths**: List 1-3 specific things the candidate did well.
    - **Weaknesses**: List 1-3 specific things missing or incorrect.
-   - **Pro Tip**: A practical tip or industry insight related to the topic.
-   - **MUST be in $langInstruction**.
+    - **Pro Tip**: A practical tip or industry insight related to the topic.
+    - **MUST be in $langInstruction**.
 4. **Follow-Up (Critical Step)**:
      - **Dig Deeper (Crucial)**: Latch onto a specific keyword, technology, or trade-off the candidate mentioned.
-     - **"Catch the Tail"**: If they explained A, ask about the edge case of A. If they proposed B, ask why not C.
-     - **Be Skeptical**: Do not accept surface-level answers. Ask "Why?" or "How exactly?" regarding their specific implementation detail.
-     - **Contextual**: IF the user mentioned a specific keyword, start with "You mentioned...". IF NOT, simply ask a relevant advanced question.
-     - **No Hallucinations**: Do NOT claim the user said something they didn't. If the answer is brief, ask a general follow-up related to the topic.
-     - Example: "How does that impact write performance in high-concurrency systems?" (Instead of "You said X...")
-     - **MUST be a sharp, technical, and challenging follow-up in $langInstruction**.
-     - **Even if the answer is perfect, DO NOT return null. Ask a more advanced question.**
+     - **Challenge**: Ask "Why X and not Y?" or "How would this behave under high load?".
+     - **Connection**: Relate the concept to a real-world scenario.
+     - **Model Answer**: Provide a concise model answer (1-2 sentences) for this follow-up question.
+     - **If the answer is perfect or irrelevant**: Return `null` for followUp.
    - If this is already a Follow-Up response (Previous Follow-Up is NOT null):
      - Set "followUp" to null (End of chain).
+     - Set "followUpModelAnswer" to null.
 
 [Output Format]
 Return ONLY a JSON object:
@@ -215,7 +225,8 @@ Return ONLY a JSON object:
   "weaknesses": ["<string>", "<string>"],
   "tip": "<string or null>",
 
-  "followUp": "<string or null>"
+  "followUp": "<string or null>",
+  "followUpModelAnswer": "<string or null>"
 }
 ''';
   }

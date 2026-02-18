@@ -7,6 +7,7 @@ import '../../../../core/localization/language_service.dart';
 import '../../../../features/monetization/services/ad_service.dart';
 import '../providers/session_controller.dart';
 
+import '../../domain/models/question_model.dart';
 import '../../../../core/services/ai_service.dart'; // For GradeResult
 
 class InterviewResultScreen extends StatelessWidget {
@@ -376,19 +377,52 @@ class _ResultRoundCardState extends State<_ResultRoundCard> {
           const SizedBox(height: 24),
 
           // 1. My Answer Block (Chat Style)
-          if (widget.round.mainAnswer != null)
+          // 1. My Answer Block (Chat Style)
+          if (widget.round.mainAnswer != null) ...[
+            Builder(builder: (context) {
+              // Debug print
+              print(
+                  '[ResultDebug] Q${widget.index} Answer: "${widget.round.mainAnswer}"');
+              return const SizedBox.shrink();
+            }),
             _ChatBubble(
               isUser: true,
-              message: widget.round.mainAnswer!,
+              // Show localized "Pass" message instead of raw "[SKIPPED]"
+              message: widget.round.mainAnswer!.contains('[SKIPPED]')
+                  ? (widget.strings.language.code == 'en'
+                      ? "I don't know (Pass)"
+                      : "모르겠습니다 (패스)")
+                  : widget.round.mainAnswer!,
               label: widget.strings.myAnswer,
             ),
+          ],
 
           const SizedBox(height: 16),
 
-          // 2. Feedback Card
-          if (widget.round.mainGrade != null)
-            _ResultFeedbackCard(
-                grade: widget.round.mainGrade!, strings: widget.strings),
+          // 2. Feedback Card & Model Answer
+          if (widget.round.mainGrade != null) ...[
+            // Feedback (Show if not skipped, or if we want to show it even if skipped?
+            // Existing logic: If skipped, show ModelAnswerCard INSTEAD.
+            // New logic: If skipped, show ModelAnswerCard.
+            // If answered, show Feedback AND ModelAnswerCard.
+            if (widget.round.mainAnswer != null &&
+                widget.round.mainAnswer!.contains('[SKIPPED]')) ...[
+              // Skipped: Just Model Answer
+              _ModelAnswerCard(
+                question: widget.round.mainQuestion,
+                strings: widget.strings,
+              ),
+            ] else ...[
+              // Answered: Feedback + Model Answer
+              _ResultFeedbackCard(
+                  grade: widget.round.mainGrade!, strings: widget.strings),
+              const SizedBox(height: 16),
+              _ModelAnswerCard(
+                question: widget.round.mainQuestion,
+                strings: widget.strings,
+              ),
+            ],
+          ],
 
           // 3. Follow-up Section
           if (widget.round.followUpQuestion != null) ...[
@@ -408,14 +442,29 @@ class _ResultRoundCardState extends State<_ResultRoundCard> {
             if (widget.round.followUpAnswer != null)
               _ChatBubble(
                 isUser: true,
-                message: widget.round.followUpAnswer!,
+                message: widget.round.followUpAnswer!.contains('[SKIPPED]')
+                    ? (widget.strings.language.code == 'en'
+                        ? "I don't know (Pass)"
+                        : "모르겠습니다 (패스)")
+                    : widget.round.followUpAnswer!,
                 label: widget.strings.myAnswer,
               ),
 
             const SizedBox(height: 16),
-            if (widget.round.followUpGrade != null)
+            if (widget.round.followUpGrade != null) ...[
               _ResultFeedbackCard(
                   grade: widget.round.followUpGrade!, strings: widget.strings),
+            ],
+
+            // Show Follow-up Model Answer if available (and if answered/skipped)
+            if (widget.round.followUpModelAnswer != null) ...[
+              const SizedBox(height: 16),
+              _ModelAnswerCard(
+                // No Question object for follow-up, use overrideAnswer
+                overrideAnswer: widget.round.followUpModelAnswer,
+                strings: widget.strings,
+              ),
+            ],
           ],
         ],
       ),
@@ -726,6 +775,88 @@ class _BannerAdWidgetState extends State<_BannerAdWidget> {
       width: _bannerAd!.size.width.toDouble(),
       height: _bannerAd!.size.height.toDouble(),
       child: AdWidget(ad: _bannerAd!),
+    );
+  }
+}
+
+class _ModelAnswerCard extends StatelessWidget {
+  final Question? question;
+  final String? overrideAnswer;
+  final AppStrings strings;
+
+  const _ModelAnswerCard({
+    this.question,
+    this.overrideAnswer,
+    required this.strings,
+  }) : assert(question != null || overrideAnswer != null);
+
+  @override
+  Widget build(BuildContext context) {
+    final languageCode = strings.language.code;
+    final answer = overrideAnswer ?? question!.getLocalizedAnswer(languageCode);
+    final keywords = question?.getLocalizedKeywords(languageCode) ?? [];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: AppColors.accentCyan.withValues(alpha: 0.3), width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.lightbulb_outline,
+                  color: AppColors.accentCyan, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                languageCode == 'en' ? 'Model Answer' : '모범 답안',
+                style: TextStyle(
+                  color: AppColors.accentCyan,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            answer,
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 15,
+              height: 1.5,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          if (keywords.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            Material(
+              color: Colors.transparent,
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: keywords
+                    .map((k) => Chip(
+                          label: Text(k, style: const TextStyle(fontSize: 12)),
+                          backgroundColor:
+                              AppColors.accentCyan.withValues(alpha: 0.1),
+                          labelStyle: TextStyle(color: AppColors.accentCyan),
+                          side: BorderSide(
+                              color:
+                                  AppColors.accentCyan.withValues(alpha: 0.3)),
+                          padding: EdgeInsets.zero,
+                          visualDensity: VisualDensity.compact,
+                        ))
+                    .toList(),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

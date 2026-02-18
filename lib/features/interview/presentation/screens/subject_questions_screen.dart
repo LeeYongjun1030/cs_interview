@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../domain/models/question_model.dart';
@@ -33,6 +34,144 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
   final InterviewRepository _repository = InterviewRepository();
   List<Question> _questions = [];
   bool _isLoading = true;
+
+  Future<Map<String, dynamic>> _getModelAnswer(
+      Question question, String languageCode) async {
+    // 1. Try Local
+    final localAnswer = question.getLocalizedAnswer(languageCode);
+    if (localAnswer.isNotEmpty) {
+      return {
+        'answer': localAnswer,
+        'keywords': question.getLocalizedKeywords(languageCode),
+      };
+    }
+
+    // Default fallback if local data is missing (should not happen with full data)
+    return {
+      'answer':
+          languageCode == 'en' ? 'Answer not available.' : '답변이 준비되지 않았습니다.',
+      'keywords': [],
+    };
+  }
+
+  void _showAnswerDialog(Question question) {
+    // Check if mounted before using context
+    if (!mounted) return;
+    final languageCode = Provider.of<LanguageController>(context, listen: false)
+        .currentLanguage
+        .code;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: FutureBuilder<Map<String, dynamic>>(
+            future: _getModelAnswer(question, languageCode),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: AppColors.primary),
+                    const SizedBox(height: 16),
+                    Text(
+                      languageCode == 'en'
+                          ? 'AI is generating the answer...'
+                          : 'AI가 정답을 생성 중입니다...',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ],
+                );
+              }
+
+              if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}',
+                    style: TextStyle(color: AppColors.accentRed));
+              }
+
+              final data = snapshot.data!;
+              final answer = data['answer'] as String;
+              final keywords = List<String>.from(data['keywords'] ?? []);
+
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      languageCode == 'en' ? 'Model Answer' : '모범 답안',
+                      style: AppTextStyles.titleMedium
+                          .copyWith(color: AppColors.accentGreen),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(answer,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                            color: AppColors.textPrimary, height: 1.5)),
+                    const SizedBox(height: 16),
+                    if (keywords.isNotEmpty) ...[
+                      Text(
+                        languageCode == 'en' ? 'Keywords' : '키워드',
+                        style: AppTextStyles.labelSmall
+                            .copyWith(color: AppColors.textSecondary),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: keywords
+                            .map((k) => Chip(
+                                  label:
+                                      Text(k, style: TextStyle(fontSize: 11)),
+                                  backgroundColor: AppColors.surfaceVariant,
+                                  labelStyle:
+                                      TextStyle(color: AppColors.primary),
+                                  padding: EdgeInsets.zero,
+                                ))
+                            .toList(),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    // Add Tip if available
+                    if (question.getLocalizedTip(languageCode).isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.accentCyan.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.lightbulb,
+                                size: 16, color: AppColors.accentCyan),
+                            const SizedBox(width: 8),
+                            Expanded(
+                                child: Text(
+                                    question.getLocalizedTip(languageCode),
+                                    style: TextStyle(
+                                        color: AppColors.accentCyan,
+                                        fontSize: 13))),
+                          ],
+                        ),
+                      ),
+                    ]
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(languageCode == 'en' ? 'Close' : '닫기',
+                style: TextStyle(color: AppColors.textSecondary)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -268,7 +407,6 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
     }
   }
 
-  @override
   Widget build(BuildContext context) {
     final languageCode =
         Provider.of<LanguageController>(context).currentLanguage.code; // code
@@ -413,6 +551,39 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                                         color: AppColors
                                                             .textPrimary,
                                                         height: 1.4),
+                                              ),
+                                              // Hint/Answer Button
+                                              const SizedBox(height: 8),
+                                              InkWell(
+                                                onTap: () =>
+                                                    _showAnswerDialog(question),
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(vertical: 4),
+                                                  child: Row(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      Icon(
+                                                          Icons
+                                                              .remove_red_eye_outlined,
+                                                          size: 16,
+                                                          color: AppColors
+                                                              .accentCyan),
+                                                      const SizedBox(width: 4),
+                                                      Text(
+                                                        strings.viewAnswer,
+                                                        style: TextStyle(
+                                                            color: AppColors
+                                                                .accentCyan,
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w500),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                               ),
                                             ],
                                           ),

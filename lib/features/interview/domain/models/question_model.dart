@@ -8,6 +8,8 @@ class Question {
   final String? tipEn; // English Tip
   final List<String>? keywordsEn; // English Keywords
   final String? categoryEn; // English Category
+  final String? answer; // New: Model Answer (KO)
+  final String? answerEn; // New: Model Answer (EN)
 
   final String question;
   final String tip;
@@ -24,6 +26,8 @@ class Question {
     this.questionEn,
     required this.tip,
     this.tipEn,
+    this.answer,
+    this.answerEn,
     required this.depth,
     required this.keywords,
     this.keywordsEn,
@@ -41,6 +45,8 @@ class Question {
       questionEn: json['questionEn'] as String?,
       tip: json['tip'] as String? ?? '',
       tipEn: json['tipEn'] as String?,
+      answer: json['answer'] as String?,
+      answerEn: json['answerEn'] as String?,
       depth: json['depth'] as int? ?? 0,
       keywords: List<String>.from(json['keywords'] ?? []),
       keywordsEn:
@@ -62,6 +68,8 @@ class Question {
       'questionEn': questionEn,
       'tip': tip,
       'tipEn': tipEn,
+      'answer': answer,
+      'answerEn': answerEn,
       'depth': depth,
       'keywords': keywords,
       'keywordsEn': keywordsEn,
@@ -82,6 +90,13 @@ class Question {
       return tipEn!;
     }
     return tip; // Fallback
+  }
+
+  String getLocalizedAnswer(String languageCode) {
+    if (languageCode == 'en' && answerEn != null && answerEn!.isNotEmpty) {
+      return answerEn!;
+    }
+    return answer ?? ''; // Fallback
   }
 
   String getLocalizedCategory(String languageCode) {

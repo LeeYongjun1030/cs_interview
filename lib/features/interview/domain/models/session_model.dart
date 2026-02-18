@@ -65,6 +65,7 @@ class SessionQuestionItem {
   String userAnswerText;
   String? userAnswerAudioUrl;
   String? aiFollowUp;
+  String? aiFollowUpModelAnswer; // New field
 
   String? userFollowUpAnswer;
   Map<String, dynamic>? evaluation; // result, score, feedback
@@ -77,6 +78,7 @@ class SessionQuestionItem {
     this.userAnswerText = '',
     this.userAnswerAudioUrl,
     this.aiFollowUp,
+    this.aiFollowUpModelAnswer,
     this.userFollowUpAnswer,
     this.evaluation,
     this.subject = 'unknown',
@@ -90,6 +92,7 @@ class SessionQuestionItem {
       'userAnswerText': userAnswerText,
       'userAnswerAudioUrl': userAnswerAudioUrl,
       'aiFollowUp': aiFollowUp,
+      'aiFollowUpModelAnswer': aiFollowUpModelAnswer,
       'userFollowUpAnswer': userFollowUpAnswer,
       'evaluation': evaluation,
       'subject': subject,
@@ -104,6 +107,7 @@ class SessionQuestionItem {
       userAnswerText: json['userAnswerText'] as String? ?? '',
       userAnswerAudioUrl: json['userAnswerAudioUrl'] as String?,
       aiFollowUp: json['aiFollowUp'] as String?,
+      aiFollowUpModelAnswer: json['aiFollowUpModelAnswer'] as String?,
       userFollowUpAnswer: json['userFollowUpAnswer'] as String?,
       evaluation: json['evaluation'] as Map<String, dynamic>?,
       subject: json['subject'] as String? ?? 'unknown',

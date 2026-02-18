@@ -381,4 +381,6 @@ class AppStrings {
   String get subjectQuestionsGuide => language == AppLanguage.korean
       ? '학습하고 싶은 질문을 선택하여 나만의 세션을 만들어보세요.'
       : 'Select questions to create a custom study session.';
+  String get viewAnswer =>
+      language == AppLanguage.korean ? '정답 보기' : 'View Answer';
 }

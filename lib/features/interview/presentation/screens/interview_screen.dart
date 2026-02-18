@@ -117,7 +117,11 @@ class _InterviewScreenState extends State<InterviewScreen> {
     }
   }
 
+  bool _isNavigating = false;
+
   void _navigateToResult() {
+    if (_isNavigating) return;
+    _isNavigating = true;
     // Return to Home with 'finished' signal
     // Home screen will handle navigation to ResultScreen
     Navigator.pop(context, 'finished');
@@ -442,61 +446,45 @@ class _InterviewScreenState extends State<InterviewScreen> {
                       ],
                     ),
                   ),
-                  bottomNavigationBar: isFollowUp
-                      ? SafeArea(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextButton(
-                                    onPressed: () async {
-                                      // SKIP FOLLOW UP
-                                      await widget.controller.passFollowUp();
-                                      _answerController.clear();
-                                      if (!context.mounted) return;
-                                      if (widget.controller.isSessionFinished) {
-                                        _navigateToResult();
-                                      }
-                                    },
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: AppColors.textSecondary,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 16),
-                                    ),
-                                    child: Text(strings.passButton),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  flex: 2,
-                                  child: ElevatedButton(
-                                    onPressed: _handleSubmit,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AppColors.accentRed,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(16)),
-                                    ),
-                                    child: Text(strings.submitButton,
-                                        style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold)),
-                                  ),
-                                ),
-                              ],
+                  bottomNavigationBar: SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          // Pass Button (Available for both Main & Follow-up)
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () async {
+                                if (isFollowUp) {
+                                  await widget.controller.passFollowUp();
+                                } else {
+                                  await widget.controller.passMainQuestion(
+                                      langController.currentLanguage.code);
+                                }
+                                _answerController.clear();
+                                if (!context.mounted) return;
+                                if (widget.controller.isSessionFinished) {
+                                  _navigateToResult();
+                                }
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.textSecondary,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                              ),
+                              child: Text(strings.passButton),
                             ),
                           ),
-                        )
-                      : SafeArea(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
+                          const SizedBox(width: 16),
+                          // Submit Button
+                          Expanded(
+                            flex: 2,
                             child: ElevatedButton(
                               onPressed: _handleSubmit,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
+                                backgroundColor: isFollowUp
+                                    ? AppColors.accentRed
+                                    : AppColors.primary,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 16),
                                 shape: RoundedRectangleBorder(
@@ -508,7 +496,10 @@ class _InterviewScreenState extends State<InterviewScreen> {
                                       fontWeight: FontWeight.bold)),
                             ),
                           ),
-                        ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
 
@@ -537,6 +528,97 @@ class _InterviewScreenState extends State<InterviewScreen> {
                               decoration: TextDecoration.none),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+
+              // --- Model Answer Overlay (Immediate Feedback) ---
+              if (widget.controller.showingAnswer &&
+                  widget.controller.currentModelAnswer != null)
+                Container(
+                  color: Colors.black87,
+                  padding: const EdgeInsets.all(24),
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.accentGreen),
+                        boxShadow: AppColors.neonShadow,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            langController.currentLanguage.code == 'en'
+                                ? 'Model Answer'
+                                : '모범 답안',
+                            style: AppTextStyles.titleLarge
+                                .copyWith(color: AppColors.accentGreen),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 300),
+                            child: SingleChildScrollView(
+                              child: Text(
+                                widget.controller
+                                        .currentModelAnswer!['answer'] ??
+                                    '',
+                                style: AppTextStyles.bodyLarge
+                                    .copyWith(height: 1.6),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Material(
+                            color: Colors.transparent,
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: (widget.controller
+                                              .currentModelAnswer!['keywords']
+                                          as List?)
+                                      ?.map<Widget>((k) => Chip(
+                                            label: Text(k.toString()),
+                                            backgroundColor: AppColors
+                                                .accentCyan
+                                                .withValues(alpha: 0.1),
+                                            labelStyle: TextStyle(
+                                                color: AppColors.accentCyan),
+                                            side: BorderSide(
+                                                color: AppColors.accentCyan),
+                                          ))
+                                      .toList() ??
+                                  [],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          ElevatedButton(
+                            onPressed: () async {
+                              await widget.controller.nextAfterPass();
+                              if (!context.mounted) return;
+                              if (widget.controller.isSessionFinished) {
+                                _navigateToResult();
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: Text(
+                                langController.currentLanguage.code == 'en'
+                                    ? 'Next Question'
+                                    : '다음 문제',
+                                style: const TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/models/question_model.dart';
 import '../../domain/models/session_model.dart';
@@ -9,35 +11,41 @@ class InterviewRepository {
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   // Collection References
-  CollectionReference get _questionsRef => _firestore.collection('questions');
+  // CollectionReference get _questionsRef => _firestore.collection('questions'); // Deprecated: Moved to Local
   CollectionReference get _sessionsRef => _firestore.collection('sessions');
+
+  List<Question>? _cachedQuestions;
+
+  Future<List<Question>> _loadLocalQuestions() async {
+    if (_cachedQuestions != null) return _cachedQuestions!;
+
+    try {
+      final jsonString =
+          await rootBundle.loadString('assets/data/questions.json');
+      final List<dynamic> jsonList = jsonDecode(jsonString);
+
+      _cachedQuestions =
+          jsonList.map((json) => Question.fromJson(json)).toList();
+      return _cachedQuestions!;
+    } catch (e) {
+      throw Exception('Failed to load local questions: $e');
+    }
+  }
 
   Future<List<Question>> fetchQuestionsBySubject(String subject) async {
     try {
-      final querySnapshot = await _questionsRef
-          .where('subject', isEqualTo: subject)
-          .get()
-          .timeout(const Duration(seconds: 10));
-
-      return querySnapshot.docs
-          .map((doc) => Question.fromJson(doc.data() as Map<String, dynamic>))
-          .toList();
+      final allQuestions = await _loadLocalQuestions();
+      return allQuestions.where((q) => q.subject == subject).toList();
     } catch (e) {
-      throw Exception('Failed to fetch questions: $e');
+      throw Exception('Failed to fetch questions by subject: $e');
     }
   }
 
   Future<List<Question>> fetchAllQuestions() async {
     try {
-      // print('InterviewRepository: fetching collection "questions"');
-      final querySnapshot = await _questionsRef.get();
-      // print('InterviewRepository: got ${querySnapshot.docs.length} docs');
-      return querySnapshot.docs
-          .map((doc) => Question.fromJson(doc.data() as Map<String, dynamic>))
-          .toList();
+      return await _loadLocalQuestions();
     } catch (e) {
-      // print('InterviewRepository Error: $e');
-      throw Exception('Failed to fetch questions: $e');
+      throw Exception('Failed to fetch all questions: $e');
     }
   }
 

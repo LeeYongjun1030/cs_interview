@@ -35,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   // List<InterviewSession> _sessions = []; // Replaced by Stream
   Stream<List<InterviewSession>>? _sessionsStream;
   StreamSubscription<UserModel>? _userSubscription; // Add subscription
-  bool _isLoading = true;
+
   late String _userId;
   int? _credits; // Nullable for loading state
 
@@ -60,9 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
 
       _checkDailyBonus();
-    } else {
-      _isLoading = false;
-    }
+    } else {}
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkLanguageSetup();
@@ -1157,62 +1155,38 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _cleanupIncompleteSessions() async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      messenger.showSnackBar(
-          const SnackBar(content: Text('Cleaning up incomplete sessions...')));
-
-      // 1. Fetch ALL sessions (including incomplete)
-      final allSessions = await _repository.fetchUserSessions(_userId);
-
-      // 2. Filter incomplete ones
-      final incomplete = allSessions
-          .where((s) => s.status != SessionStatus.completed)
-          .toList();
-
-      if (incomplete.isEmpty) {
-        messenger.showSnackBar(
-            const SnackBar(content: Text('No incomplete sessions found.')));
-        return;
-      }
-
-      // 3. Delete them
-      for (final session in incomplete) {
-        await _repository.deleteSession(session.id);
-      }
-
-      messenger.showSnackBar(SnackBar(
-          content: Text('Deleted ${incomplete.length} incomplete sessions.')));
-
-      // 4. Refresh list
-      _fetchSessions();
-    } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Failed to cleanup: $e')));
-    }
-  }
-
   void _openSessionDetail(InterviewSession session) async {
-    // Map existing session items to SessionRounds for display
+    // 1. Fetch all local questions to get the full data (answer, keywords, etc.)
+    final allQuestions = await _repository.fetchAllQuestions();
+    final questionMap = {for (var q in allQuestions) q.id: q};
+
+    // 2. Map existing session items to SessionRounds for display
     final rounds = session.questions.map((q) {
+      // Try to find the full question object
+      final fullQuestion = questionMap[q.questionId];
+
+      final displayQuestion = fullQuestion ??
+          Question(
+            id: q.questionId,
+            question: q.questionText,
+            // Use stored metadata if available, or fallbacks
+            subject: q.subject,
+            category: q.category,
+            level: 1, // Default level for history
+            depth: 0,
+            keywords: [],
+            tip: '',
+          );
+
       return SessionRound(
-        mainQuestion: Question(
-          id: q.questionId,
-          question: q.questionText,
-          // Use stored metadata if available
-          subject: q.subject,
-          category: q.category,
-          level: 1, // Default level for history
-          depth: 0,
-          keywords: [],
-          tip: '',
-        ),
+        mainQuestion: displayQuestion,
       )
         ..mainAnswer = q.userAnswerText
         ..mainGrade = q.evaluation != null && q.evaluation!['main'] != null
             ? GradeResult.fromJson(q.evaluation!['main'])
             : null
         ..followUpQuestion = q.aiFollowUp
+        ..followUpModelAnswer = q.aiFollowUpModelAnswer // Restore model answer
         ..followUpAnswer = q.userFollowUpAnswer
         ..followUpGrade =
             q.evaluation != null && q.evaluation!['followUp'] != null

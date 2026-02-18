@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/foundation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../domain/models/question_model.dart';
 import '../../domain/models/session_model.dart';
 import '../../data/repositories/interview_repository.dart';
@@ -12,14 +12,19 @@ class SessionRound {
   String? mainAnswer;
   GradeResult? mainGrade;
 
+  // Follow-Up Question State
   String? followUpQuestion;
   String? followUpAnswer;
+  String? followUpModelAnswer; // New field for model answer
   GradeResult? followUpGrade;
 
   SessionRound({required this.mainQuestion});
 
   bool get isFollowUpActive =>
       mainAnswer != null && followUpQuestion != null && followUpAnswer == null;
+
+  bool get hasFollowUpAnswered => followUpAnswer != null; // Helper
+
   bool get isCompleted =>
       mainAnswer != null &&
       (followUpQuestion == null || followUpAnswer != null);
@@ -169,6 +174,8 @@ class SessionController extends ChangeNotifier {
 
         if (result.followUpQuestion != null) {
           round.followUpQuestion = result.followUpQuestion;
+          // Store follow-up model answer if available
+          round.followUpModelAnswer = result.followUpModelAnswer;
         } else {
           await _moveToNext();
         }
@@ -204,8 +211,69 @@ class SessionController extends ChangeNotifier {
     await _moveToNext();
   }
 
+  // State for Immediate Feedback (Pass)
+  bool _showingAnswer = false;
+  Map<String, dynamic>? _currentModelAnswer;
+
+  bool get showingAnswer => _showingAnswer;
+  Map<String, dynamic>? get currentModelAnswer => _currentModelAnswer;
+
+  void clearAnswerState() {
+    _showingAnswer = false;
+    _currentModelAnswer = null;
+    notifyListeners();
+  }
+
+  // Handle "Pass" / "I don't know" for Main Question
+  Future<void> passMainQuestion(String languageCode) async {
+    if (currentRound == null) return;
+
+    // 1. Try Local Data First
+    final question = currentRound!.mainQuestion;
+    final String localAnswer = question.getLocalizedAnswer(languageCode);
+    final List<String> localKeywords =
+        question.getLocalizedKeywords(languageCode);
+
+    if (localAnswer.isNotEmpty) {
+      _currentModelAnswer = {
+        'answer': localAnswer,
+        'keywords': localKeywords,
+      };
+      _showingAnswer = true;
+      currentRound!.mainAnswer = "[SKIPPED]";
+      currentRound!.mainGrade = GradeResult(
+        score: 0,
+        summary: "Pass (Local Data)",
+        followUpQuestion: null,
+      );
+      notifyListeners();
+      return;
+    }
+
+    // Default fallback if local data is missing (should not happen with full data)
+    _currentModelAnswer = {
+      'answer':
+          languageCode == 'en' ? 'Answer not available.' : '답변이 준비되지 않았습니다.',
+      'keywords': [],
+    };
+    _showingAnswer = true;
+    currentRound!.mainAnswer = "[SKIPPED]";
+    currentRound!.mainGrade = GradeResult(
+      score: 0,
+      summary: "Pass (No Answer)",
+      followUpQuestion: null,
+    );
+    notifyListeners();
+  }
+
+  // Proceed after viewing the model answer
+  Future<void> nextAfterPass() async {
+    clearAnswerState();
+    await _moveToNext();
+  }
+
   Future<void> _moveToNext() async {
-    _currentIndex++;
+    _currentIndex++; // Optimized check removed for matching simplicity
     notifyListeners();
 
     if (isSessionFinished) {
@@ -237,6 +305,7 @@ class SessionController extends ChangeNotifier {
               round.mainQuestion.getLocalizedQuestion(_sessionLanguageCode),
           userAnswerText: round.mainAnswer ?? '',
           aiFollowUp: round.followUpQuestion,
+          aiFollowUpModelAnswer: round.followUpModelAnswer, // Save to item
           userFollowUpAnswer: round.followUpAnswer,
           evaluation: {
             'main': round.mainGrade?.toJson(),
