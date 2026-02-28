@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'question_detail_screen.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -17,6 +19,7 @@ class SubjectQuestionsScreen extends StatefulWidget {
   final String subjectName; // For Display (e.g. 'Network')
   final Color themeColor;
   final IconData icon;
+  final String? lectureUrl; // Optional external video link
 
   const SubjectQuestionsScreen({
     super.key,
@@ -24,6 +27,7 @@ class SubjectQuestionsScreen extends StatefulWidget {
     required this.subjectName,
     required this.themeColor,
     required this.icon,
+    this.lectureUrl,
   });
 
   @override
@@ -34,144 +38,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
   final InterviewRepository _repository = InterviewRepository();
   List<Question> _questions = [];
   bool _isLoading = true;
-
-  Future<Map<String, dynamic>> _getModelAnswer(
-      Question question, String languageCode) async {
-    // 1. Try Local
-    final localAnswer = question.getLocalizedAnswer(languageCode);
-    if (localAnswer.isNotEmpty) {
-      return {
-        'answer': localAnswer,
-        'keywords': question.getLocalizedKeywords(languageCode),
-      };
-    }
-
-    // Default fallback if local data is missing (should not happen with full data)
-    return {
-      'answer':
-          languageCode == 'en' ? 'Answer not available.' : '답변이 준비되지 않았습니다.',
-      'keywords': [],
-    };
-  }
-
-  void _showAnswerDialog(Question question) {
-    // Check if mounted before using context
-    if (!mounted) return;
-    final languageCode = Provider.of<LanguageController>(context, listen: false)
-        .currentLanguage
-        .code;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: FutureBuilder<Map<String, dynamic>>(
-            future: _getModelAnswer(question, languageCode),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircularProgressIndicator(color: AppColors.primary),
-                    const SizedBox(height: 16),
-                    Text(
-                      languageCode == 'en'
-                          ? 'AI is generating the answer...'
-                          : 'AI가 정답을 생성 중입니다...',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  ],
-                );
-              }
-
-              if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}',
-                    style: TextStyle(color: AppColors.accentRed));
-              }
-
-              final data = snapshot.data!;
-              final answer = data['answer'] as String;
-              final keywords = List<String>.from(data['keywords'] ?? []);
-
-              return SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      languageCode == 'en' ? 'Model Answer' : '모범 답안',
-                      style: AppTextStyles.titleMedium
-                          .copyWith(color: AppColors.accentGreen),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(answer,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.textPrimary, height: 1.5)),
-                    const SizedBox(height: 16),
-                    if (keywords.isNotEmpty) ...[
-                      Text(
-                        languageCode == 'en' ? 'Keywords' : '키워드',
-                        style: AppTextStyles.labelSmall
-                            .copyWith(color: AppColors.textSecondary),
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: keywords
-                            .map((k) => Chip(
-                                  label:
-                                      Text(k, style: TextStyle(fontSize: 11)),
-                                  backgroundColor: AppColors.surfaceVariant,
-                                  labelStyle:
-                                      TextStyle(color: AppColors.primary),
-                                  padding: EdgeInsets.zero,
-                                ))
-                            .toList(),
-                      ),
-                    ],
-                    const SizedBox(height: 24),
-                    // Add Tip if available
-                    if (question.getLocalizedTip(languageCode).isNotEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: AppColors.accentCyan.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.lightbulb,
-                                size: 16, color: AppColors.accentCyan),
-                            const SizedBox(width: 8),
-                            Expanded(
-                                child: Text(
-                                    question.getLocalizedTip(languageCode),
-                                    style: TextStyle(
-                                        color: AppColors.accentCyan,
-                                        fontSize: 13))),
-                          ],
-                        ),
-                      ),
-                    ]
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(languageCode == 'en' ? 'Close' : '닫기',
-                style: TextStyle(color: AppColors.textSecondary)),
-          ),
-        ],
-      ),
-    );
-  }
+  bool _isSelectionMode = false;
 
   @override
   void initState() {
@@ -209,6 +76,9 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
     setState(() {
       if (_selectedIds.contains(id)) {
         _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) {
+          _isSelectionMode = false;
+        }
       } else {
         if (_selectedIds.length < MAX_SELECTION) {
           _selectedIds.add(id);
@@ -223,6 +93,34 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
         }
       }
     });
+  }
+
+  void _enterSelectionMode(String id) {
+    setState(() {
+      _isSelectionMode = true;
+      _selectedIds.add(id);
+    });
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _isSelectionMode = false;
+      _selectedIds.clear();
+    });
+  }
+
+  void _openQuestionDetail(Question question, int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuestionDetailScreen(
+          question: question,
+          themeColor: widget.themeColor,
+          questionIndex: index + 1,
+          totalQuestions: _questions.length,
+        ),
+      ),
+    );
   }
 
   void _startCustomSession() {
@@ -418,11 +316,23 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: BackButton(color: AppColors.textPrimary),
-        title: Text(widget.subjectName, style: AppTextStyles.titleMedium),
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: Icon(Icons.close, color: AppColors.textPrimary),
+                onPressed: _exitSelectionMode,
+              )
+            : BackButton(color: AppColors.textPrimary),
+        title: _isSelectionMode
+            ? Text(
+                '${_selectedIds.length}/$MAX_SELECTION ${strings.startInterview}',
+                style: AppTextStyles.titleMedium,
+              )
+            : Text(widget.subjectName, style: AppTextStyles.titleMedium),
         actions: [
-          Icon(widget.icon, color: widget.themeColor),
-          const SizedBox(width: 16),
+          if (!_isSelectionMode) ...[
+            Icon(widget.icon, color: widget.themeColor),
+            const SizedBox(width: 16),
+          ],
         ],
       ),
       body: _isLoading
@@ -484,6 +394,60 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                             ),
                           ),
                         ),
+                        // Video Lecture Button
+                        if (widget.lectureUrl != null)
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () async {
+                                    final url = Uri.parse(widget.lectureUrl!);
+                                    if (!await launchUrl(url)) {
+                                      throw Exception('Could not launch $url');
+                                    }
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: widget.themeColor
+                                          .withValues(alpha: 0.08),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: widget.themeColor
+                                            .withValues(alpha: 0.2),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          strings.watchVideoLecture,
+                                          style: TextStyle(
+                                            color: widget.themeColor,
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.open_in_new,
+                                          color: widget.themeColor,
+                                          size: 16,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        const SliverToBoxAdapter(child: SizedBox(height: 8)),
                         // Question List
                         SliverPadding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -495,17 +459,29 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                     _selectedIds.contains(question.id);
 
                                 return GestureDetector(
-                                  onTap: () => _toggleSelection(question.id),
-                                  child: Container(
+                                  onTap: () {
+                                    if (_isSelectionMode) {
+                                      _toggleSelection(question.id);
+                                    } else {
+                                      _openQuestionDetail(question, index);
+                                    }
+                                  },
+                                  onLongPress: () {
+                                    if (!_isSelectionMode) {
+                                      _enterSelectionMode(question.id);
+                                    }
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
                                     margin: const EdgeInsets.only(bottom: 12),
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 12),
+                                        horizontal: 16, vertical: 14),
                                     decoration: BoxDecoration(
                                       color: isSelected
                                           ? AppColors.primary
-                                              .withValues(alpha: 0.2)
+                                              .withValues(alpha: 0.15)
                                           : AppColors.surface,
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(14),
                                       border: Border.all(
                                           color: isSelected
                                               ? AppColors.primary
@@ -514,7 +490,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                     ),
                                     child: Row(
                                       crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                          CrossAxisAlignment.center,
                                       children: [
                                         // Content
                                         Expanded(
@@ -522,27 +498,17 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Builder(builder: (context) {
-                                                final categoryText = question
-                                                    .getLocalizedCategory(
-                                                        languageCode);
-                                                final categoryColor =
-                                                    AppColors.textSecondary;
-                                                return Container(
-                                                  margin: const EdgeInsets.only(
-                                                      bottom: 4),
-                                                  child: Text(
-                                                    categoryText,
-                                                    style: AppTextStyles
-                                                        .labelSmall
-                                                        .copyWith(
-                                                      color: categoryColor,
-                                                      fontWeight:
-                                                          FontWeight.w500,
-                                                    ),
-                                                  ),
-                                                );
-                                              }),
+                                              Text(
+                                                question.getLocalizedCategory(
+                                                    languageCode),
+                                                style: AppTextStyles.labelSmall
+                                                    .copyWith(
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 4),
                                               Text(
                                                 question.getLocalizedQuestion(
                                                     languageCode),
@@ -552,66 +518,43 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                                             .textPrimary,
                                                         height: 1.4),
                                               ),
-                                              // Hint/Answer Button
-                                              const SizedBox(height: 8),
-                                              InkWell(
-                                                onTap: () =>
-                                                    _showAnswerDialog(question),
-                                                child: Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(vertical: 4),
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Icon(
-                                                          Icons
-                                                              .remove_red_eye_outlined,
-                                                          size: 16,
-                                                          color: AppColors
-                                                              .accentCyan),
-                                                      const SizedBox(width: 4),
-                                                      Text(
-                                                        strings.viewAnswer,
-                                                        style: TextStyle(
-                                                            color: AppColors
-                                                                .accentCyan,
-                                                            fontSize: 12,
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .w500),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
                                             ],
                                           ),
                                         ),
-                                        // Checkbox Indicator (Right)
-                                        Container(
-                                          margin: const EdgeInsets.only(
-                                              top: 4, left: 16),
-                                          width: 24,
-                                          height: 24,
-                                          decoration: BoxDecoration(
+                                        const SizedBox(width: 12),
+                                        // Selection mode: checkbox, else: chevron
+                                        if (_isSelectionMode)
+                                          AnimatedContainer(
+                                            duration: const Duration(
+                                                milliseconds: 200),
+                                            width: 24,
+                                            height: 24,
+                                            decoration: BoxDecoration(
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                               color: isSelected
                                                   ? AppColors.primary
                                                   : Colors.transparent,
                                               border: Border.all(
-                                                  color: isSelected
-                                                      ? AppColors.primary
-                                                      : AppColors.textDisabled
-                                                          .withValues(
-                                                              alpha: 0.1),
-                                                  width: 2)),
-                                          child: isSelected
-                                              ? const Icon(Icons.check,
-                                                  size: 16, color: Colors.white)
-                                              : null,
-                                        ),
+                                                color: isSelected
+                                                    ? AppColors.primary
+                                                    : AppColors.textDisabled
+                                                        .withValues(alpha: 0.3),
+                                                width: 2,
+                                              ),
+                                            ),
+                                            child: isSelected
+                                                ? const Icon(Icons.check,
+                                                    size: 16,
+                                                    color: Colors.white)
+                                                : null,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 14,
+                                            color: AppColors.textTertiary,
+                                          ),
                                       ],
                                     ),
                                   ),

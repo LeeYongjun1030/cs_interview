@@ -257,10 +257,13 @@ class AppStrings {
       language == AppLanguage.korean ? '잠시만 기다려주세요' : 'Please wait a moment';
 
   String get lectureScreenTitle =>
-      language == AppLanguage.korean ? '추천 강의' : 'Recommended Lectures';
+      language == AppLanguage.korean ? '과목별 학습' : 'Study by Subject';
   String get lectureScreenSubtitle => language == AppLanguage.korean
-      ? '인프런에서 만나는 고퀄리티 CS 강의'
-      : 'High-quality CS lectures on Inflearn';
+      ? '과목을 선택하고 질문을 탐색하세요'
+      : 'Select a subject and explore questions';
+  String get watchVideoLecture => language == AppLanguage.korean
+      ? '🎬 동영상으로 학습하기'
+      : '🎬 Watch Video Lecture';
 
   // Lecture Descriptions
   String get lectureDescArch =>
@@ -379,8 +382,8 @@ class AppStrings {
   String get yesterday => language == AppLanguage.korean ? '어제' : 'Yesterday';
 
   String get subjectQuestionsGuide => language == AppLanguage.korean
-      ? '학습하고 싶은 질문을 선택하여 나만의 세션을 만들어보세요.'
-      : 'Select questions to create a custom study session.';
+      ? '질문을 탭하여 답안을 확인하세요. 길게 눌러서 인터뷰 세션용 질문을 선택할 수 있습니다.'
+      : 'Tap a question to study. Long press to select questions for an interview session.';
   String get viewAnswer =>
       language == AppLanguage.korean ? '정답 보기' : 'View Answer';
 }

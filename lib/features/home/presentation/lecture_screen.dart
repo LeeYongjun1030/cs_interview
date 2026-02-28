@@ -1,20 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/localization/language_service.dart';
 import '../../../../core/theme/theme_controller.dart';
+import '../../interview/presentation/screens/subject_questions_screen.dart';
 
 class LectureScreen extends StatelessWidget {
   const LectureScreen({super.key});
-
-  Future<void> _launchUrl(String urlString) async {
-    final Uri url = Uri.parse(urlString);
-    if (!await launchUrl(url)) {
-      throw Exception('Could not launch $url');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,9 +15,10 @@ class LectureScreen extends StatelessWidget {
     context.watch<ThemeController>();
     final strings = Provider.of<LanguageController>(context).strings;
 
-    // Lecture Data (Title, Subtitle, URL)
-    final lectures = [
+    // Subject Data (same 7 subjects as Home, with lecture URLs)
+    final subjects = [
       {
+        'id': 'computer_architecture',
         'title': strings.subjectArch,
         'subtitle': strings.lectureDescArch,
         'url': 'https://inf.run/BedRr',
@@ -32,6 +26,7 @@ class LectureScreen extends StatelessWidget {
         'color': Colors.blueGrey,
       },
       {
+        'id': 'operating_system',
         'title': strings.subjectOS,
         'subtitle': strings.lectureDescOS,
         'url': 'https://inf.run/RWY19',
@@ -39,6 +34,7 @@ class LectureScreen extends StatelessWidget {
         'color': AppColors.accentRed,
       },
       {
+        'id': 'network',
         'title': strings.subjectNetwork,
         'subtitle': strings.lectureDescNetwork,
         'url': 'https://inf.run/6ffJb',
@@ -46,6 +42,7 @@ class LectureScreen extends StatelessWidget {
         'color': AppColors.accentCyan,
       },
       {
+        'id': 'database',
         'title': strings.subjectDB,
         'subtitle': strings.lectureDescDB,
         'url': 'https://inf.run/XnimG',
@@ -53,6 +50,7 @@ class LectureScreen extends StatelessWidget {
         'color': const Color(0xFFFFCC00),
       },
       {
+        'id': 'data_structure',
         'title': strings.subjectDS,
         'subtitle': strings.lectureDescDS,
         'url': 'https://inf.run/m8Q51',
@@ -60,6 +58,7 @@ class LectureScreen extends StatelessWidget {
         'color': Colors.green,
       },
       {
+        'id': 'java',
         'title': strings.subjectJava,
         'subtitle': strings.lectureDescJava,
         'url': 'https://inf.run/gfGbQ',
@@ -67,6 +66,7 @@ class LectureScreen extends StatelessWidget {
         'color': Colors.orange,
       },
       {
+        'id': 'javascript',
         'title': strings.subjectJs,
         'subtitle': strings.lectureDescJs,
         'url': 'https://inf.run/KYbEj',
@@ -102,17 +102,19 @@ class LectureScreen extends StatelessWidget {
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: lectures.length,
+                itemCount: subjects.length,
                 separatorBuilder: (context, index) =>
                     const SizedBox(height: 12),
                 itemBuilder: (context, index) {
-                  final lecture = lectures[index];
-                  return _buildLectureCard(
-                    title: lecture['title'] as String,
-                    subtitle: lecture['subtitle'] as String,
-                    url: lecture['url'] as String,
-                    icon: lecture['icon'] as IconData,
-                    color: lecture['color'] as Color,
+                  final subject = subjects[index];
+                  return _buildSubjectCard(
+                    context: context,
+                    id: subject['id'] as String,
+                    title: subject['title'] as String,
+                    subtitle: subject['subtitle'] as String,
+                    lectureUrl: subject['url'] as String,
+                    icon: subject['icon'] as IconData,
+                    color: subject['color'] as Color,
                   );
                 },
               ),
@@ -124,10 +126,12 @@ class LectureScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildLectureCard({
+  Widget _buildSubjectCard({
+    required BuildContext context,
+    required String id,
     required String title,
     required String subtitle,
-    required String url,
+    required String lectureUrl,
     required IconData icon,
     required Color color,
   }) {
@@ -141,7 +145,20 @@ class LectureScreen extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _launchUrl(url),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SubjectQuestionsScreen(
+                  subjectId: id,
+                  subjectName: title,
+                  themeColor: color,
+                  icon: icon,
+                  lectureUrl: lectureUrl,
+                ),
+              ),
+            );
+          },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

@@ -11,7 +11,6 @@ import '../../interview/presentation/screens/interview_screen.dart';
 import '../../interview/presentation/providers/session_controller.dart';
 import '../../interview/data/repositories/interview_repository.dart';
 import '../../interview/domain/models/session_model.dart';
-import '../../interview/presentation/screens/subject_questions_screen.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/localization/language_service.dart';
 import 'profile_screen.dart';
@@ -286,68 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _buildHeader(strings),
-                const SizedBox(height: 24),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Text(strings.sectionSubjectLearning,
-                      style: AppTextStyles.titleLarge
-                          .copyWith(fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 120,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      Row(
-                        children: [
-                          _buildSubjectCard(
-                              context,
-                              Icons.memory,
-                              strings.subjectArch,
-                              'computer_architecture',
-                              Colors.blueGrey),
-                          const SizedBox(width: 12),
-                          _buildSubjectCard(
-                              context,
-                              Icons.settings_system_daydream,
-                              strings.subjectOS,
-                              'operating_system',
-                              AppColors.accentRed),
-                          const SizedBox(width: 12),
-                          _buildSubjectCard(
-                              context,
-                              Icons.hub,
-                              strings.subjectNetwork,
-                              'network',
-                              AppColors.accentCyan),
-                          const SizedBox(width: 12),
-                          _buildSubjectCard(
-                              context,
-                              Icons.storage,
-                              strings.subjectDB,
-                              'database',
-                              const Color(0xFFFFCC00)),
-                          const SizedBox(width: 12),
-                          _buildSubjectCard(
-                              context,
-                              Icons.layers,
-                              strings.subjectDS,
-                              'data_structure',
-                              Colors.green),
-                          const SizedBox(width: 12),
-                          _buildSubjectCard(context, Icons.coffee,
-                              strings.subjectJava, 'java', Colors.orange),
-                          const SizedBox(width: 12),
-                          _buildSubjectCard(context, Icons.code,
-                              strings.subjectJs, 'javascript', Colors.yellow),
-                        ],
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
@@ -561,64 +499,6 @@ class _HomeScreenState extends State<HomeScreen> {
               style: AppTextStyles.labelMedium
                   .copyWith(color: AppColors.textTertiary)),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSubjectCard(BuildContext context, IconData icon, String title,
-      String id, Color color) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () async {
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SubjectQuestionsScreen(
-                subjectId: id,
-                subjectName: title,
-                themeColor: color,
-                icon: icon,
-              ),
-            ),
-          );
-          _fetchSessions();
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          width: 140,
-          height: 120, // Fixed height for consistency
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-                color: AppColors.textDisabled.withValues(alpha: 0.1)),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 24),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                title,
-                style: AppTextStyles.labelLarge
-                    .copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
