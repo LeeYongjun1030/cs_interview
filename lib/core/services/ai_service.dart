@@ -28,8 +28,8 @@ class GradeResult {
   Map<String, dynamic> toJson() {
     return {
       'score': score,
-      'followUpQuestion': followUpQuestion,
-      'followUpModelAnswer': followUpModelAnswer,
+      // 'followUpQuestion': followUpQuestion, // Stored in SessionQuestionItem
+      // 'followUpModelAnswer': followUpModelAnswer, // Stored in SessionQuestionItem
       'summary': summary,
       'strengths': strengths,
       'weaknesses': weaknesses,
