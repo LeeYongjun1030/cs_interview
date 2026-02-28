@@ -382,8 +382,140 @@ class AppStrings {
   String get yesterday => language == AppLanguage.korean ? '어제' : 'Yesterday';
 
   String get subjectQuestionsGuide => language == AppLanguage.korean
-      ? '질문을 탭하여 답안을 확인하세요. 길게 눌러서 인터뷰 세션용 질문을 선택할 수 있습니다.'
-      : 'Tap a question to study. Long press to select questions for an interview session.';
+      ? '질문을 탭하여 학습하세요.'
+      : 'Tap a question to study.';
   String get viewAnswer =>
       language == AppLanguage.korean ? '정답 보기' : 'View Answer';
+
+  // ======================================================================
+  // NEW: Training App Strings
+  // ======================================================================
+
+  // Navigation (4 tabs)
+  String get navTraining => language == AppLanguage.korean ? '훈련' : 'Training';
+  String get navRecords => language == AppLanguage.korean ? '기록' : 'Records';
+
+  // Dashboard / Home Tab
+  String get dashboardTitle =>
+      language == AppLanguage.korean ? '대시보드' : 'Dashboard';
+  String get todayTraining =>
+      language == AppLanguage.korean ? '오늘의 훈련' : "Today's Training";
+  String get startTodayTraining =>
+      language == AppLanguage.korean ? '오늘의 훈련 시작' : 'Start Today\'s Training';
+  String get myAbilityRadar =>
+      language == AppLanguage.korean ? '나의 역량 레이더' : 'My Ability Radar';
+  String get recentTrainingContinue => language == AppLanguage.korean
+      ? '최근 훈련 이어하기'
+      : 'Continue Recent Training';
+  String get noTrainingYet => language == AppLanguage.korean
+      ? '아직 훈련 기록이 없습니다.\n첫 번째 훈련을 시작해보세요!'
+      : 'No training records yet.\nStart your first training!';
+
+  // Radar Chart Axes
+  String get axisSummary =>
+      language == AppLanguage.korean ? '한문장 요약' : 'Summary';
+  String get axisPrinciple =>
+      language == AppLanguage.korean ? '원리 설명' : 'Principle';
+  String get axisExample =>
+      language == AppLanguage.korean ? '예시/경험' : 'Example';
+  String get axisKeyword =>
+      language == AppLanguage.korean ? '핵심 키워드' : 'Keywords';
+  String get axisClarity =>
+      language == AppLanguage.korean ? '흐름/명확성' : 'Clarity';
+  String get axisFollowUp =>
+      language == AppLanguage.korean ? '꼬리질문 대응' : 'Follow-up';
+
+  // Training Tab
+  String get trainingTabTitle =>
+      language == AppLanguage.korean ? '훈련' : 'Training';
+  String get selectSubjectToTrain => language == AppLanguage.korean
+      ? '과목을 선택하고 훈련을 시작하세요'
+      : 'Select a subject to start training';
+
+  // Question Detail (branch)
+  String get quickViewButton =>
+      language == AppLanguage.korean ? '빠르게 보기' : 'Quick View';
+  String get trainButton =>
+      language == AppLanguage.korean ? '훈련하기' : 'Start Training';
+
+  // Quick View Screen
+  String get quickViewTitle =>
+      language == AppLanguage.korean ? '빠르게 보기' : 'Quick View';
+  String get keySummary =>
+      language == AppLanguage.korean ? '핵심 요약' : 'Key Summary';
+  String get keyKeywords =>
+      language == AppLanguage.korean ? '핵심 키워드' : 'Key Keywords';
+  String get interviewTip =>
+      language == AppLanguage.korean ? '꿀팁' : 'Interview Tip';
+  String get referenceAnswer =>
+      language == AppLanguage.korean ? '참고 답안' : 'Reference Answer';
+  String get startTrainingCTA =>
+      language == AppLanguage.korean ? '훈련하기' : 'Start Training';
+
+  // Training Flow Steps
+  String get stepATitle =>
+      language == AppLanguage.korean ? '한 문장 답변' : 'One-Sentence Answer';
+  String get stepAHint => language == AppLanguage.korean
+      ? '핵심을 한 문장으로 요약해 보세요.'
+      : 'Summarize the key point in one sentence.';
+  String get stepBTitle =>
+      language == AppLanguage.korean ? '원리와 함께 설명' : 'Explain with Principle';
+  String get stepBHint => language == AppLanguage.korean
+      ? '동작 원리를 2~3문장으로 설명해 보세요.'
+      : 'Explain the principle in 2-3 sentences.';
+  String get stepCTitle =>
+      language == AppLanguage.korean ? '예시 추가' : 'Add Example';
+  String get stepCHint => language == AppLanguage.korean
+      ? '예시, 경험, 또는 비유를 추가해 보세요.'
+      : 'Add an example, experience, or analogy.';
+  String get nextStep => language == AppLanguage.korean ? '다음' : 'Next';
+  String get previousStep => language == AppLanguage.korean ? '이전' : 'Back';
+  String get receiveFollowUp =>
+      language == AppLanguage.korean ? '꼬리질문 받기' : 'Get Follow-up';
+  String get followUpQuestionLabel =>
+      language == AppLanguage.korean ? '꼬리 질문' : 'Follow-up Question';
+  String get followUpAnswerHint => language == AppLanguage.korean
+      ? '꼬리 질문에 대한 답변을 입력하세요.'
+      : 'Enter your answer to the follow-up question.';
+  String get submitEvaluation =>
+      language == AppLanguage.korean ? '평가 받기' : 'Get Evaluation';
+  String get generatingFollowUp => language == AppLanguage.korean
+      ? '꼬리 질문을 생성하고 있습니다...'
+      : 'Generating follow-up question...';
+  String get evaluatingAnswers => language == AppLanguage.korean
+      ? '답변을 평가하고 있습니다...'
+      : 'Evaluating your answers...';
+
+  // Evaluation Result (Step F)
+  String get evaluationTitle =>
+      language == AppLanguage.korean ? '평가 결과' : 'Evaluation Result';
+  String get totalScoreLabel =>
+      language == AppLanguage.korean ? '총점' : 'Total Score';
+  String get mainAnswerEval =>
+      language == AppLanguage.korean ? '본답 평가' : 'Main Answer';
+  String get followUpAnswerEval =>
+      language == AppLanguage.korean ? '꼬리 답변 평가' : 'Follow-up Answer';
+  String get improvementPointsLabel =>
+      language == AppLanguage.korean ? '개선 포인트' : 'Improvement Points';
+  String get tryAgain => language == AppLanguage.korean ? '다시 도전' : 'Try Again';
+  String get viewRecords =>
+      language == AppLanguage.korean ? '기록 보기' : 'View Records';
+  String get backToHome => language == AppLanguage.korean ? '홈으로' : 'Go Home';
+
+  // Records Tab
+  String get recordsTitle =>
+      language == AppLanguage.korean ? '훈련 기록' : 'Training Records';
+  String get noRecordsYet => language == AppLanguage.korean
+      ? '훈련 기록이 없습니다.'
+      : 'No training records yet.';
+  String get recordDetailTitle =>
+      language == AppLanguage.korean ? '훈련 상세' : 'Training Detail';
+  String get myAnswerStepA =>
+      language == AppLanguage.korean ? 'Step 1: 한 문장 답변' : 'Step 1: One-liner';
+  String get myAnswerStepB =>
+      language == AppLanguage.korean ? 'Step 2: 원리 설명' : 'Step 2: Principle';
+  String get myAnswerStepC =>
+      language == AppLanguage.korean ? 'Step 3: 예시 추가' : 'Step 3: Example';
+  String get checklistLabel =>
+      language == AppLanguage.korean ? '체크리스트' : 'Checklist';
 }

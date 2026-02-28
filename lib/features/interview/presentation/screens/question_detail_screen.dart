@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/localization/language_service.dart';
 import '../../domain/models/question_model.dart';
+import '../../../training/presentation/screens/quick_view_screen.dart';
+import '../../../training/presentation/screens/training_flow_screen.dart';
 
 /// A modern, full-screen detail page for studying a single question.
 /// Tap-to-reveal flashcard style with editorial layout.
@@ -176,9 +178,92 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Reveal Button (hidden state) ──
+                  // ── CTA Buttons: Quick View / Training ──
                   if (!_isAnswerRevealed) ...[
                     const SizedBox(height: 40),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => QuickViewScreen(
+                                    question: widget.question,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.visibility,
+                                color: widget.themeColor, size: 18),
+                            label: Text(strings.quickViewButton,
+                                style: TextStyle(
+                                    color: widget.themeColor,
+                                    fontWeight: FontWeight.bold)),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                              side: BorderSide(
+                                  color:
+                                      widget.themeColor.withValues(alpha: 0.3)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => TrainingFlowScreen(
+                                    question: widget.question,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.edit_note, size: 18),
+                            label: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(strings.trainButton,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.bolt,
+                                          color: Colors.yellow, size: 12),
+                                      Text('1',
+                                          style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: widget.themeColor,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
                     GestureDetector(
                       onTap: _revealAnswer,
                       child: Container(

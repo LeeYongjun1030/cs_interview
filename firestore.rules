@@ -43,6 +43,19 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // 4. Training Sessions Collection (Training Records)
+    // Only the owner can Create, Read, Update, Delete.
+    match /training_sessions/{sessionId} {
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // 5. User Stats Collection (6-axis radar stats)
+    // Only the user themselves can read or write their own stats.
+    match /user_stats/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Default Deny
     // Block access to any other unexpected collections
     match /{document=**} {

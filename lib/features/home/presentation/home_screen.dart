@@ -14,7 +14,9 @@ import '../../interview/domain/models/session_model.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/localization/language_service.dart';
 import 'profile_screen.dart';
-import 'lecture_screen.dart';
+import 'dashboard_tab.dart';
+import '../../training/presentation/screens/training_tab.dart';
+import '../../records/presentation/screens/records_tab.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/services/ai_service.dart';
 import '../../interview/domain/models/question_model.dart';
@@ -259,18 +261,76 @@ class _HomeScreenState extends State<HomeScreen> {
           IndexedStack(
             index: _selectedIndex,
             children: [
-              _buildHomeContent(strings),
-              const LectureScreen(),
+              const DashboardTab(),
+              const TrainingTab(),
+              const RecordsTab(),
               const ProfileScreen(),
             ],
           ),
+
+          // Energy indicator (floating top-right, visible on all tabs)
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 12,
+            right: 16,
+            child: GestureDetector(
+              onTap: _showShopDialog,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.surface.withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.5)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.15),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.bolt, color: Colors.yellow, size: 16),
+                    const SizedBox(width: 4),
+                    if (_credits == null)
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    else
+                      Text(
+                        '$_credits',
+                        style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14),
+                      ),
+                    const SizedBox(width: 8),
+                    Container(
+                      width: 20,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child:
+                          const Icon(Icons.add, color: Colors.white, size: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
-
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _selectedIndex == 0
-          ? _buildFAB(context, strings)
-          : null, // Only show FAB on Home
       bottomNavigationBar: _buildBottomNav(context, strings),
     );
   }
@@ -789,8 +849,9 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
           _buildNavItem(0, Icons.dashboard, strings.navHome),
-          _buildNavItem(1, Icons.menu_book, strings.navLearning),
-          _buildNavItem(2, Icons.person_outline, strings.navProfile),
+          _buildNavItem(1, Icons.edit_note, strings.navTraining),
+          _buildNavItem(2, Icons.bar_chart, strings.navRecords),
+          _buildNavItem(3, Icons.person_outline, strings.navProfile),
         ],
       ),
     );
