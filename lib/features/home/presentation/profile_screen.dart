@@ -67,10 +67,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (confirmed == true) {
       try {
-        await _repository.deleteAllUserSessions(user.uid);
+        await _repository.deleteAllTrainingSessions(user.uid);
+        await _repository.resetUserStats(user.uid);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('모든 데이터가 초기화되었습니다.')),
+            const SnackBar(content: Text('모든 훈련 기록이 초기화되었습니다.')),
           );
         }
       } catch (e) {
@@ -118,8 +119,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (confirmed == true) {
       try {
-        // 1. Delete Sessions (Firestore)
-        await _repository.deleteAllUserSessions(user.uid);
+        // 1. Delete Training Sessions (Firestore)
+        await _repository.deleteAllTrainingSessions(user.uid);
+        // 2. Reset User Stats (Firestore)
+        await _repository.resetUserStats(user.uid);
 
         // 2. Delete User Data (Credits, etc.) (Firestore)
         await creditRepo.deleteUser(user.uid);

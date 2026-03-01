@@ -118,10 +118,6 @@ class _RadarChartPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.5;
 
-    final dotPaint = Paint()
-      ..color = AppColors.primary
-      ..style = PaintingStyle.fill;
-
     final points = <Offset>[];
 
     for (int i = 0; i < axisCount; i++) {
@@ -144,22 +140,12 @@ class _RadarChartPainter extends CustomPainter {
 
     canvas.drawPath(path, fillPaint);
     canvas.drawPath(path, strokePaint);
-
-    // Draw dots at each vertex
-    for (final pt in points) {
-      canvas.drawCircle(pt, 4, dotPaint);
-      canvas.drawCircle(
-          pt,
-          4,
-          Paint()
-            ..color = Colors.white
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.5);
-    }
   }
 
   void _drawLabels(Canvas canvas, Offset center, double radius,
       double angleStep, Size size) {
+    final keys = scores.keys.toList();
+
     for (int i = 0; i < axisCount; i++) {
       if (i >= labels.length) break;
       final angle = -pi / 2 + i * angleStep;
@@ -167,13 +153,33 @@ class _RadarChartPainter extends CustomPainter {
       var x = center.dx + labelRadius * cos(angle);
       var y = center.dy + labelRadius * sin(angle);
 
+      final key = i < keys.length ? keys[i] : keys[0];
+      final score = scores[key] ?? 50;
+      final scoreColor = score >= 80
+          ? const Color(0xFF34D399)
+          : score >= 60
+              ? Colors.orange
+              : const Color(0xFFEF4444);
+
       final textSpan = TextSpan(
-        text: labels[i],
-        style: TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-        ),
+        children: [
+          TextSpan(
+            text: '${labels[i]} ',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          TextSpan(
+            text: '$score',
+            style: TextStyle(
+              color: scoreColor,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
       );
 
       final textPainter = TextPainter(

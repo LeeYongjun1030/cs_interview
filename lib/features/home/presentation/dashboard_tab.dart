@@ -169,42 +169,7 @@ class _DashboardTabState extends State<DashboardTab> {
               size: 240,
             ),
           ),
-          const SizedBox(height: 12),
-          // Score chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            alignment: WrapAlignment.center,
-            children: scores.entries.map((e) {
-              final idx = scores.keys.toList().indexOf(e.key);
-              final label = idx < labels.length ? labels[idx] : e.key;
-              return _scoreChip(label, e.value);
-            }).toList(),
-          ),
         ],
-      ),
-    );
-  }
-
-  Widget _scoreChip(String label, int score) {
-    final color = score >= 80
-        ? AppColors.accentGreen
-        : score >= 60
-            ? Colors.orange
-            : AppColors.accentRed;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        '$label $score',
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
       ),
     );
   }

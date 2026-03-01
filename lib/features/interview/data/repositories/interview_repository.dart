@@ -213,6 +213,31 @@ class InterviewRepository {
     }
   }
 
+  /// Delete all training sessions for a user.
+  Future<void> deleteAllTrainingSessions(String userId) async {
+    try {
+      final querySnapshot =
+          await _trainingRef.where('userId', isEqualTo: userId).get();
+      final batch = _firestore.batch();
+      for (final doc in querySnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Failed to delete all training sessions: $e');
+    }
+  }
+
+  /// Reset user stats back to initial values (all axes = 50).
+  Future<void> resetUserStats(String userId) async {
+    try {
+      final initial = UserStats.initial(userId);
+      await _userStatsRef.doc(userId).set(initial.toJson());
+    } catch (e) {
+      throw Exception('Failed to reset user stats: $e');
+    }
+  }
+
   // ======================================================================
   // USER STATS (6-axis radar)
   // ======================================================================
