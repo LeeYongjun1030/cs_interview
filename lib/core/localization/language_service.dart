@@ -401,15 +401,46 @@ class AppStrings {
   String get todayTraining =>
       language == AppLanguage.korean ? '오늘의 훈련' : "Today's Training";
   String get startTodayTraining =>
-      language == AppLanguage.korean ? '오늘의 훈련 시작' : 'Start Today\'s Training';
+      language == AppLanguage.korean ? '훈련 시작하기' : 'Start Training';
   String get myAbilityRadar =>
-      language == AppLanguage.korean ? '나의 역량 레이더' : 'My Ability Radar';
+      language == AppLanguage.korean ? '나의 면접 분석' : 'My Interview Analysis';
+  String get myAnalysisTitle =>
+      language == AppLanguage.korean ? '나의 면접 분석' : 'My Interview Analysis';
   String get recentTrainingContinue => language == AppLanguage.korean
       ? '최근 훈련 이어하기'
       : 'Continue Recent Training';
   String get noTrainingYet => language == AppLanguage.korean
       ? '아직 훈련 기록이 없습니다.\n첫 번째 훈련을 시작해보세요!'
       : 'No training records yet.\nStart your first training!';
+
+  // Greetings
+  String get greetingMorning =>
+      language == AppLanguage.korean ? '좋은 아침이에요' : 'Good morning';
+  String get greetingAfternoon =>
+      language == AppLanguage.korean ? '좋은 오후예요' : 'Good afternoon';
+  String get greetingEvening =>
+      language == AppLanguage.korean ? '좋은 저녁이에요' : 'Good evening';
+
+  // Training streak / retention
+  String trainingStreakMessage(int count) => language == AppLanguage.korean
+      ? '총 $count회 훈련 완료!'
+      : '$count trainings completed!';
+
+  // Analysis info dialog
+  String get analysisExplanation => language == AppLanguage.korean
+      ? '훈련을 완료하면 AI가 6개 항목을 평가합니다.\n\n• 한문장 요약\n• 원리 설명\n• 예시/경험\n• 키워드 활용\n• 전달력\n• 꼬리질문 대응\n\n각 점수는 기존 점수와 새 평가를 7:3 비율로 반영하여 누적됩니다.'
+      : 'After each training, AI evaluates 6 areas:\n\n• Summary\n• Principle\n• Example\n• Keywords\n• Clarity\n• Follow-up\n\nScores blend 70% existing + 30% new evaluation.';
+  String get confirmButton => language == AppLanguage.korean ? '확인' : 'OK';
+
+  // Exit training confirmation
+  String get exitTrainingTitle =>
+      language == AppLanguage.korean ? '훈련을 종료할까요?' : 'End training?';
+  String get exitTrainingMessage => language == AppLanguage.korean
+      ? '지금 나가면 훈련이 종료되며,\n소비된 에너지는 반환되지 않습니다.'
+      : 'If you leave now, training will end\nand energy will not be refunded.';
+  String get continueTraining =>
+      language == AppLanguage.korean ? '계속하기' : 'Continue';
+  String get exitAnyway => language == AppLanguage.korean ? '나가기' : 'Exit';
 
   // Radar Chart Axes
   String get axisSummary =>
@@ -437,6 +468,19 @@ class AppStrings {
       language == AppLanguage.korean ? '빠르게 보기' : 'Quick View';
   String get trainButton =>
       language == AppLanguage.korean ? '훈련하기' : 'Start Training';
+  String get tipLabel => language == AppLanguage.korean ? '답변 팁' : 'Answer Tip';
+  String get keywordsLabel =>
+      language == AppLanguage.korean ? '핵심 키워드' : 'KEY WORDS';
+  String get quickViewDescription => language == AppLanguage.korean
+      ? '모범답안과 핵심 포인트 확인'
+      : 'Check model answer & key points';
+  String get trainDescription => language == AppLanguage.korean
+      ? '단계별로 답변을 작성하고 AI 피드백 받기'
+      : 'Write answers step-by-step & get AI feedback';
+  String get showAnswer =>
+      language == AppLanguage.korean ? '답변 보기' : 'Show Answer';
+  String get hideAnswer =>
+      language == AppLanguage.korean ? '답변 숨기기' : 'Hide Answer';
 
   // Quick View Screen
   String get quickViewTitle =>

@@ -70,6 +70,53 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
     if (mounted) setState(() {});
   }
 
+  void _onClosePressed(AppStrings strings) {
+    // If already on result screen, just pop
+    if (_controller.currentStep == TrainingStep.stepF) {
+      Navigator.pop(context);
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          strings.exitTrainingTitle,
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          strings.exitTrainingMessage,
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            height: 1.5,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(strings.continueTraining,
+                style: TextStyle(
+                    color: AppColors.primary, fontWeight: FontWeight.bold)),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pop(context);
+            },
+            child: Text(strings.exitAnyway,
+                style: TextStyle(color: AppColors.accentRed)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _controller.removeListener(_onControllerChange);
@@ -91,7 +138,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.close, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => _onClosePressed(strings),
         ),
         title: Text(
           _getStepTitle(strings),

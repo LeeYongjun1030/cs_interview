@@ -12,7 +12,6 @@ import '../../../../core/localization/language_service.dart';
 class SubjectQuestionsScreen extends StatefulWidget {
   final String subjectId; // For Query (e.g. 'network')
   final String subjectName; // For Display (e.g. 'Network')
-  final Color themeColor;
   final IconData icon;
   final String? lectureUrl; // Optional external video link
 
@@ -20,7 +19,6 @@ class SubjectQuestionsScreen extends StatefulWidget {
     super.key,
     required this.subjectId,
     required this.subjectName,
-    required this.themeColor,
     required this.icon,
     this.lectureUrl,
   });
@@ -68,7 +66,6 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
       MaterialPageRoute(
         builder: (context) => QuestionDetailScreen(
           question: question,
-          themeColor: widget.themeColor,
           questionIndex: index + 1,
           totalQuestions: _questions.length,
         ),
@@ -91,7 +88,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
         leading: BackButton(color: AppColors.textPrimary),
         title: Text(widget.subjectName, style: AppTextStyles.titleMedium),
         actions: [
-          Icon(widget.icon, color: widget.themeColor),
+          Icon(widget.icon, color: AppColors.primary),
           const SizedBox(width: 16),
         ],
       ),
@@ -115,7 +112,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                 width: 3,
                                 decoration: BoxDecoration(
                                   color:
-                                      widget.themeColor.withValues(alpha: 0.8),
+                                      AppColors.primary.withValues(alpha: 0.8),
                                   borderRadius: BorderRadius.circular(1.5),
                                 ),
                               ),
@@ -157,10 +154,10 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                     horizontal: 16, vertical: 12),
                                 decoration: BoxDecoration(
                                   color:
-                                      widget.themeColor.withValues(alpha: 0.08),
+                                      AppColors.primary.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: widget.themeColor
+                                    color: AppColors.primary
                                         .withValues(alpha: 0.2),
                                   ),
                                 ),
@@ -170,7 +167,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                     Text(
                                       strings.watchVideoLecture,
                                       style: TextStyle(
-                                        color: widget.themeColor,
+                                        color: AppColors.primary,
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -178,7 +175,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                     const SizedBox(width: 4),
                                     Icon(
                                       Icons.open_in_new,
-                                      color: widget.themeColor,
+                                      color: AppColors.primary,
                                       size: 16,
                                     ),
                                   ],
@@ -219,14 +216,22 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            question.getLocalizedCategory(
-                                                languageCode),
-                                            style: AppTextStyles.labelSmall
-                                                .copyWith(
-                                              color: AppColors.textSecondary,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                          // Star difficulty + category
+                                          Row(
+                                            children: [
+                                              _starRow(question.level),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                question.getLocalizedCategory(
+                                                    languageCode),
+                                                style: AppTextStyles.labelSmall
+                                                    .copyWith(
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
@@ -258,6 +263,20 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                     ),
                   ],
                 ),
+    );
+  }
+
+  Widget _starRow(int level) {
+    const color = Color(0xFFF59E0B);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(3, (i) {
+        return Icon(
+          i < level ? Icons.star_rounded : Icons.star_outline_rounded,
+          size: 13,
+          color: i < level ? color : color.withValues(alpha: 0.25),
+        );
+      }),
     );
   }
 

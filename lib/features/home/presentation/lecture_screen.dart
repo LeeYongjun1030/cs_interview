@@ -152,7 +152,6 @@ class LectureScreen extends StatelessWidget {
                 builder: (context) => SubjectQuestionsScreen(
                   subjectId: id,
                   subjectName: title,
-                  themeColor: color,
                   icon: icon,
                   lectureUrl: lectureUrl,
                 ),
@@ -167,10 +166,10 @@ class LectureScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: color, size: 24),
+                  child: Icon(icon, color: AppColors.primary, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Expanded(

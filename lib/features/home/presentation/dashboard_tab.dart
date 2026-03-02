@@ -52,6 +52,59 @@ class _DashboardTabState extends State<DashboardTab> {
     }
   }
 
+  String _getGreeting(AppStrings strings) {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return strings.greetingMorning;
+    } else if (hour < 18) {
+      return strings.greetingAfternoon;
+    } else {
+      return strings.greetingEvening;
+    }
+  }
+
+  void _showAnalysisInfo(AppStrings strings) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Icon(Icons.info_outline_rounded,
+                color: AppColors.primary, size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                strings.myAnalysisTitle,
+                style: AppTextStyles.titleSmall.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          strings.analysisExplanation,
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 13.5,
+            height: 1.6,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(strings.confirmButton,
+                style: TextStyle(
+                    color: AppColors.primary, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<ThemeController>();
@@ -69,57 +122,104 @@ class _DashboardTabState extends State<DashboardTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  // Header
-                  Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.primary,
-                        ),
-                        child: ClipOval(
-                          child: Image.network(
-                            FirebaseAuth.instance.currentUser?.photoURL ?? '',
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(Icons.person,
-                                color: Colors.white, size: 22),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            FirebaseAuth.instance.currentUser?.displayName ??
-                                'Guest',
-                            style: AppTextStyles.titleMedium
-                                .copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          if (_stats != null)
-                            Text(
-                              '${strings.totalScoreLabel}: ${_stats!.totalTrainings}회 훈련',
-                              style: AppTextStyles.labelSmall
-                                  .copyWith(color: AppColors.textTertiary),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
+                  // ── Header: Greeting + Streak ──
+                  _buildHeader(strings),
                   const SizedBox(height: 28),
 
-                  // Radar Chart Section
+                  // ── Radar Chart Section ──
                   _buildRadarSection(strings),
                   const SizedBox(height: 28),
 
-                  // Today's Training Card
+                  // ── Today's Training Card ──
                   _buildTodayTrainingCard(strings, langCode),
                   const SizedBox(height: 100),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildHeader(AppStrings strings) {
+    final displayName =
+        FirebaseAuth.instance.currentUser?.displayName ?? 'Guest';
+    final greeting = _getGreeting(strings);
+    final trainCount = _stats?.totalTrainings ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary,
+                    AppColors.primary.withValues(alpha: 0.7),
+                  ],
+                ),
+              ),
+              child: ClipOval(
+                child: Image.network(
+                  FirebaseAuth.instance.currentUser?.photoURL ?? '',
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.person, color: Colors.white, size: 22),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$greeting, $displayName 👋',
+                    style: AppTextStyles.titleMedium
+                        .copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        // Streak / Motivation badge
+        if (trainCount > 0) ...[
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  trainCount >= 10
+                      ? '🔥'
+                      : trainCount >= 5
+                          ? '💪'
+                          : '🌱',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  strings.trainingStreakMessage(trainCount),
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -154,12 +254,26 @@ class _DashboardTabState extends State<DashboardTab> {
       ),
       child: Column(
         children: [
-          Text(
-            strings.myAbilityRadar,
-            style: AppTextStyles.titleMedium.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                strings.myAnalysisTitle,
+                style: AppTextStyles.titleMedium.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(width: 4),
+              GestureDetector(
+                onTap: () => _showAnalysisInfo(strings),
+                child: Icon(
+                  Icons.info_outline_rounded,
+                  size: 18,
+                  color: AppColors.textTertiary,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Center(
@@ -196,22 +310,30 @@ class _DashboardTabState extends State<DashboardTab> {
       );
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6), Color(0xFFD946EF)],
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          colors: isDark
+              ? [
+                  const Color(0xFF1E1B4B),
+                  const Color(0xFF312E81),
+                ]
+              : [
+                  const Color(0xFFF5F3FF),
+                  const Color(0xFFEDE9FE),
+                ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFF6366F1).withValues(alpha: 0.3)
+              : const Color(0xFF6366F1).withValues(alpha: 0.15),
+        ),
       ),
       child: Material(
         color: Colors.transparent,
@@ -224,88 +346,103 @@ class _DashboardTabState extends State<DashboardTab> {
               ),
             ).then((_) => _loadData());
           },
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(24),
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Label row
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child:
-                          const Icon(Icons.bolt, color: Colors.white, size: 20),
+                      child: Text(
+                        strings.todayTraining,
+                        style: TextStyle(
+                          color: isDark
+                              ? const Color(0xFFA5B4FC)
+                              : const Color(0xFF6366F1),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      strings.todayTraining,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
+                    const Spacer(),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: isDark
+                          ? const Color(0xFFA5B4FC)
+                          : const Color(0xFF6366F1),
+                      size: 20,
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
+                // Question text
                 Text(
                   _dailyQuestion!.getLocalizedQuestion(langCode),
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 15,
-                    height: 1.5,
+                    color: isDark ? Colors.white : const Color(0xFF1E1B4B),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    height: 1.45,
                   ),
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
+                // CTA button
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 13),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white30),
-                  ),
-                  child: Center(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          strings.startTodayTraining,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.bolt, color: Colors.yellow, size: 13),
-                              Text('1',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold)),
-                            ],
-                          ),
-                        ),
-                      ],
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
                     ),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.play_arrow_rounded,
+                          color: Colors.white, size: 20),
+                      const SizedBox(width: 6),
+                      Text(
+                        strings.startTodayTraining,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.bolt, color: Colors.yellow, size: 13),
+                            Text('1',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
