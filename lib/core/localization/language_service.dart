@@ -177,6 +177,10 @@ class AppStrings {
       language == AppLanguage.korean ? '마지막 학습' : 'Last Studied';
 
   // Subject Screen
+  String get searchQuestions =>
+      language == AppLanguage.korean ? '질문 검색...' : 'Search questions...';
+  String get noSearchResults =>
+      language == AppLanguage.korean ? '검색 결과가 없습니다.' : 'No results found.';
   String get noQuestions => language == AppLanguage.korean
       ? '등록된 질문이 없습니다.'
       : 'No questions available.';

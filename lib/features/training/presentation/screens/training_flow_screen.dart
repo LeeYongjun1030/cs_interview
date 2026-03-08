@@ -286,7 +286,24 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
           TextField(
             controller: _textController,
             maxLines: step == TrainingStep.stepA ? 3 : 6,
+            maxLength: step == TrainingStep.stepA ? 100 : 500,
             style: TextStyle(color: AppColors.textPrimary),
+            buildCounter: (context,
+                {required currentLength,
+                required isFocused,
+                required maxLength}) {
+              final isNearLimit = currentLength > (maxLength! * 0.8);
+              return Text(
+                '$currentLength / $maxLength',
+                style: TextStyle(
+                  color: isNearLimit
+                      ? AppColors.accentRed
+                      : AppColors.textTertiary,
+                  fontSize: 12,
+                  fontWeight: isNearLimit ? FontWeight.w600 : FontWeight.normal,
+                ),
+              );
+            },
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(color: AppColors.textDisabled),

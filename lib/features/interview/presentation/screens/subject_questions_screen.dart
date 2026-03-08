@@ -29,8 +29,30 @@ class SubjectQuestionsScreen extends StatefulWidget {
 
 class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
   final InterviewRepository _repository = InterviewRepository();
+  final TextEditingController _searchController = TextEditingController();
   List<Question> _questions = [];
   bool _isLoading = true;
+  String _searchQuery = '';
+
+  List<Question> get _filteredQuestions {
+    if (_searchQuery.isEmpty) return _questions;
+    final q = _searchQuery.toLowerCase();
+    return _questions.where((question) {
+      final langCode = Provider.of<LanguageController>(context, listen: false)
+          .currentLanguage
+          .code;
+      final questionText =
+          question.getLocalizedQuestion(langCode).toLowerCase();
+      final category = question.getLocalizedCategory(langCode).toLowerCase();
+      final keywords = question
+          .getLocalizedKeywords(langCode)
+          .map((k) => k.toLowerCase())
+          .toList();
+      return questionText.contains(q) ||
+          category.contains(q) ||
+          keywords.any((k) => k.contains(q));
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -60,6 +82,12 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   void _openQuestionDetail(Question question, int index) {
     Navigator.push(
       context,
@@ -67,7 +95,7 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
         builder: (context) => QuestionDetailScreen(
           question: question,
           questionIndex: index + 1,
-          totalQuestions: _questions.length,
+          totalQuestions: _filteredQuestions.length,
         ),
       ),
     );
@@ -185,82 +213,156 @@ class _SubjectQuestionsScreenState extends State<SubjectQuestionsScreen> {
                           ),
                         ),
                       ),
-                    const SliverToBoxAdapter(child: SizedBox(height: 8)),
-                    // Question List
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final question = _questions[index];
-
-                            return GestureDetector(
-                              onTap: () => _openQuestionDetail(question, index),
-                              child: Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 14),
-                                decoration: BoxDecoration(
-                                  color: AppColors.surface,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                      color: AppColors.textDisabled
-                                          .withValues(alpha: 0.1)),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    // Content
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          // Star difficulty + category
-                                          Row(
-                                            children: [
-                                              _starRow(question.level),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                question.getLocalizedCategory(
-                                                    languageCode),
-                                                style: AppTextStyles.labelSmall
-                                                    .copyWith(
-                                                  color:
-                                                      AppColors.textSecondary,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            question.getLocalizedQuestion(
-                                                languageCode),
-                                            style: AppTextStyles.bodyLarge
-                                                .copyWith(
-                                                    color:
-                                                        AppColors.textPrimary,
-                                                    height: 1.4),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Icon(
-                                      Icons.arrow_forward_ios,
-                                      size: 14,
-                                      color: AppColors.textTertiary,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                          childCount: _questions.length,
+                    // Search bar
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (value) =>
+                              setState(() => _searchQuery = value.trim()),
+                          style: TextStyle(
+                              color: AppColors.textPrimary, fontSize: 14),
+                          decoration: InputDecoration(
+                            hintText: strings.searchQuestions,
+                            hintStyle: TextStyle(color: AppColors.textDisabled),
+                            prefixIcon: Icon(Icons.search,
+                                color: AppColors.textTertiary, size: 20),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(Icons.clear,
+                                        color: AppColors.textTertiary,
+                                        size: 18),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() => _searchQuery = '');
+                                    },
+                                  )
+                                : null,
+                            filled: true,
+                            fillColor: AppColors.surface,
+                            contentPadding:
+                                const EdgeInsets.symmetric(vertical: 10),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                  color: AppColors.textDisabled
+                                      .withValues(alpha: 0.15)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                  color: AppColors.textDisabled
+                                      .withValues(alpha: 0.15)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                  color: AppColors.primary, width: 1.5),
+                            ),
+                          ),
                         ),
                       ),
                     ),
+                    // Question List (or empty search result)
+                    if (_filteredQuestions.isEmpty && _searchQuery.isNotEmpty)
+                      SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.search_off,
+                                  size: 48, color: AppColors.textTertiary),
+                              const SizedBox(height: 12),
+                              Text(
+                                strings.noSearchResults,
+                                style: TextStyle(
+                                    color: AppColors.textTertiary,
+                                    fontSize: 14),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final question = _filteredQuestions[index];
+
+                              return GestureDetector(
+                                onTap: () =>
+                                    _openQuestionDetail(question, index),
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                        color: AppColors.textDisabled
+                                            .withValues(alpha: 0.1)),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      // Content
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            // Star difficulty + category
+                                            Row(
+                                              children: [
+                                                _starRow(question.level),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  question.getLocalizedCategory(
+                                                      languageCode),
+                                                  style: AppTextStyles
+                                                      .labelSmall
+                                                      .copyWith(
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              question.getLocalizedQuestion(
+                                                  languageCode),
+                                              style: AppTextStyles.bodyLarge
+                                                  .copyWith(
+                                                      color:
+                                                          AppColors.textPrimary,
+                                                      height: 1.4),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Icon(
+                                        Icons.arrow_forward_ios,
+                                        size: 14,
+                                        color: AppColors.textTertiary,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            childCount: _filteredQuestions.length,
+                          ),
+                        ),
+                      ),
                   ],
                 ),
     );
