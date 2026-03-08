@@ -4,6 +4,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/localization/language_service.dart';
 import '../../../training/domain/models/training_session_model.dart';
+import '../../../training/presentation/screens/training_flow_screen.dart';
+import '../../../interview/data/repositories/interview_repository.dart';
 import '../../../home/presentation/widgets/radar_chart_widget.dart';
 
 /// Detail screen for a completed training session.
@@ -207,6 +209,46 @@ class RecordDetailScreen extends StatelessWidget {
                   ),
                 ),
             ],
+            const SizedBox(height: 32),
+
+            // Retry Training Button
+            if (session.questionId.isNotEmpty)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () async {
+                    final question = await InterviewRepository()
+                        .fetchQuestionById(session.questionId);
+                    if (question != null && context.mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              TrainingFlowScreen(question: question),
+                        ),
+                      );
+                    } else if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(strings.questionNotFound),
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(Icons.replay, size: 18),
+                  label: Text(
+                    strings.retryTraining,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
             const SizedBox(height: 40),
           ],
         ),

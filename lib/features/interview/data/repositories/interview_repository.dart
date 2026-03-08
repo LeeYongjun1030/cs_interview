@@ -53,6 +53,18 @@ class InterviewRepository {
     }
   }
 
+  Future<Question?> fetchQuestionById(String questionId) async {
+    try {
+      final allQuestions = await _loadLocalQuestions();
+      return allQuestions.cast<Question?>().firstWhere(
+            (q) => q!.id == questionId,
+            orElse: () => null,
+          );
+    } catch (e) {
+      return null;
+    }
+  }
+
   // ======================================================================
   // LEGACY: Interview sessions (kept for backward compatibility)
   // ======================================================================

@@ -566,4 +566,9 @@ class AppStrings {
       language == AppLanguage.korean ? 'Step 3: 예시 추가' : 'Step 3: Example';
   String get checklistLabel =>
       language == AppLanguage.korean ? '체크리스트' : 'Checklist';
+  String get retryTraining => language == AppLanguage.korean
+      ? '이 문제로 다시 훈련'
+      : 'Retry with this question';
+  String get questionNotFound =>
+      language == AppLanguage.korean ? '질문을 찾을 수 없습니다.' : 'Question not found.';
 }
