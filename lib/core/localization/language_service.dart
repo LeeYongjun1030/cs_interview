@@ -571,4 +571,9 @@ class AppStrings {
       : 'Retry with this question';
   String get questionNotFound =>
       language == AppLanguage.korean ? '질문을 찾을 수 없습니다.' : 'Question not found.';
+  String get confirmTrainingTitle =>
+      language == AppLanguage.korean ? '훈련을 시작할까요?' : 'Start training?';
+  String get confirmTrainingMessage => language == AppLanguage.korean
+      ? '에너지 1개가 소모됩니다. 시작하시겠습니까?'
+      : 'This will cost 1 energy. Do you want to start?';
 }

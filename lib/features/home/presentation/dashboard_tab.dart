@@ -339,12 +339,52 @@ class _DashboardTabState extends State<DashboardTab> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TrainingFlowScreen(question: _dailyQuestion!),
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                backgroundColor: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                title: Text(
+                  strings.confirmTrainingTitle,
+                  style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold),
+                ),
+                content: Text(
+                  strings.confirmTrainingMessage,
+                  style:
+                      TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    child: Text(strings.cancelButton,
+                        style: TextStyle(color: AppColors.textTertiary)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              TrainingFlowScreen(question: _dailyQuestion!),
+                        ),
+                      ).then((_) => _loadData());
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: Text(strings.startAction,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
               ),
-            ).then((_) => _loadData());
+            );
           },
           borderRadius: BorderRadius.circular(24),
           child: Padding(
