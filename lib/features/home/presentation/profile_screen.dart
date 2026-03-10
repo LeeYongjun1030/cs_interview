@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/services/auth_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/theme/theme_controller.dart';
@@ -18,6 +19,19 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  bool _notifEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotifState();
+  }
+
+  Future<void> _loadNotifState() async {
+    final enabled = await NotificationService().isEnabled();
+    if (mounted) setState(() => _notifEnabled = enabled);
+  }
+
   final InterviewRepository _repository = InterviewRepository();
 
   Future<void> _launchUrl(String urlString) async {
@@ -250,6 +264,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ],
+                ),
+                const Divider(height: 1, color: Colors.black12),
+                // Notification Toggle
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 12.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.notifications_active_outlined,
+                          color: AppColors.textSecondary),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          strings.notificationToggle,
+                          style: TextStyle(color: AppColors.textPrimary),
+                        ),
+                      ),
+                      Switch(
+                        value: _notifEnabled,
+                        activeColor: AppColors.primary,
+                        onChanged: (val) async {
+                          setState(() => _notifEnabled = val);
+                          await NotificationService().setEnabled(val);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ],
 

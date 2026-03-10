@@ -576,4 +576,6 @@ class AppStrings {
   String get confirmTrainingMessage => language == AppLanguage.korean
       ? '에너지 1개가 소모됩니다. 시작하시겠습니까?'
       : 'This will cost 1 energy. Do you want to start?';
+  String get notificationToggle =>
+      language == AppLanguage.korean ? '매일 훈련 알림' : 'Daily Training Reminder';
 }

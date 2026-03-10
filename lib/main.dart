@@ -14,6 +14,7 @@ import 'features/auth/presentation/login_screen.dart';
 import 'features/monetization/data/repositories/credit_repository.dart';
 import 'features/monetization/services/ad_service.dart';
 import 'core/theme/theme_controller.dart';
+import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -74,6 +75,11 @@ Future<void> _initializeServices(AdService adService) async {
     });
 
     await remoteConfig.fetchAndActivate();
+
+    // 4. Initialize Notifications
+    final notifService = NotificationService();
+    await notifService.init();
+    await notifService.rescheduleIfEnabled();
   } catch (e) {
     debugPrint("Background Initialization Failed: $e");
   }
