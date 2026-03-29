@@ -109,9 +109,9 @@ class NotificationService {
     await cancelAll();
 
     final now = tz.TZDateTime.now(tz.local);
-    final tomorrow9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+    final tomorrow9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
         .add(const Duration(days: 1));
-    final dayAfter9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+    final dayAfter9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
         .add(const Duration(days: 2));
 
     // Day 1: Tomorrow
@@ -146,9 +146,9 @@ class NotificationService {
     // Only reschedule if within the 2-day window
     if (daysSince >= 2) return;
 
-    final tomorrow9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+    final tomorrow9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
         .add(Duration(days: daysSince == 0 ? 1 : 1));
-    final dayAfter9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+    final dayAfter9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
         .add(Duration(days: daysSince == 0 ? 2 : 2));
 
     await cancelAll();
@@ -171,7 +171,7 @@ class NotificationService {
       }
     } else if (daysSince == 1) {
       // Trained yesterday → only day-after remains
-      final today9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9);
+      final today9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20);
       if (today9am.isAfter(tz.TZDateTime.now(tz.local))) {
         await _scheduleNotification(
           id: _notifIdDay1,
@@ -180,7 +180,7 @@ class NotificationService {
         );
       }
       final tomorrowFor2 =
-          tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+          tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
               .add(const Duration(days: 1));
       if (tomorrowFor2.isAfter(tz.TZDateTime.now(tz.local))) {
         await _scheduleNotification(
