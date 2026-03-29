@@ -70,43 +70,7 @@ class RecordDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // 3-Step Answers
-            _answerSection(strings.myAnswerStepA, session.stepA),
-            const SizedBox(height: 12),
-            _answerSection(strings.myAnswerStepB, session.stepB),
-            const SizedBox(height: 12),
-            _answerSection(strings.myAnswerStepC, session.stepC),
-            const SizedBox(height: 24),
-
-            // Follow-up Q&A
-            if (session.aiFollowUpQuestion != null) ...[
-              _sectionTitle(strings.followUpQuestionLabel, Icons.psychology),
-              const SizedBox(height: 8),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-                ),
-                child: Text(
-                  session.aiFollowUpQuestion!,
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.textPrimary,
-                    height: 1.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (session.userFollowUpAnswer != null)
-                _answerSection(
-                    strings.followUpAnswerEval, session.userFollowUpAnswer!),
-              const SizedBox(height: 24),
-            ],
-
-            // Evaluation
+            // ── Evaluation (visual first) ──
             if (eval != null) ...[
               // Grade
               Center(
@@ -162,14 +126,7 @@ class RecordDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Checklist
-              _checklistSection(strings.mainAnswerEval, eval.mainChecklist),
-              const SizedBox(height: 12),
-              _checklistSection(
-                  strings.followUpAnswerEval, eval.followUpChecklist),
-              const SizedBox(height: 16),
-
-              // Improvement
+              // Improvement Tip
               if (eval.improvementTip != null)
                 Container(
                   width: double.infinity,
@@ -208,7 +165,93 @@ class RecordDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
+              const SizedBox(height: 16),
+
+              // Divider
+              Divider(color: AppColors.textDisabled.withValues(alpha: 0.3)),
+              const SizedBox(height: 8),
+
+              // ── Checklists (collapsible) ──
+              _collapsibleSection(
+                context: context,
+                title: strings.mainAnswerEval,
+                icon: Icons.checklist,
+                initiallyExpanded: false,
+                child: _checklistContent(eval.mainChecklist),
+              ),
+              const SizedBox(height: 8),
+              _collapsibleSection(
+                context: context,
+                title: strings.followUpAnswerEval,
+                icon: Icons.checklist,
+                initiallyExpanded: false,
+                child: _checklistContent(eval.followUpChecklist),
+              ),
+              const SizedBox(height: 8),
             ],
+
+            // ── My Answers (collapsible) ──
+            _collapsibleSection(
+                context: context,
+              title: strings.myAnswerStepA,
+              icon: Icons.edit_note,
+              initiallyExpanded: false,
+              child: _answerContent(session.stepA),
+            ),
+            const SizedBox(height: 8),
+            _collapsibleSection(
+                context: context,
+              title: strings.myAnswerStepB,
+              icon: Icons.edit_note,
+              initiallyExpanded: false,
+              child: _answerContent(session.stepB),
+            ),
+            const SizedBox(height: 8),
+            _collapsibleSection(
+                context: context,
+              title: strings.myAnswerStepC,
+              icon: Icons.edit_note,
+              initiallyExpanded: false,
+              child: _answerContent(session.stepC),
+            ),
+
+            // ── Follow-up Q&A (collapsible) ──
+            if (session.aiFollowUpQuestion != null) ...[
+              const SizedBox(height: 8),
+              _collapsibleSection(
+                context: context,
+                title: strings.followUpQuestionLabel,
+                icon: Icons.psychology,
+                initiallyExpanded: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Colors.orange.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        session.aiFollowUpQuestion!,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textPrimary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ),
+                    if (session.userFollowUpAnswer != null) ...[
+                      const SizedBox(height: 12),
+                      _answerContent(session.userFollowUpAnswer!),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+
             const SizedBox(height: 32),
 
             // Retry Training Button
@@ -256,79 +299,68 @@ class RecordDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionTitle(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, color: AppColors.textSecondary, size: 18),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: AppTextStyles.titleSmall.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _answerSection(String title, String answer) {
+  Widget _collapsibleSection({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required bool initiallyExpanded,
+    required Widget child,
+  }) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: AppColors.textDisabled.withValues(alpha: 0.1)),
+            Border.all(color: AppColors.textDisabled.withValues(alpha: 0.15)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textTertiary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            answer,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textPrimary,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _checklistSection(String title, List<ChecklistItem> items) {
-    if (items.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: AppColors.textDisabled.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: initiallyExpanded,
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+          childrenPadding:
+              const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+          leading: Icon(icon, color: AppColors.textSecondary, size: 20),
+          title: Text(
             title,
             style: AppTextStyles.titleSmall.copyWith(
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 10),
-          ...items.map((ci) => Padding(
+          iconColor: AppColors.textSecondary,
+          collapsedIconColor: AppColors.textSecondary,
+          children: [child],
+        ),
+      ),
+    );
+  }
+
+  Widget _answerContent(String answer) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        answer,
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: AppColors.textPrimary,
+          height: 1.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _checklistContent(List<ChecklistItem> items) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: items
+          .map((ci) => Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -357,9 +389,8 @@ class RecordDetailScreen extends StatelessWidget {
                     ),
                   ],
                 ),
-              )),
-        ],
-      ),
+              ))
+          .toList(),
     );
   }
 
