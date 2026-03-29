@@ -4,7 +4,12 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Simple local notification service for daily training reminders.
+/// Training-triggered local notification service.
+///
+/// After a user completes training, schedules reminders for the next 2 days
+/// (tomorrow 9 AM + day-after-tomorrow 9 AM) to encourage streak continuity.
+/// If the user trains again, old notifications are cancelled and fresh ones
+/// are scheduled.
 class NotificationService {
   static final NotificationService _instance = NotificationService._();
   factory NotificationService() => _instance;
@@ -13,10 +18,12 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  static const _prefKey = 'daily_notification_enabled';
-  static const _dailyNotifId = 0;
-  static const _channelId = 'soarq_daily_reminder';
-  static const _channelName = 'Daily Training Reminder';
+  static const _prefKey = 'notification_enabled';
+  static const _lastTrainedKey = 'last_trained_date';
+  static const _notifIdDay1 = 100;
+  static const _notifIdDay2 = 101;
+  static const _channelId = 'soarq_training_reminder';
+  static const _channelName = 'Training Reminder';
 
   /// Initialize the notification plugin. Call once at app startup.
   Future<void> init() async {
@@ -64,81 +71,172 @@ class NotificationService {
     return true;
   }
 
-  /// Check if daily notification is currently enabled.
+  /// Check if notification is currently enabled.
   Future<bool> isEnabled() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_prefKey) ?? false;
   }
 
-  /// Enable or disable the daily notification.
+  /// Enable or disable the notification feature.
   Future<void> setEnabled(bool enabled) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_prefKey, enabled);
 
     if (enabled) {
-      final granted = await requestPermission();
-      if (granted) {
-        await _scheduleDailyNotification();
-      }
+      await requestPermission();
     } else {
-      await _plugin.cancel(id: _dailyNotifId);
+      await cancelAll();
     }
   }
 
-  /// Schedule a daily notification at 9:00 AM local time.
-  Future<void> _scheduleDailyNotification() async {
+  /// Cancel all scheduled notifications.
+  Future<void> cancelAll() async {
+    await _plugin.cancel(id: _notifIdDay1);
+    await _plugin.cancel(id: _notifIdDay2);
+  }
+
+  /// Call this when the user completes a training session.
+  /// If notifications are enabled, schedules reminders for
+  /// tomorrow 9 AM and day-after-tomorrow 9 AM.
+  Future<void> onTrainingCompleted() async {
+    if (!await isEnabled()) return;
+
+    // Save last trained date
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_lastTrainedKey, DateTime.now().toIso8601String());
+
+    // Cancel any existing reminders, then schedule fresh ones
+    await cancelAll();
+
     final now = tz.TZDateTime.now(tz.local);
-    var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9);
+    final tomorrow9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+        .add(const Duration(days: 1));
+    final dayAfter9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+        .add(const Duration(days: 2));
 
-    // If 9 AM already passed today, schedule for tomorrow
-    if (scheduled.isBefore(now)) {
-      scheduled = scheduled.add(const Duration(days: 1));
+    // Day 1: Tomorrow
+    await _scheduleNotification(
+      id: _notifIdDay1,
+      scheduledDate: tomorrow9am,
+      body: _getDay1Message(),
+    );
+
+    // Day 2: Day after tomorrow
+    await _scheduleNotification(
+      id: _notifIdDay2,
+      scheduledDate: dayAfter9am,
+      body: _getDay2Message(),
+    );
+
+    debugPrint('[Notification] Scheduled: tomorrow + day-after at 09:00');
+  }
+
+  /// Re-schedule pending notifications on app restart (if still valid).
+  Future<void> rescheduleIfNeeded() async {
+    if (!await isEnabled()) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final lastTrained = prefs.getString(_lastTrainedKey);
+    if (lastTrained == null) return;
+
+    final trainedDate = DateTime.parse(lastTrained);
+    final now = DateTime.now();
+    final daysSince = now.difference(trainedDate).inDays;
+
+    // Only reschedule if within the 2-day window
+    if (daysSince >= 2) return;
+
+    final tomorrow9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+        .add(Duration(days: daysSince == 0 ? 1 : 1));
+    final dayAfter9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+        .add(Duration(days: daysSince == 0 ? 2 : 2));
+
+    await cancelAll();
+
+    if (daysSince == 0) {
+      // Trained today → schedule both
+      if (tomorrow9am.isAfter(tz.TZDateTime.now(tz.local))) {
+        await _scheduleNotification(
+          id: _notifIdDay1,
+          scheduledDate: tomorrow9am,
+          body: _getDay1Message(),
+        );
+      }
+      if (dayAfter9am.isAfter(tz.TZDateTime.now(tz.local))) {
+        await _scheduleNotification(
+          id: _notifIdDay2,
+          scheduledDate: dayAfter9am,
+          body: _getDay2Message(),
+        );
+      }
+    } else if (daysSince == 1) {
+      // Trained yesterday → only day-after remains
+      final today9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 9);
+      if (today9am.isAfter(tz.TZDateTime.now(tz.local))) {
+        await _scheduleNotification(
+          id: _notifIdDay1,
+          scheduledDate: today9am,
+          body: _getDay2Message(),
+        );
+      }
+      final tomorrowFor2 =
+          tz.TZDateTime(tz.local, now.year, now.month, now.day, 9)
+              .add(const Duration(days: 1));
+      if (tomorrowFor2.isAfter(tz.TZDateTime.now(tz.local))) {
+        await _scheduleNotification(
+          id: _notifIdDay2,
+          scheduledDate: tomorrowFor2,
+          body: _getDay2Message(),
+        );
+      }
     }
+  }
 
+  Future<void> _scheduleNotification({
+    required int id,
+    required tz.TZDateTime scheduledDate,
+    required String body,
+  }) async {
     const androidDetails = AndroidNotificationDetails(
       _channelId,
       _channelName,
-      channelDescription: 'Daily reminder to practice CS interview training',
+      channelDescription: 'Reminder after training to keep the streak going',
       importance: Importance.defaultImportance,
       priority: Priority.defaultPriority,
       icon: '@mipmap/ic_launcher',
     );
 
-    const iosDetails = DarwinNotificationDetails();
-
     const details = NotificationDetails(
       android: androidDetails,
-      iOS: iosDetails,
+      iOS: DarwinNotificationDetails(),
     );
 
     await _plugin.zonedSchedule(
-      id: _dailyNotifId,
+      id: id,
       title: 'SoarQ 🚀',
-      body: _getRandomMessage(),
-      scheduledDate: scheduled,
+      body: body,
+      scheduledDate: scheduledDate,
       notificationDetails: details,
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-      matchDateTimeComponents: DateTimeComponents.time,
     );
-
-    debugPrint('[Notification] Daily notification scheduled at 09:00');
   }
 
-  /// Re-schedule if already enabled (call on app restart).
-  Future<void> rescheduleIfEnabled() async {
-    if (await isEnabled()) {
-      await _scheduleDailyNotification();
-    }
-  }
-
-  /// Randomly pick a motivational message.
-  String _getRandomMessage() {
+  /// Day 1 message — encourage continuing the streak.
+  String _getDay1Message() {
     final messages = [
-      '오늘의 CS 훈련을 완료해보세요! 💪',
-      '면접 준비, 꾸준함이 실력입니다 🔥',
-      '오늘도 한 문제 풀어볼까요? 🧠',
-      '질문을 쏘면 실력이 올라갑니다 🚀',
-      '매일 조금씩, 면접 마스터가 되는 길 📈',
+      '어제 훈련 잘했어요! 오늘도 한 문제 도전? 🔥',
+      '연속 훈련 중! 오늘도 이어가볼까요? 💪',
+      '어제의 노력이 쌓이고 있어요. 오늘도 GO! 🚀',
+    ];
+    return messages[DateTime.now().microsecond % messages.length];
+  }
+
+  /// Day 2 message — gentle nudge without saying "last".
+  String _getDay2Message() {
+    final messages = [
+      '오늘도 CS 한 문제 풀어볼까요? 🧠',
+      '잠깐이면 돼요, 한 문제만! ⚡',
+      '실력은 꾸준함에서 나와요 📈',
     ];
     return messages[DateTime.now().microsecond % messages.length];
   }

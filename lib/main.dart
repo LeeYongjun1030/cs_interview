@@ -79,7 +79,7 @@ Future<void> _initializeServices(AdService adService) async {
     // 4. Initialize Notifications
     final notifService = NotificationService();
     await notifService.init();
-    await notifService.rescheduleIfEnabled();
+    await notifService.rescheduleIfNeeded();
   } catch (e) {
     debugPrint("Background Initialization Failed: $e");
   }

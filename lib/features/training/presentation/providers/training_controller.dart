@@ -4,6 +4,7 @@ import '../../../interview/data/repositories/interview_repository.dart';
 import '../../../interview/domain/models/question_model.dart';
 import '../../../../core/services/ai_service.dart';
 import '../../domain/models/training_session_model.dart';
+import '../../../../core/services/notification_service.dart';
 
 /// Current step in the training flow.
 enum TrainingStep {
@@ -210,6 +211,8 @@ class TrainingController extends ChangeNotifier {
 
     try {
       await _repository.saveTrainingSession(session);
+      // Trigger follow-up notifications for tomorrow + day after
+      await NotificationService().onTrainingCompleted();
     } catch (e) {
       debugPrint('Failed to save training session: $e');
     }
