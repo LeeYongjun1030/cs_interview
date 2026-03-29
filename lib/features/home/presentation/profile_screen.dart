@@ -265,33 +265,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ],
                 ),
-                const Divider(height: 1, color: Colors.black12),
-                // Notification Toggle
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 12.0),
-                  child: Row(
-                    children: [
-                      Icon(Icons.notifications_active_outlined,
-                          color: AppColors.textSecondary),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          strings.notificationToggle,
-                          style: TextStyle(color: AppColors.textPrimary),
-                        ),
-                      ),
-                      Switch(
-                        value: _notifEnabled,
-                        activeColor: AppColors.primary,
-                        onChanged: (val) async {
-                          setState(() => _notifEnabled = val);
-                          await NotificationService().setEnabled(val);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
               ],
 
               const SizedBox(height: 32),
@@ -504,6 +477,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         );
                       },
+                    ),
+                    const Divider(height: 1, color: Colors.black12),
+                    // Notification Toggle
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0, vertical: 12.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.notifications_active_outlined,
+                              color: AppColors.textSecondary),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              strings.notificationToggle,
+                              style:
+                                  TextStyle(color: AppColors.textPrimary),
+                            ),
+                          ),
+                          Switch(
+                            value: _notifEnabled,
+                            activeColor: AppColors.primary,
+                            onChanged: (val) async {
+                              setState(() => _notifEnabled = val);
+                              await NotificationService().setEnabled(val);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
