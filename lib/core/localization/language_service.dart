@@ -558,12 +558,15 @@ class AppStrings {
       : 'No training records yet.';
   String get recordDetailTitle =>
       language == AppLanguage.korean ? '훈련 상세' : 'Training Detail';
-  String get myAnswerStepA =>
-      language == AppLanguage.korean ? 'Step 1: 한 문장 답변' : 'Step 1: One-liner';
-  String get myAnswerStepB =>
-      language == AppLanguage.korean ? 'Step 2: 원리 설명' : 'Step 2: Principle';
-  String get myAnswerStepC =>
-      language == AppLanguage.korean ? 'Step 3: 예시 추가' : 'Step 3: Example';
+  String get myAnswerStepA => language == AppLanguage.korean
+      ? 'Step 1: 핵심만 한 문장으로'
+      : 'Step 1: Core answer in one sentence';
+  String get myAnswerStepB => language == AppLanguage.korean
+      ? 'Step 2: 원리와 이유 설명하기'
+      : 'Step 2: Explain the why';
+  String get myAnswerStepC => language == AppLanguage.korean
+      ? 'Step 3: 예시로 풍부하게'
+      : 'Step 3: Enrich with examples';
   String get checklistLabel =>
       language == AppLanguage.korean ? '체크리스트' : 'Checklist';
   String get retryTraining => language == AppLanguage.korean
