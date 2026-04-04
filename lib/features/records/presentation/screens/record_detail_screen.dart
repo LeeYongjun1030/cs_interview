@@ -368,14 +368,8 @@ class _ExpandableAnswerCardState extends State<_ExpandableAnswerCard> {
 
   @override
   Widget build(BuildContext context) {
-    final firstLine = widget.answer.split('\n').first;
-    final isLong = widget.answer.length > firstLine.length ||
-        firstLine.length > 50;
-    final preview =
-        firstLine.length > 50 ? '${firstLine.substring(0, 50)}...' : firstLine;
-
     return GestureDetector(
-      onTap: isLong ? () => setState(() => _expanded = !_expanded) : null,
+      onTap: () => setState(() => _expanded = !_expanded),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         width: double.infinity,
@@ -400,20 +394,19 @@ class _ExpandableAnswerCardState extends State<_ExpandableAnswerCard> {
                     ),
                   ),
                 ),
-                if (isLong)
-                  Icon(
-                    _expanded
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: AppColors.textTertiary,
-                    size: 18,
-                  ),
+                Icon(
+                  _expanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: AppColors.textTertiary,
+                  size: 18,
+                ),
               ],
             ),
             const SizedBox(height: 6),
             AnimatedCrossFade(
               firstChild: Text(
-                preview,
+                widget.answer,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.bodyMedium.copyWith(
