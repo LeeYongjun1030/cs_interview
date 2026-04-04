@@ -126,7 +126,7 @@ class RecordDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // ── Feedback Card (Improvement + Checklists combined) ──
+              // ── Feedback Card (Improvement + main checklist subtly) ──
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -139,7 +139,6 @@ class RecordDetailScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Improvement Tip
                     if (eval.improvementTip != null) ...[
                       Row(
                         children: [
@@ -163,37 +162,12 @@ class RecordDetailScreen extends StatelessWidget {
                           height: 1.5,
                         ),
                       ),
-                      if (eval.mainChecklist.isNotEmpty ||
-                          eval.followUpChecklist.isNotEmpty)
-                        Divider(
-                            color: AppColors.accentGreen
-                                .withValues(alpha: 0.25),
-                            height: 24),
                     ],
-                    // Main Answer Checklist
+                    // Main checklist — subtly listed, no section title
                     if (eval.mainChecklist.isNotEmpty) ...[
-                      Text(
-                        strings.mainAnswerEval,
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.textTertiary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+                      if (eval.improvementTip != null)
+                        const SizedBox(height: 12),
                       _checklistContent(eval.mainChecklist),
-                    ],
-                    // Follow-Up Checklist
-                    if (eval.followUpChecklist.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        strings.followUpAnswerEval,
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.textTertiary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _checklistContent(eval.followUpChecklist),
                     ],
                   ],
                 ),
@@ -201,7 +175,7 @@ class RecordDetailScreen extends StatelessWidget {
             ],
             const SizedBox(height: 24),
 
-            // ── Follow-up Q&A (visible, not collapsible) ──
+            // ── Follow-up Q&A (visible) ──
             if (session.aiFollowUpQuestion != null) ...[
               Row(
                 children: [
@@ -239,25 +213,20 @@ class RecordDetailScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 _answerContent(session.userFollowUpAnswer!),
               ],
+              // Follow-up checklist (separate from main)
+              if (eval != null && eval.followUpChecklist.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _checklistContent(eval.followUpChecklist),
+              ],
               const SizedBox(height: 24),
             ],
 
-            // ── My Answers (single collapsible) ──
-            _collapsibleSection(
-              context: context,
-              title: strings.myAnswersTitle,
-              icon: Icons.edit_note,
-              initiallyExpanded: false,
-              child: Column(
-                children: [
-                  _labeledAnswer(strings.myAnswerStepA, session.stepA),
-                  const SizedBox(height: 10),
-                  _labeledAnswer(strings.myAnswerStepB, session.stepB),
-                  const SizedBox(height: 10),
-                  _labeledAnswer(strings.myAnswerStepC, session.stepC),
-                ],
-              ),
-            ),
+            // ── My Answers (individual expandable previews) ──
+            _expandableAnswer(strings.myAnswerStepA, session.stepA),
+            const SizedBox(height: 8),
+            _expandableAnswer(strings.myAnswerStepB, session.stepB),
+            const SizedBox(height: 8),
+            _expandableAnswer(strings.myAnswerStepC, session.stepC),
 
             const SizedBox(height: 32),
 
@@ -306,41 +275,8 @@ class RecordDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _collapsibleSection({
-    required BuildContext context,
-    required String title,
-    required IconData icon,
-    required bool initiallyExpanded,
-    required Widget child,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border:
-            Border.all(color: AppColors.textDisabled.withValues(alpha: 0.15)),
-      ),
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          initiallyExpanded: initiallyExpanded,
-          tilePadding: const EdgeInsets.symmetric(horizontal: 16),
-          childrenPadding:
-              const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-          leading: Icon(icon, color: AppColors.textSecondary, size: 20),
-          title: Text(
-            title,
-            style: AppTextStyles.titleSmall.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          iconColor: AppColors.textSecondary,
-          collapsedIconColor: AppColors.textSecondary,
-          children: [child],
-        ),
-      ),
-    );
+  Widget _expandableAnswer(String label, String answer) {
+    return _ExpandableAnswerCard(label: label, answer: answer);
   }
 
   Widget _answerContent(String answer) {
@@ -401,23 +337,6 @@ class RecordDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _labeledAnswer(String label, String answer) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.textTertiary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 4),
-        _answerContent(answer),
-      ],
-    );
-  }
-
   Color _gradeColor(String grade) {
     switch (grade) {
       case 'A':
@@ -429,5 +348,94 @@ class RecordDetailScreen extends StatelessWidget {
       default:
         return AppColors.accentRed;
     }
+  }
+}
+
+/// A card that shows the first line of an answer with "..."
+/// and expands to the full answer on tap.
+class _ExpandableAnswerCard extends StatefulWidget {
+  final String label;
+  final String answer;
+
+  const _ExpandableAnswerCard({required this.label, required this.answer});
+
+  @override
+  State<_ExpandableAnswerCard> createState() => _ExpandableAnswerCardState();
+}
+
+class _ExpandableAnswerCardState extends State<_ExpandableAnswerCard> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final firstLine = widget.answer.split('\n').first;
+    final isLong = widget.answer.length > firstLine.length ||
+        firstLine.length > 50;
+    final preview =
+        firstLine.length > 50 ? '${firstLine.substring(0, 50)}...' : firstLine;
+
+    return GestureDetector(
+      onTap: isLong ? () => setState(() => _expanded = !_expanded) : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+              color: AppColors.textDisabled.withValues(alpha: 0.15)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.label,
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.textTertiary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (isLong)
+                  Icon(
+                    _expanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: AppColors.textTertiary,
+                    size: 18,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            AnimatedCrossFade(
+              firstChild: Text(
+                preview,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+              secondChild: Text(
+                widget.answer,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  height: 1.5,
+                ),
+              ),
+              crossFadeState: _expanded
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 200),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
