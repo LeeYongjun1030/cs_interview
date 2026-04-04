@@ -565,8 +565,8 @@ class AppStrings {
       ? 'Step 2: 원리와 이유 설명하기'
       : 'Step 2: Explain the why';
   String get myAnswerStepC => language == AppLanguage.korean
-      ? 'Step 3: 예시로 풍부하게'
-      : 'Step 3: Enrich with examples';
+      ? 'Step 3: 예시나 실제 경험으로 풍부하게'
+      : 'Step 3: Enrich with examples or experience';
   String get checklistLabel =>
       language == AppLanguage.korean ? '체크리스트' : 'Checklist';
   String get retryTraining => language == AppLanguage.korean
