@@ -578,4 +578,6 @@ class AppStrings {
       : 'This will cost 1 energy. Do you want to start?';
   String get notificationToggle =>
       language == AppLanguage.korean ? '훈련 리마인더' : 'Training Reminder';
+  String get myAnswersTitle =>
+      language == AppLanguage.korean ? '내 답변 보기' : 'View My Answers';
 }

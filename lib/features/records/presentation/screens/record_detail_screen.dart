@@ -126,20 +126,21 @@ class RecordDetailScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Improvement Tip
-              if (eval.improvementTip != null)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.accentGreen.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: AppColors.accentGreen.withValues(alpha: 0.3)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              // ── Feedback Card (Improvement + Checklists combined) ──
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.accentGreen.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                      color: AppColors.accentGreen.withValues(alpha: 0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Improvement Tip
+                    if (eval.improvementTip != null) ...[
                       Row(
                         children: [
                           Icon(Icons.lightbulb_outline,
@@ -162,95 +163,101 @@ class RecordDetailScreen extends StatelessWidget {
                           height: 1.5,
                         ),
                       ),
+                      if (eval.mainChecklist.isNotEmpty ||
+                          eval.followUpChecklist.isNotEmpty)
+                        Divider(
+                            color: AppColors.accentGreen
+                                .withValues(alpha: 0.25),
+                            height: 24),
                     ],
-                  ),
-                ),
-              const SizedBox(height: 16),
-
-              // Divider
-              Divider(color: AppColors.textDisabled.withValues(alpha: 0.3)),
-              const SizedBox(height: 8),
-
-              // ── Checklists (collapsible) ──
-              _collapsibleSection(
-                context: context,
-                title: strings.mainAnswerEval,
-                icon: Icons.checklist,
-                initiallyExpanded: false,
-                child: _checklistContent(eval.mainChecklist),
-              ),
-              const SizedBox(height: 8),
-              _collapsibleSection(
-                context: context,
-                title: strings.followUpAnswerEval,
-                icon: Icons.checklist,
-                initiallyExpanded: false,
-                child: _checklistContent(eval.followUpChecklist),
-              ),
-              const SizedBox(height: 8),
-            ],
-
-            // ── My Answers (collapsible) ──
-            _collapsibleSection(
-                context: context,
-              title: strings.myAnswerStepA,
-              icon: Icons.edit_note,
-              initiallyExpanded: false,
-              child: _answerContent(session.stepA),
-            ),
-            const SizedBox(height: 8),
-            _collapsibleSection(
-                context: context,
-              title: strings.myAnswerStepB,
-              icon: Icons.edit_note,
-              initiallyExpanded: false,
-              child: _answerContent(session.stepB),
-            ),
-            const SizedBox(height: 8),
-            _collapsibleSection(
-                context: context,
-              title: strings.myAnswerStepC,
-              icon: Icons.edit_note,
-              initiallyExpanded: false,
-              child: _answerContent(session.stepC),
-            ),
-
-            // ── Follow-up Q&A (collapsible) ──
-            if (session.aiFollowUpQuestion != null) ...[
-              const SizedBox(height: 8),
-              _collapsibleSection(
-                context: context,
-                title: strings.followUpQuestionLabel,
-                icon: Icons.psychology,
-                initiallyExpanded: false,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: Colors.orange.withValues(alpha: 0.3)),
-                      ),
-                      child: Text(
-                        session.aiFollowUpQuestion!,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textPrimary,
-                          height: 1.5,
+                    // Main Answer Checklist
+                    if (eval.mainChecklist.isNotEmpty) ...[
+                      Text(
+                        strings.mainAnswerEval,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.textTertiary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                    if (session.userFollowUpAnswer != null) ...[
+                      const SizedBox(height: 8),
+                      _checklistContent(eval.mainChecklist),
+                    ],
+                    // Follow-Up Checklist
+                    if (eval.followUpChecklist.isNotEmpty) ...[
                       const SizedBox(height: 12),
-                      _answerContent(session.userFollowUpAnswer!),
+                      Text(
+                        strings.followUpAnswerEval,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.textTertiary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _checklistContent(eval.followUpChecklist),
                     ],
                   ],
                 ),
               ),
             ],
+            const SizedBox(height: 24),
+
+            // ── Follow-up Q&A (visible, not collapsible) ──
+            if (session.aiFollowUpQuestion != null) ...[
+              Row(
+                children: [
+                  Icon(Icons.psychology,
+                      color: AppColors.textSecondary, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    strings.followUpQuestionLabel,
+                    style: AppTextStyles.titleSmall.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: Colors.orange.withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  session.aiFollowUpQuestion!,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    height: 1.5,
+                  ),
+                ),
+              ),
+              if (session.userFollowUpAnswer != null) ...[
+                const SizedBox(height: 8),
+                _answerContent(session.userFollowUpAnswer!),
+              ],
+              const SizedBox(height: 24),
+            ],
+
+            // ── My Answers (single collapsible) ──
+            _collapsibleSection(
+              context: context,
+              title: strings.myAnswersTitle,
+              icon: Icons.edit_note,
+              initiallyExpanded: false,
+              child: Column(
+                children: [
+                  _labeledAnswer(strings.myAnswerStepA, session.stepA),
+                  const SizedBox(height: 10),
+                  _labeledAnswer(strings.myAnswerStepB, session.stepB),
+                  const SizedBox(height: 10),
+                  _labeledAnswer(strings.myAnswerStepC, session.stepC),
+                ],
+              ),
+            ),
 
             const SizedBox(height: 32),
 
@@ -391,6 +398,23 @@ class RecordDetailScreen extends StatelessWidget {
                 ),
               ))
           .toList(),
+    );
+  }
+
+  Widget _labeledAnswer(String label, String answer) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.labelSmall.copyWith(
+            color: AppColors.textTertiary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        _answerContent(answer),
+      ],
     );
   }
 
