@@ -176,6 +176,21 @@ class RecordDetailScreen extends StatelessWidget {
             const SizedBox(height: 24),
 
             // ── My Answers (individual expandable previews) ──
+            Row(
+              children: [
+                Icon(Icons.edit_note,
+                    color: AppColors.textSecondary, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  strings.myAnswersTitle,
+                  style: AppTextStyles.titleSmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
             _expandableAnswer(strings.myAnswerStepA, session.stepA),
             const SizedBox(height: 8),
             _expandableAnswer(strings.myAnswerStepB, session.stepB),
