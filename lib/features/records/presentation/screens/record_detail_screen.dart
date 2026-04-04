@@ -175,6 +175,14 @@ class RecordDetailScreen extends StatelessWidget {
             ],
             const SizedBox(height: 24),
 
+            // ── My Answers (individual expandable previews) ──
+            _expandableAnswer(strings.myAnswerStepA, session.stepA),
+            const SizedBox(height: 8),
+            _expandableAnswer(strings.myAnswerStepB, session.stepB),
+            const SizedBox(height: 8),
+            _expandableAnswer(strings.myAnswerStepC, session.stepC),
+            const SizedBox(height: 24),
+
             // ── Follow-up Q&A (visible) ──
             if (session.aiFollowUpQuestion != null) ...[
               Row(
@@ -218,15 +226,7 @@ class RecordDetailScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 _checklistContent(eval.followUpChecklist),
               ],
-              const SizedBox(height: 24),
             ],
-
-            // ── My Answers (individual expandable previews) ──
-            _expandableAnswer(strings.myAnswerStepA, session.stepA),
-            const SizedBox(height: 8),
-            _expandableAnswer(strings.myAnswerStepB, session.stepB),
-            const SizedBox(height: 8),
-            _expandableAnswer(strings.myAnswerStepC, session.stepC),
 
             const SizedBox(height: 32),
 
