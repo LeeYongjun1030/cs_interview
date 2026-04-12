@@ -141,21 +141,23 @@ class AIService {
   }
 
   // ======================================================================
-  // TRAINING MODE: Follow-up generation + 6-axis checklist evaluation
+  // TRAINING MODE: Single AI call — evaluate + generate follow-up
   // ======================================================================
 
-  /// Generate a follow-up question from the user's 3-step combined answer.
-  /// AI Call 1 of 2 in training flow.
-  Future<String> generateFollowUp({
+  /// Evaluate user's answer and generate follow-up in a single AI call.
+  /// Returns TrainingFeedback with score, strengths, improvements,
+  /// missing keywords, follow-up question, and follow-up model answer.
+  Future<TrainingFeedback> evaluateTrainingAnswer({
     required Question question,
-    required String combinedAnswer,
+    required String userAnswer,
     String? languageCode,
   }) async {
     if (useMockApi) {
-      return _mockFollowUp(languageCode);
+      return _mockTrainingFeedback(languageCode);
     }
 
-    final prompt = _buildFollowUpPrompt(question, combinedAnswer, languageCode);
+    final prompt =
+        _buildTrainingFeedbackPrompt(question, userAnswer, languageCode);
 
     try {
       final response = await _model.generateContent([Content.text(prompt)]);
@@ -165,80 +167,30 @@ class AIService {
       final cleanJson = text.replaceAll(RegExp(r'```json|```'), '').trim();
       final data = jsonDecode(cleanJson) as Map<String, dynamic>;
 
-      return data['followUpQuestion'] as String? ??
-          (languageCode == 'en'
-              ? 'Can you elaborate on that?'
-              : '좀 더 자세히 설명해 주시겠어요?');
-    } catch (e) {
-      print('AI Follow-up Error: $e');
-      return languageCode == 'en'
-          ? 'Can you elaborate on that?'
-          : '좀 더 자세히 설명해 주시겠어요?';
-    }
-  }
-
-  /// Evaluate the full training: 3-step combined answer + follow-up answer.
-  /// AI Call 2 of 2 in training flow. Returns 6-axis checklist evaluation.
-  Future<TrainingEvaluation> evaluateTraining({
-    required Question question,
-    required String combinedAnswer,
-    required String followUpQuestion,
-    required String followUpAnswer,
-    String? languageCode,
-  }) async {
-    if (useMockApi) {
-      return _mockTrainingEvaluation(languageCode);
-    }
-
-    final prompt = _buildTrainingEvalPrompt(
-      question,
-      combinedAnswer,
-      followUpQuestion,
-      followUpAnswer,
-      languageCode,
-    );
-
-    try {
-      final response = await _model.generateContent([Content.text(prompt)]);
-      final text = response.text;
-      if (text == null) throw Exception('Empty response from AI');
-
-      final cleanJson = text.replaceAll(RegExp(r'```json|```'), '').trim();
-      final data = jsonDecode(cleanJson) as Map<String, dynamic>;
-
-      return TrainingEvaluation(
-        summaryScore: data['summaryScore'] as int? ?? 0,
-        principleScore: data['principleScore'] as int? ?? 0,
-        exampleScore: data['exampleScore'] as int? ?? 0,
-        keywordScore: data['keywordScore'] as int? ?? 0,
-        clarityScore: data['clarityScore'] as int? ?? 0,
-        followUpScore: data['followUpScore'] as int? ?? 0,
-        totalScore: data['totalScore'] as int? ?? 0,
-        grade: data['grade'] as String? ?? 'F',
-        mainChecklist: (data['mainChecklist'] as List<dynamic>?)
-                ?.map((e) => ChecklistItem.fromJson(e as Map<String, dynamic>))
+      return TrainingFeedback(
+        score: data['score'] as int? ?? 0,
+        strengths: (data['strengths'] as List<dynamic>?)
+                ?.map((e) => e.toString())
                 .toList() ??
             [],
-        followUpChecklist: (data['followUpChecklist'] as List<dynamic>?)
-                ?.map((e) => ChecklistItem.fromJson(e as Map<String, dynamic>))
+        improvements: (data['improvements'] as List<dynamic>?)
+                ?.map((e) => e.toString())
                 .toList() ??
             [],
-        improvementTip: data['improvementTip'] as String?,
+        missingKeywords: (data['missingKeywords'] as List<dynamic>?)
+                ?.map((e) => e.toString())
+                .toList() ??
+            [],
+        followUpQuestion: data['followUpQuestion'] as String?,
+        followUpModelAnswer: data['followUpModelAnswer'] as String?,
       );
     } catch (e) {
-      print('AI Evaluation Error: $e');
-      return TrainingEvaluation(
-        summaryScore: 0,
-        principleScore: 0,
-        exampleScore: 0,
-        keywordScore: 0,
-        clarityScore: 0,
-        followUpScore: 0,
-        totalScore: 0,
-        grade: 'F',
-        mainChecklist: [],
-        followUpChecklist: [],
-        improvementTip: 'AI Error: $e',
+      print('AI Training Evaluation Error: $e');
+      return TrainingFeedback(
+        score: 0,
+        strengths: [],
+        improvements: [languageCode == 'en' ? 'AI Error: $e' : 'AI 오류: $e'],
+        missingKeywords: [],
       );
     }
   }
@@ -247,102 +199,47 @@ class AIService {
   // PROMPT BUILDERS
   // ======================================================================
 
-  String _buildFollowUpPrompt(
-      Question question, String combinedAnswer, String? languageCode) {
+  String _buildTrainingFeedbackPrompt(
+      Question question, String userAnswer, String? languageCode) {
     final isEnglish = languageCode == 'en';
     final langInstruction = isEnglish ? 'English' : 'Korean';
     final safeLangCode = languageCode ?? 'ko';
 
     return '''
-You are a rigorous CS technical interviewer.
-The candidate has answered a question in 3 structured steps. Based on their answer, generate ONE challenging follow-up question.
+You are a CS technical interviewer evaluating a candidate's answer.
+Your goal is to provide actionable, concise feedback to help the candidate improve.
 
 [Context]
 Subject: ${question.getLocalizedCategory(safeLangCode)}
-Main Question: ${question.getLocalizedQuestion(safeLangCode)}
-Candidate's Answer: "$combinedAnswer"
+Question: ${question.getLocalizedQuestion(safeLangCode)}
+Expected Keywords: ${question.getLocalizedKeywords(safeLangCode).join(', ')}
+
+[Candidate's Answer]
+"$userAnswer"
 
 [Instructions]
-1. Identify a keyword, concept, or trade-off the candidate mentioned.
-2. Generate a follow-up question that probes deeper understanding.
-3. The question should challenge "why" or "how" or test an edge case.
-4. MUST be in $langInstruction.
-
-[Output Format]
-Return ONLY a JSON object:
-{
-  "followUpQuestion": "<string>"
-}
-''';
-  }
-
-  String _buildTrainingEvalPrompt(
-    Question question,
-    String combinedAnswer,
-    String followUpQuestion,
-    String followUpAnswer,
-    String? languageCode,
-  ) {
-    final isEnglish = languageCode == 'en';
-    final langInstruction = isEnglish ? 'English' : 'Korean';
-    final safeLangCode = languageCode ?? 'ko';
-
-    return '''
-You are evaluating a CS interview answer using a 6-axis checklist system.
-The candidate answered in 3 steps, then responded to a follow-up question.
-
-[Context]
-Subject: ${question.getLocalizedCategory(safeLangCode)}
-Main Question: ${question.getLocalizedQuestion(safeLangCode)}
-Keywords the answer should reference: ${question.getLocalizedKeywords(safeLangCode).join(', ')}
-
-[Candidate's Main Answer (3-step combined)]
-"$combinedAnswer"
-
-[Follow-Up Question]
-"$followUpQuestion"
-
-[Candidate's Follow-Up Answer]
-"$followUpAnswer"
-
-[Evaluation Axes - Score each 0~100]
-1. **summaryScore** (한 문장 요약/두괄식): Did the answer start with a clear, concise one-sentence summary?
-2. **principleScore** (원리 설명): Did the answer explain the underlying principle or mechanism?
-3. **exampleScore** (예시/경험): Did the answer include concrete examples, analogies, or real experience?
-4. **keywordScore** (핵심 키워드): Did the answer include the essential technical keywords?
-5. **clarityScore** (흐름/명확성): Is the answer logically structured and easy to follow?
-6. **followUpScore** (꼬리 질문 대응): How well did the candidate handle the follow-up question?
-
-[Checklist Items]
-For both main answer and follow-up answer, provide a checklist of 3-5 criteria each:
-- criterion: What was being checked
-- passed: true/false
-- comment: Brief note (if failed or noteworthy)
-
-[Grade Scale]
-A: 90-100, B: 75-89, C: 60-74, D: 40-59, F: 0-39
-totalScore = average of all 6 axis scores.
+1. **Score** (0~100): Be fair but strict. 0 if completely wrong/irrelevant.
+2. **Strengths**: List 1~3 specific things the candidate did well. Be concrete.
+3. **Improvements**: List 1~3 specific things to improve. Be actionable.
+4. **Missing Keywords**: List keywords from the expected list that the candidate did NOT mention. Empty array if all covered.
+5. **Follow-Up Question**: Generate ONE challenging follow-up question that:
+   - Digs deeper into what the candidate said
+   - Tests understanding of trade-offs or edge cases
+   - Is practical/real-world oriented
+6. **Follow-Up Model Answer**: Provide a concise model answer (2~3 sentences) for the follow-up question.
 
 MUST respond in $langInstruction.
+Keep all text concise — this is interview practice, not a textbook.
 
 [Output Format]
 Return ONLY a JSON object:
 {
-  "summaryScore": <int>,
-  "principleScore": <int>,
-  "exampleScore": <int>,
-  "keywordScore": <int>,
-  "clarityScore": <int>,
-  "followUpScore": <int>,
-  "totalScore": <int>,
-  "grade": "<A|B|C|D|F>",
-  "mainChecklist": [
-    {"criterion": "<string>", "passed": <bool>, "comment": "<string or null>"}
-  ],
-  "followUpChecklist": [
-    {"criterion": "<string>", "passed": <bool>, "comment": "<string or null>"}
-  ],
-  "improvementTip": "<string>"
+  "score": <int>,
+  "strengths": ["<string>", ...],
+  "improvements": ["<string>", ...],
+  "missingKeywords": ["<string>", ...],
+  "followUpQuestion": "<string>",
+  "followUpModelAnswer": "<string>"
 }
 ''';
   }
@@ -437,67 +334,25 @@ Return ONLY a JSON object:
     );
   }
 
-  Future<String> _mockFollowUp(String? languageCode) async {
-    await Future.delayed(const Duration(seconds: 1));
-    return languageCode == 'en'
-        ? 'How does this behave differently under high concurrency? (Mock)'
-        : '높은 동시성 환경에서는 이것이 어떻게 다르게 동작하나요? (Mock 꼬리질문)';
-  }
-
-  Future<TrainingEvaluation> _mockTrainingEvaluation(
-      String? languageCode) async {
+  Future<TrainingFeedback> _mockTrainingFeedback(String? languageCode) async {
     await Future.delayed(const Duration(seconds: 1, milliseconds: 500));
     final isEnglish = languageCode == 'en';
 
-    return TrainingEvaluation(
-      summaryScore: 80,
-      principleScore: 70,
-      exampleScore: 85,
-      keywordScore: 75,
-      clarityScore: 78,
-      followUpScore: 65,
-      totalScore: 76,
-      grade: 'B',
-      mainChecklist: [
-        ChecklistItem(
-          criterion:
-              isEnglish ? 'Starts with clear one-liner' : '명확한 한 문장 요약으로 시작',
-          passed: true,
-          comment: null,
-        ),
-        ChecklistItem(
-          criterion: isEnglish ? 'Explains underlying principle' : '동작 원리 설명',
-          passed: true,
-          comment: null,
-        ),
-        ChecklistItem(
-          criterion: isEnglish ? 'Includes concrete example' : '구체적인 예시 포함',
-          passed: true,
-          comment: null,
-        ),
-        ChecklistItem(
-          criterion: isEnglish ? 'Uses key technical terms' : '핵심 키워드 사용',
-          passed: false,
-          comment: isEnglish ? 'Missing "mutex" keyword' : '"mutex" 키워드 누락',
-        ),
-      ],
-      followUpChecklist: [
-        ChecklistItem(
-          criterion:
-              isEnglish ? 'Directly addresses the question' : '질문에 직접 답변',
-          passed: true,
-          comment: null,
-        ),
-        ChecklistItem(
-          criterion:
-              isEnglish ? 'Provides depth beyond surface' : '표면적 지식 이상의 깊이',
-          passed: false,
-          comment: isEnglish ? 'Needs more depth' : '더 깊은 설명 필요',
-        ),
-      ],
-      improvementTip: isEnglish
-          ? 'Try to mention specific data structures and their time complexities.'
-          : '구체적인 자료구조와 시간 복잡도를 언급해 보세요.',
+    return TrainingFeedback(
+      score: 78,
+      strengths: isEnglish
+          ? ['Clear one-sentence summary', 'Good use of terminology']
+          : ['명확한 핵심 요약', '적절한 전문 용어 사용'],
+      improvements: isEnglish
+          ? ['Add concrete example', 'Mention trade-offs']
+          : ['구체적인 예시 추가 필요', '트레이드오프 언급 필요'],
+      missingKeywords: isEnglish ? ['mutex', 'deadlock'] : ['뮤텍스', '데드락'],
+      followUpQuestion: isEnglish
+          ? 'How does this behave differently under high concurrency?'
+          : '높은 동시성 환경에서는 이것이 어떻게 다르게 동작하나요?',
+      followUpModelAnswer: isEnglish
+          ? 'Under high concurrency, thread contention increases and context switching overhead becomes significant. Using lock-free data structures or reducing critical section size can help.'
+          : '높은 동시성 환경에서는 스레드 경합이 증가하고 컨텍스트 스위칭 오버헤드가 커집니다. Lock-free 자료구조를 사용하거나 임계 영역을 줄이는 것이 도움됩니다.',
     );
   }
 }

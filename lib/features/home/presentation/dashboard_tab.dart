@@ -8,7 +8,7 @@ import '../../../core/localization/language_service.dart';
 import '../../interview/data/repositories/interview_repository.dart';
 import '../../interview/domain/models/question_model.dart';
 import '../../stats/domain/models/user_stats_model.dart';
-import 'widgets/radar_chart_widget.dart';
+
 import '../../training/presentation/screens/training_flow_screen.dart';
 
 class DashboardTab extends StatefulWidget {
@@ -63,47 +63,7 @@ class _DashboardTabState extends State<DashboardTab> {
     }
   }
 
-  void _showAnalysisInfo(AppStrings strings) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Icon(Icons.info_outline_rounded,
-                color: AppColors.primary, size: 22),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                strings.myAnalysisTitle,
-                style: AppTextStyles.titleSmall.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          strings.analysisExplanation,
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 13.5,
-            height: 1.6,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(strings.confirmButton,
-                style: TextStyle(
-                    color: AppColors.primary, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +87,7 @@ class _DashboardTabState extends State<DashboardTab> {
                   const SizedBox(height: 28),
 
                   // ── Radar Chart Section ──
-                  _buildRadarSection(strings),
+                  _buildStatsSection(strings),
                   const SizedBox(height: 28),
 
                   // ── Today's Training Card ──
@@ -223,25 +183,9 @@ class _DashboardTabState extends State<DashboardTab> {
     );
   }
 
-  Widget _buildRadarSection(AppStrings strings) {
-    final labels = [
-      strings.axisSummary,
-      strings.axisPrinciple,
-      strings.axisExample,
-      strings.axisKeyword,
-      strings.axisClarity,
-      strings.axisFollowUp,
-    ];
-
-    final scores = _stats?.stats ??
-        {
-          'summary': 50,
-          'principle': 50,
-          'example': 50,
-          'keyword': 50,
-          'clarity': 50,
-          'followUp': 50,
-        };
+  Widget _buildStatsSection(AppStrings strings) {
+    final avgScore = _stats?.averageScore ?? 0;
+    final totalCount = _stats?.totalTrainings ?? 0;
 
     return Container(
       width: double.infinity,
@@ -254,38 +198,81 @@ class _DashboardTabState extends State<DashboardTab> {
       ),
       child: Column(
         children: [
+          Text(
+            strings.myAnalysisTitle,
+            style: AppTextStyles.titleMedium.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 20),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                strings.myAnalysisTitle,
-                style: AppTextStyles.titleMedium.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+              Expanded(
+                child: _statItem(
+                  icon: Icons.trending_up,
+                  label: strings.averageScoreLabel,
+                  value: totalCount > 0 ? '$avgScore' : '-',
+                  color: _scoreColor(avgScore),
                 ),
               ),
-              const SizedBox(width: 4),
-              GestureDetector(
-                onTap: () => _showAnalysisInfo(strings),
-                child: Icon(
-                  Icons.info_outline_rounded,
-                  size: 18,
-                  color: AppColors.textTertiary,
+              const SizedBox(width: 16),
+              Expanded(
+                child: _statItem(
+                  icon: Icons.fitness_center,
+                  label: strings.totalTrainingsLabel,
+                  value: '$totalCount',
+                  color: AppColors.primary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Center(
-            child: RadarChartWidget(
-              scores: scores,
-              labels: labels,
-              size: 240,
+        ],
+      ),
+    );
+  }
+
+  Widget _statItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: color,
             ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: AppTextStyles.labelSmall
+                .copyWith(color: AppColors.textTertiary),
           ),
         ],
       ),
     );
+  }
+
+  Color _scoreColor(int score) {
+    if (score >= 90) return AppColors.accentGreen;
+    if (score >= 75) return Colors.blue;
+    if (score >= 60) return Colors.orange;
+    if (score > 0) return AppColors.accentRed;
+    return AppColors.textTertiary;
   }
 
   Widget _buildTodayTrainingCard(AppStrings strings, String langCode) {

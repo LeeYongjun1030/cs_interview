@@ -539,10 +539,6 @@ class AppStrings {
       language == AppLanguage.korean ? '평가 결과' : 'Evaluation Result';
   String get totalScoreLabel =>
       language == AppLanguage.korean ? '총점' : 'Total Score';
-  String get mainAnswerEval =>
-      language == AppLanguage.korean ? '본답 평가' : 'Main Answer';
-  String get followUpAnswerEval =>
-      language == AppLanguage.korean ? '꼬리 답변 평가' : 'Follow-up Answer';
   String get improvementPointsLabel =>
       language == AppLanguage.korean ? '개선 포인트' : 'Improvement Points';
   String get tryAgain => language == AppLanguage.korean ? '다시 도전' : 'Try Again';
@@ -550,7 +546,41 @@ class AppStrings {
       language == AppLanguage.korean ? '기록 보기' : 'View Records';
   String get backToHome => language == AppLanguage.korean ? '홈으로' : 'Go Home';
 
-  // Records Tab
+  // Training Flow — New
+  String get trainingTitle =>
+      language == AppLanguage.korean ? '답변 훈련' : 'Answer Training';
+  String get feedbackTitle =>
+      language == AppLanguage.korean ? '피드백' : 'Feedback';
+  String get answerHint => language == AppLanguage.korean
+      ? '면접에서 말할 것처럼 답변을 작성해 보세요'
+      : 'Write your answer as you would speak in an interview';
+  String get submitForFeedback =>
+      language == AppLanguage.korean ? '평가 받기' : 'Get Feedback';
+  String get strengthsLabel =>
+      language == AppLanguage.korean ? '잘한 점' : 'Strengths';
+  String get improvementsLabel =>
+      language == AppLanguage.korean ? '개선할 점' : 'To Improve';
+  String get missingKeywordsLabel =>
+      language == AppLanguage.korean ? '빠진 키워드' : 'Missing Keywords';
+  String get coreKeywordsLabel =>
+      language == AppLanguage.korean ? '핵심 키워드' : 'Core Keywords';
+  String get showHintsLabel =>
+      language == AppLanguage.korean ? '힌트 보기' : 'Show Hints';
+  String get referenceAnswerLabel =>
+      language == AppLanguage.korean ? '모범 답변' : 'Reference Answer';
+  String get tryFollowUp =>
+      language == AppLanguage.korean ? '꼬리질문 도전' : 'Try Follow-up';
+  String get completeTraining =>
+      language == AppLanguage.korean ? '완료' : 'Done';
+  String get seeModelAnswer =>
+      language == AppLanguage.korean ? '모범 답안 보기' : 'See Model Answer';
+  String get myAnswerLabel =>
+      language == AppLanguage.korean ? '내 답변' : 'My Answer';
+  String get trainingComplete => language == AppLanguage.korean
+      ? '훈련 완료!'
+      : 'Training Complete!';
+
+  // Records Tab / Dashboard
   String get recordsTitle =>
       language == AppLanguage.korean ? '훈련 기록' : 'Training Records';
   String get noRecordsYet => language == AppLanguage.korean
@@ -558,17 +588,10 @@ class AppStrings {
       : 'No training records yet.';
   String get recordDetailTitle =>
       language == AppLanguage.korean ? '훈련 상세' : 'Training Detail';
-  String get myAnswerStepA => language == AppLanguage.korean
-      ? 'Step 1: 핵심만 한 문장으로'
-      : 'Step 1: Core answer in one sentence';
-  String get myAnswerStepB => language == AppLanguage.korean
-      ? 'Step 2: 원리와 이유 설명하기'
-      : 'Step 2: Explain the why';
-  String get myAnswerStepC => language == AppLanguage.korean
-      ? 'Step 3: 예시나 실제 경험으로 풍부하게'
-      : 'Step 3: Enrich with examples or experience';
-  String get checklistLabel =>
-      language == AppLanguage.korean ? '체크리스트' : 'Checklist';
+  String get averageScoreLabel =>
+      language == AppLanguage.korean ? '평균 점수' : 'Average Score';
+  String get totalTrainingsLabel =>
+      language == AppLanguage.korean ? '총 훈련 횟수' : 'Total Trainings';
   String get retryTraining => language == AppLanguage.korean
       ? '이 문제로 다시 훈련'
       : 'Retry with this question';
@@ -581,6 +604,4 @@ class AppStrings {
       : 'This will cost 1 energy. Do you want to start?';
   String get notificationToggle =>
       language == AppLanguage.korean ? '훈련 리마인더' : 'Training Reminder';
-  String get myAnswersTitle =>
-      language == AppLanguage.korean ? '내 답변 보기' : 'View My Answers';
 }

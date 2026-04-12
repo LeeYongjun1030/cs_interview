@@ -166,22 +166,19 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateStr = DateFormat('yyyy.MM.dd HH:mm').format(session.createdAt);
-    final score = session.evaluation?.totalScore;
-    final grade = session.evaluation?.grade ?? '-';
+    final score = session.feedback?.score;
 
-    Color gradeColor;
-    switch (grade) {
-      case 'A':
-        gradeColor = AppColors.accentGreen;
-        break;
-      case 'B':
-        gradeColor = Colors.blue;
-        break;
-      case 'C':
-        gradeColor = Colors.orange;
-        break;
-      default:
-        gradeColor = AppColors.accentRed;
+    Color scoreColor;
+    if (score == null) {
+      scoreColor = AppColors.textTertiary;
+    } else if (score >= 90) {
+      scoreColor = AppColors.accentGreen;
+    } else if (score >= 75) {
+      scoreColor = Colors.blue;
+    } else if (score >= 60) {
+      scoreColor = Colors.orange;
+    } else {
+      scoreColor = AppColors.accentRed;
     }
 
     return Dismissible(
@@ -251,13 +248,13 @@ class _SessionCard extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 3),
                           decoration: BoxDecoration(
-                            color: gradeColor.withValues(alpha: 0.15),
+                            color: scoreColor.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            '$grade · $score',
+                            '$score',
                             style: TextStyle(
-                              color: gradeColor,
+                              color: scoreColor,
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
                             ),

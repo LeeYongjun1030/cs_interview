@@ -8,12 +8,12 @@ import '../../../../core/services/notification_service.dart';
 
 /// Current step in the training flow.
 enum TrainingStep {
-  stepA, // 한 문장 답변
-  stepB, // 원리 + 2~3문장
-  stepC, // 예시/경험/비유
-  stepD, // AI 꼬리질문 생성 (로딩)
-  stepE, // 사용자 꼬리 답변 입력
-  stepF, // AI 평가 결과
+  answer, // 사용자 답변 입력
+  loading, // AI 평가 중
+  feedback, // 피드백 + 모범답변 확인
+  followUp, // 꼬리질문 답변 (선택)
+  followUpResult, // 꼬리질문 모범답안 확인
+  done, // 완료 (저장 후)
 }
 
 class TrainingController extends ChangeNotifier {
@@ -27,7 +27,7 @@ class TrainingController extends ChangeNotifier {
         _aiService = aiService ?? AIService();
 
   // --- State ---
-  TrainingStep _currentStep = TrainingStep.stepA;
+  TrainingStep _currentStep = TrainingStep.answer;
   TrainingStep get currentStep => _currentStep;
 
   bool _isLoading = false;
@@ -39,44 +39,19 @@ class TrainingController extends ChangeNotifier {
   Question? _question;
   Question? get question => _question;
 
-  // 3-step answers
-  String _stepA = '';
-  String _stepB = '';
-  String _stepC = '';
-  String get stepA => _stepA;
-  String get stepB => _stepB;
-  String get stepC => _stepC;
-
-  String get combinedAnswer => '$_stepA\n\n$_stepB\n\n$_stepC';
+  // User's answer
+  String _userAnswer = '';
+  String get userAnswer => _userAnswer;
 
   // Follow-up
-  String? _followUpQuestion;
-  String? get followUpQuestion => _followUpQuestion;
-
   String _followUpAnswer = '';
   String get followUpAnswer => _followUpAnswer;
 
-  // Evaluation
-  TrainingEvaluation? _evaluation;
-  TrainingEvaluation? get evaluation => _evaluation;
+  // AI Feedback
+  TrainingFeedback? _feedback;
+  TrainingFeedback? get feedback => _feedback;
 
   String? _languageCode;
-
-  int get stepNumber {
-    switch (_currentStep) {
-      case TrainingStep.stepA:
-        return 1;
-      case TrainingStep.stepB:
-        return 2;
-      case TrainingStep.stepC:
-        return 3;
-      case TrainingStep.stepD:
-      case TrainingStep.stepE:
-        return 4;
-      case TrainingStep.stepF:
-        return 5;
-    }
-  }
 
   // --- Actions ---
 
@@ -84,108 +59,60 @@ class TrainingController extends ChangeNotifier {
   void startTraining(Question question, {String? languageCode}) {
     _question = question;
     _languageCode = languageCode ?? 'ko';
-    _currentStep = TrainingStep.stepA;
-    _stepA = '';
-    _stepB = '';
-    _stepC = '';
-    _followUpQuestion = null;
+    _currentStep = TrainingStep.answer;
+    _userAnswer = '';
     _followUpAnswer = '';
-    _evaluation = null;
+    _feedback = null;
     _isLoading = false;
     notifyListeners();
   }
 
-  /// Submit Step A answer and move to Step B.
-  void submitStepA(String answer) {
-    _stepA = answer;
-    _currentStep = TrainingStep.stepB;
-    notifyListeners();
-  }
-
-  /// Submit Step B answer and move to Step C.
-  void submitStepB(String answer) {
-    _stepB = answer;
-    _currentStep = TrainingStep.stepC;
-    notifyListeners();
-  }
-
-  /// Submit Step C answer and trigger AI follow-up generation.
-  Future<void> submitStepC(String answer) async {
-    _stepC = answer;
-    _currentStep = TrainingStep.stepD;
+  /// Submit answer and trigger AI evaluation (single call).
+  Future<void> submitAnswer(String answer) async {
+    _userAnswer = answer;
+    _currentStep = TrainingStep.loading;
     _isLoading = true;
     _loadingMessage = _languageCode == 'en'
-        ? 'Generating follow-up question...'
-        : '꼬리 질문을 생성하고 있습니다...';
-    notifyListeners();
-
-    try {
-      _followUpQuestion = await _aiService.generateFollowUp(
-        question: _question!,
-        combinedAnswer: combinedAnswer,
-        languageCode: _languageCode,
-      );
-      _currentStep = TrainingStep.stepE;
-    } catch (e) {
-      // Fallback question
-      _followUpQuestion = _languageCode == 'en'
-          ? 'Can you elaborate on that?'
-          : '좀 더 자세히 설명해 주시겠어요?';
-      _currentStep = TrainingStep.stepE;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  /// Submit follow-up answer and trigger AI full evaluation.
-  Future<void> submitFollowUpAnswer(String answer) async {
-    _followUpAnswer = answer;
-    _isLoading = true;
-    _loadingMessage = _languageCode == 'en'
-        ? 'Evaluating your answers...'
+        ? 'Evaluating your answer...'
         : '답변을 평가하고 있습니다...';
     notifyListeners();
 
     try {
-      _evaluation = await _aiService.evaluateTraining(
+      _feedback = await _aiService.evaluateTrainingAnswer(
         question: _question!,
-        combinedAnswer: combinedAnswer,
-        followUpQuestion: _followUpQuestion ?? '',
-        followUpAnswer: answer,
+        userAnswer: answer,
         languageCode: _languageCode,
       );
-
-      _currentStep = TrainingStep.stepF;
-
-      // Save session to Firestore
-      await _saveTrainingSession();
-
-      // Update user stats
-      await _updateUserStats();
+      _currentStep = TrainingStep.feedback;
     } catch (e) {
       debugPrint('Evaluation Error: $e');
-      // Still move to result with error state
-      _currentStep = TrainingStep.stepF;
+      _currentStep = TrainingStep.feedback;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Go back one step (if possible).
-  void goBack() {
-    switch (_currentStep) {
-      case TrainingStep.stepB:
-        _currentStep = TrainingStep.stepA;
-        break;
-      case TrainingStep.stepC:
-        _currentStep = TrainingStep.stepB;
-        break;
-      default:
-        break; // Cannot go back from other steps
-    }
+  /// User chooses to try the follow-up question.
+  void startFollowUp() {
+    _currentStep = TrainingStep.followUp;
     notifyListeners();
+  }
+
+  /// Submit follow-up answer → show model answer.
+  void submitFollowUpAnswer(String answer) {
+    _followUpAnswer = answer;
+    _currentStep = TrainingStep.followUpResult;
+    notifyListeners();
+  }
+
+  /// Complete training — save to Firestore.
+  Future<void> finishTraining() async {
+    _currentStep = TrainingStep.done;
+    notifyListeners();
+
+    await _saveTrainingSession();
+    await _updateUserStats();
   }
 
   Future<void> _saveTrainingSession() async {
@@ -199,19 +126,18 @@ class TrainingController extends ChangeNotifier {
       subject: _question!.subject,
       category: _question!.category,
       questionText: _question!.getLocalizedQuestion(_languageCode ?? 'ko'),
-      stepA: _stepA,
-      stepB: _stepB,
-      stepC: _stepC,
-      aiFollowUpQuestion: _followUpQuestion,
-      userFollowUpAnswer: _followUpAnswer,
-      evaluation: _evaluation,
+      userAnswer: _userAnswer,
+      aiFollowUpQuestion: _feedback?.followUpQuestion,
+      aiFollowUpModelAnswer: _feedback?.followUpModelAnswer,
+      userFollowUpAnswer:
+          _followUpAnswer.isNotEmpty ? _followUpAnswer : null,
+      feedback: _feedback,
       createdAt: DateTime.now(),
       status: TrainingStatus.completed,
     );
 
     try {
       await _repository.saveTrainingSession(session);
-      // Trigger follow-up notifications for tomorrow + day after
       await NotificationService().onTrainingCompleted();
     } catch (e) {
       debugPrint('Failed to save training session: $e');
@@ -220,12 +146,12 @@ class TrainingController extends ChangeNotifier {
 
   Future<void> _updateUserStats() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null || _evaluation == null) return;
+    if (uid == null || _feedback == null) return;
 
     try {
       final currentStats = await _repository.getUserStats(uid);
       final updatedStats =
-          currentStats.withNewEvaluation(_evaluation!.axisScores);
+          currentStats.withNewScore(_feedback!.score);
       await _repository.saveUserStats(updatedStats);
     } catch (e) {
       debugPrint('Failed to update user stats: $e');

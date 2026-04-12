@@ -6,10 +6,9 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/localization/language_service.dart';
 import '../../../interview/domain/models/question_model.dart';
 import '../providers/training_controller.dart';
-import '../../../home/presentation/widgets/radar_chart_widget.dart';
 import '../../../monetization/data/repositories/credit_repository.dart';
 
-/// Full training flow screen: Step A → B → C → D (loading) → E → F (result).
+/// Full training flow screen.
 class TrainingFlowScreen extends StatefulWidget {
   final Question question;
 
@@ -22,15 +21,14 @@ class TrainingFlowScreen extends StatefulWidget {
 class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
   late final TrainingController _controller;
   final _textController = TextEditingController();
-  bool _hasEnergy = false; // Becomes true after credit deduction
+  bool _hasEnergy = false;
+  bool _showHints = false;
 
   @override
   void initState() {
     super.initState();
     _controller = TrainingController();
     _controller.addListener(_onControllerChange);
-
-    // Check and deduct credit after first frame
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _checkAndDeductCredit());
   }
@@ -56,7 +54,6 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
       return;
     }
 
-    // Credit deducted successfully — start training
     if (mounted) {
       final langCode = Provider.of<LanguageController>(context, listen: false)
           .currentLanguage
@@ -71,8 +68,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
   }
 
   void _onClosePressed(AppStrings strings) {
-    // If already on result screen, just pop
-    if (_controller.currentStep == TrainingStep.stepF) {
+    if (_controller.currentStep == TrainingStep.done) {
       Navigator.pop(context);
       return;
     }
@@ -155,6 +151,23 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
     );
   }
 
+  String _getStepTitle(AppStrings strings) {
+    switch (_controller.currentStep) {
+      case TrainingStep.answer:
+        return strings.trainingTitle;
+      case TrainingStep.loading:
+        return strings.trainingTitle;
+      case TrainingStep.feedback:
+        return strings.feedbackTitle;
+      case TrainingStep.followUp:
+        return strings.followUpQuestionLabel;
+      case TrainingStep.followUpResult:
+        return strings.followUpQuestionLabel;
+      case TrainingStep.done:
+        return strings.trainingTitle;
+    }
+  }
+
   Widget _buildLoadingState() {
     return Center(
       child: Column(
@@ -175,66 +188,29 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
 
   Widget _buildContent(AppStrings strings, String langCode) {
     switch (_controller.currentStep) {
-      case TrainingStep.stepA:
-      case TrainingStep.stepB:
-      case TrainingStep.stepC:
+      case TrainingStep.answer:
         return _buildAnswerStep(strings, langCode);
-      case TrainingStep.stepD:
-        return _buildLoadingState(); // Should be caught by isLoading
-      case TrainingStep.stepE:
+      case TrainingStep.loading:
+        return _buildLoadingState();
+      case TrainingStep.feedback:
+        return _buildFeedbackStep(strings, langCode);
+      case TrainingStep.followUp:
         return _buildFollowUpStep(strings);
-      case TrainingStep.stepF:
-        return _buildEvaluationResult(strings);
+      case TrainingStep.followUpResult:
+        return _buildFollowUpResult(strings);
+      case TrainingStep.done:
+        return _buildDoneState(strings, langCode);
     }
   }
 
+  // ── Answer Step ──
   Widget _buildAnswerStep(AppStrings strings, String langCode) {
-    final step = _controller.currentStep;
-    final stepNum = step == TrainingStep.stepA
-        ? 1
-        : step == TrainingStep.stepB
-            ? 2
-            : 3;
-
-    String title;
-    String hint;
-    switch (step) {
-      case TrainingStep.stepA:
-        title = strings.stepATitle;
-        hint = strings.stepAHint;
-        break;
-      case TrainingStep.stepB:
-        title = strings.stepBTitle;
-        hint = strings.stepBHint;
-        break;
-      case TrainingStep.stepC:
-        title = strings.stepCTitle;
-        hint = strings.stepCHint;
-        break;
-      default:
-        title = '';
-        hint = '';
-    }
-
-    // Pre-fill if going back
-    if (step == TrainingStep.stepA && _controller.stepA.isNotEmpty) {
-      _textController.text = _controller.stepA;
-    } else if (step == TrainingStep.stepB && _controller.stepB.isNotEmpty) {
-      _textController.text = _controller.stepB;
-    } else if (step == TrainingStep.stepC && _controller.stepC.isNotEmpty) {
-      _textController.text = _controller.stepC;
-    }
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Progress bar
-          _buildProgressBar(stepNum, 3),
-          const SizedBox(height: 20),
-
-          // Question
+          // Question card
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -264,29 +240,87 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Step title
-          Text(
-            'Step $stepNum: $title',
-            style: AppTextStyles.titleMedium.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            hint,
-            style:
-                AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),
-          ),
           const SizedBox(height: 16),
+
+          if (!_showHints)
+            Center(
+              child: OutlinedButton.icon(
+                onPressed: () => setState(() => _showHints = true),
+                icon: Icon(Icons.visibility,
+                    color: AppColors.textSecondary, size: 18),
+                label: Text(strings.showHintsLabel,
+                    style: TextStyle(color: AppColors.textSecondary)),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                  side: BorderSide(
+                      color: AppColors.textDisabled.withValues(alpha: 0.3)),
+                ),
+              ),
+            )
+          else ...[
+            // Keywords chips
+            Text(
+              strings.coreKeywordsLabel,
+              style: AppTextStyles.labelSmall
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: widget.question
+                  .getLocalizedKeywords(langCode)
+                  .map((kw) => Chip(
+                        label: Text(kw,
+                            style: AppTextStyles.labelSmall
+                                .copyWith(color: AppColors.primary)),
+                        backgroundColor:
+                            AppColors.primary.withValues(alpha: 0.08),
+                        side: BorderSide.none,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 0),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 16),
+
+            // Tip
+            if (widget.question.getLocalizedTip(langCode).isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.tips_and_updates,
+                        color: Colors.amber[700], size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        widget.question.getLocalizedTip(langCode),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          const SizedBox(height: 20),
 
           // Text input
           TextField(
             controller: _textController,
-            maxLines: step == TrainingStep.stepA ? 3 : 6,
-            maxLength: step == TrainingStep.stepA ? 100 : 500,
+            maxLines: 8,
+            maxLength: 500,
             style: TextStyle(color: AppColors.textPrimary),
             buildCounter: (context,
                 {required currentLength,
@@ -305,7 +339,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
               );
             },
             decoration: InputDecoration(
-              hintText: hint,
+              hintText: strings.answerHint,
               hintStyle: TextStyle(color: AppColors.textDisabled),
               filled: true,
               fillColor: AppColors.surface,
@@ -328,78 +362,202 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
           ),
           const SizedBox(height: 24),
 
-          // Buttons
-          Row(
-            children: [
-              if (step != TrainingStep.stepA)
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      _textController.clear();
-                      _controller.goBack();
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14)),
-                      side: BorderSide(color: AppColors.textDisabled),
-                    ),
-                    child: Text(strings.previousStep,
-                        style: TextStyle(color: AppColors.textSecondary)),
-                  ),
-                ),
-              if (step != TrainingStep.stepA) const SizedBox(width: 12),
-              Expanded(
-                flex: 2,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final text = _textController.text.trim();
-                    if (text.isEmpty) return;
-
-                    _textController.clear();
-                    switch (step) {
-                      case TrainingStep.stepA:
-                        _controller.submitStepA(text);
-                        break;
-                      case TrainingStep.stepB:
-                        _controller.submitStepB(text);
-                        break;
-                      case TrainingStep.stepC:
-                        _controller.submitStepC(text);
-                        break;
-                      default:
-                        break;
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: Text(
-                    step == TrainingStep.stepC
-                        ? strings.receiveFollowUp
-                        : strings.nextStep,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                ),
+          // Submit button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                final text = _textController.text.trim();
+                if (text.isEmpty) return;
+                _textController.clear();
+                _controller.submitAnswer(text);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
-            ],
+              child: Text(
+                strings.submitForFeedback,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
+  // ── Feedback Step ──
+  Widget _buildFeedbackStep(AppStrings strings, String langCode) {
+    final fb = _controller.feedback;
+    if (fb == null) {
+      return Center(
+        child: Text('Evaluation failed',
+            style: TextStyle(color: AppColors.textTertiary)),
+      );
+    }
+
+    final refAnswer = widget.question.getLocalizedAnswer(langCode);
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Score circle
+
+          Center(
+            child: Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _scoreColor(fb.score).withValues(alpha: 0.15),
+                border: Border.all(color: _scoreColor(fb.score), width: 3),
+              ),
+              child: Center(
+                child: Text(
+                  '${fb.score}',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: _scoreColor(fb.score),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Strengths
+          if (fb.strengths.isNotEmpty) ...[
+            _sectionLabel(Icons.check_circle, strings.strengthsLabel,
+                AppColors.accentGreen),
+            const SizedBox(height: 8),
+            ...fb.strengths.map((s) => _feedbackItem(s, AppColors.accentGreen)),
+            const SizedBox(height: 16),
+          ],
+
+          // Improvements
+          if (fb.improvements.isNotEmpty) ...[
+            _sectionLabel(
+                Icons.warning_amber, strings.improvementsLabel, Colors.orange),
+            const SizedBox(height: 8),
+            ...fb.improvements.map((s) => _feedbackItem(s, Colors.orange)),
+            const SizedBox(height: 16),
+          ],
+
+          // Missing Keywords
+          if (fb.missingKeywords.isNotEmpty) ...[
+            _sectionLabel(
+                Icons.vpn_key, strings.missingKeywordsLabel, AppColors.primary),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: fb.missingKeywords
+                  .map((kw) => Chip(
+                        label: Text(kw,
+                            style: AppTextStyles.labelSmall
+                                .copyWith(color: AppColors.accentRed)),
+                        backgroundColor:
+                            AppColors.accentRed.withValues(alpha: 0.08),
+                        side: BorderSide.none,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 0),
+                        materialTapTargetSize:
+                            MaterialTapTargetSize.shrinkWrap,
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Reference Answer
+          if (refAnswer.isNotEmpty) ...[
+            _sectionLabel(Icons.menu_book, strings.referenceAnswerLabel,
+                AppColors.textSecondary),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: AppColors.textDisabled.withValues(alpha: 0.15)),
+              ),
+              child: Text(
+                refAnswer,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  height: 1.6,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Action buttons
+          Row(
+            children: [
+              // Skip / Complete
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () async {
+                    await _controller.finishTraining();
+                    if (mounted) Navigator.pop(context);
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                    side: BorderSide(color: AppColors.textDisabled),
+                  ),
+                  child: Text(strings.completeTraining,
+                      style: TextStyle(color: AppColors.textSecondary)),
+                ),
+              ),
+              // Follow-up challenge
+              if (fb.followUpQuestion != null) ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () => _controller.startFollowUp(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: Text(
+                      strings.tryFollowUp,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  // ── Follow-up Step ──
   Widget _buildFollowUpStep(AppStrings strings) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Follow-up question display
+          // Follow-up question
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
@@ -426,7 +584,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  _controller.followUpQuestion ?? '',
+                  _controller.feedback?.followUpQuestion ?? '',
                   style: AppTextStyles.bodyLarge.copyWith(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
@@ -437,13 +595,6 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
             ),
           ),
           const SizedBox(height: 24),
-
-          Text(
-            strings.followUpAnswerHint,
-            style:
-                AppTextStyles.bodySmall.copyWith(color: AppColors.textTertiary),
-          ),
-          const SizedBox(height: 12),
 
           TextField(
             controller: _textController,
@@ -489,7 +640,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
                     borderRadius: BorderRadius.circular(14)),
               ),
               child: Text(
-                strings.submitEvaluation,
+                strings.seeModelAnswer,
                 style:
                     const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
@@ -500,241 +651,91 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
     );
   }
 
-  Widget _buildEvaluationResult(AppStrings strings) {
-    final eval = _controller.evaluation;
-    if (eval == null) {
-      return Center(
-        child: Text('Evaluation failed',
-            style: TextStyle(color: AppColors.textTertiary)),
-      );
-    }
-
-    final axisLabels = [
-      strings.axisSummary,
-      strings.axisPrinciple,
-      strings.axisExample,
-      strings.axisKeyword,
-      strings.axisClarity,
-      strings.axisFollowUp,
-    ];
-
+  // ── Follow-up Result ──
+  Widget _buildFollowUpResult(AppStrings strings) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Grade & Total Score
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _gradeColor(eval.grade).withValues(alpha: 0.15),
-                    border:
-                        Border.all(color: _gradeColor(eval.grade), width: 3),
-                  ),
-                  child: Center(
-                    child: Text(
-                      eval.grade,
-                      style: TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.bold,
-                        color: _gradeColor(eval.grade),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  '${strings.totalScoreLabel}: ${eval.totalScore}',
-                  style: AppTextStyles.titleLarge.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ],
+          // The follow-up question
+          _sectionLabel(
+              Icons.psychology, strings.followUpQuestionLabel, Colors.orange),
+          const SizedBox(height: 8),
+          Text(
+            _controller.feedback?.followUpQuestion ?? '',
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w600,
+              height: 1.5,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
-          // Radar Chart
-          Center(
-            child: RadarChartWidget(
-              scores: eval.axisScores,
-              labels: axisLabels,
-              size: 200,
+          // User's answer
+          _sectionLabel(Icons.edit_note, strings.myAnswerLabel,
+              AppColors.textSecondary),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              _controller.followUpAnswer,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
+                height: 1.5,
+              ),
             ),
           ),
-          const SizedBox(height: 24),
-
-          // Axis Scores
-          ...eval.axisScores.entries.map((e) {
-            final idx = eval.axisScores.keys.toList().indexOf(e.key);
-            final label = idx < axisLabels.length ? axisLabels[idx] : e.key;
-            return _scoreRow(label, e.value);
-          }),
-          const SizedBox(height: 24),
-
-          // My Answers
-          _buildAnswerCard(strings.myAnswerStepA, _controller.stepA),
-          const SizedBox(height: 10),
-          _buildAnswerCard(strings.myAnswerStepB, _controller.stepB),
-          const SizedBox(height: 10),
-          _buildAnswerCard(strings.myAnswerStepC, _controller.stepC),
-
-          // Follow-up Q&A
-          if (_controller.followUpQuestion != null) ...[
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-                border:
-                    Border.all(color: Colors.orange.withValues(alpha: 0.25)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.psychology, color: Colors.orange, size: 16),
-                      const SizedBox(width: 6),
-                      Text(
-                        strings.followUpQuestionLabel,
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: Colors.orange,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    _controller.followUpQuestion!,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      height: 1.4,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    strings.followUpAnswerEval,
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textTertiary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _controller.followUpAnswer,
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textPrimary,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 20),
-
-          // Main Checklist
-          _buildChecklistSection(strings.mainAnswerEval, eval.mainChecklist),
           const SizedBox(height: 16),
 
-          // Follow-up Checklist
-          _buildChecklistSection(
-              strings.followUpAnswerEval, eval.followUpChecklist),
-          const SizedBox(height: 16),
-
-          // Improvement Tip
-          if (eval.improvementTip != null) ...[
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppColors.accentGreen.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                    color: AppColors.accentGreen.withValues(alpha: 0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.lightbulb_outline,
-                          color: AppColors.accentGreen, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        strings.improvementPointsLabel,
-                        style: AppTextStyles.labelMedium.copyWith(
-                          color: AppColors.accentGreen,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    eval.improvementTip!,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textPrimary,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
+          // Model answer
+          _sectionLabel(Icons.menu_book, strings.referenceAnswerLabel,
+              AppColors.accentGreen),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.accentGreen.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: AppColors.accentGreen.withValues(alpha: 0.2)),
+            ),
+            child: Text(
+              _controller.feedback?.followUpModelAnswer ?? '',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
+                height: 1.6,
               ),
             ),
-            const SizedBox(height: 24),
-          ],
+          ),
+          const SizedBox(height: 32),
 
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                    side: BorderSide(color: AppColors.textDisabled),
-                  ),
-                  child: Text(strings.backToHome,
-                      style: TextStyle(color: AppColors.textSecondary)),
-                ),
+          // Complete button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () async {
+                await _controller.finishTraining();
+                if (mounted) Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Restart training with same question
-                    final langCode =
-                        Provider.of<LanguageController>(context, listen: false)
-                            .currentLanguage
-                            .code;
-                    _textController.clear();
-                    _controller.startTraining(widget.question,
-                        languageCode: langCode);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14)),
-                  ),
-                  child: Text(strings.tryAgain,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                ),
+              child: Text(
+                strings.completeTraining,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
               ),
-            ],
+            ),
           ),
           const SizedBox(height: 40),
         ],
@@ -742,195 +743,73 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
     );
   }
 
-  Widget _buildChecklistSection(String title, List<dynamic> checklist) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border:
-            Border.all(color: AppColors.textDisabled.withValues(alpha: 0.1)),
-      ),
+  // ── Done State ──
+  Widget _buildDoneState(AppStrings strings, String langCode) {
+    // Auto-pop handled by finishTraining callers, but just in case:
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            title,
-            style: AppTextStyles.titleSmall.copyWith(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...checklist.map((item) {
-            final ci = item as dynamic;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    ci.passed ? Icons.check_circle : Icons.cancel,
-                    color:
-                        ci.passed ? AppColors.accentGreen : AppColors.accentRed,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ci.criterion,
-                          style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w500),
-                        ),
-                        if (ci.comment != null && ci.comment!.isNotEmpty)
-                          Text(
-                            ci.comment!,
-                            style: AppTextStyles.labelSmall
-                                .copyWith(color: AppColors.textTertiary),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
+          Icon(Icons.check_circle, color: AppColors.accentGreen, size: 48),
+          const SizedBox(height: 16),
+          Text(strings.trainingComplete,
+              style: AppTextStyles.titleMedium.copyWith(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              )),
         ],
       ),
     );
   }
 
-  Widget _scoreRow(String label, int score) {
-    final color = score >= 80
-        ? AppColors.accentGreen
-        : score >= 60
-            ? Colors.orange
-            : AppColors.accentRed;
+  // ── Helpers ──
 
+  Widget _sectionLabel(IconData icon, String text, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 18),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _feedbackItem(String text, Color color) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 90,
-            child: Text(label,
-                style: AppTextStyles.labelSmall
-                    .copyWith(color: AppColors.textSecondary)),
+          Container(
+            width: 6,
+            height: 6,
+            margin: const EdgeInsets.only(top: 7, right: 10),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
           ),
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: score / 100.0,
-                backgroundColor: AppColors.textDisabled.withValues(alpha: 0.15),
-                valueColor: AlwaysStoppedAnimation(color),
-                minHeight: 8,
+            child: Text(
+              text,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
+                height: 1.5,
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: 30,
-            child: Text(
-              '$score',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                  color: color, fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-          ),
         ],
       ),
     );
   }
 
-  Widget _buildProgressBar(int current, int total) {
-    return Row(
-      children: List.generate(total, (i) {
-        final isActive = i < current;
-        final isCurrent = i == current - 1;
-        return Expanded(
-          child: Container(
-            height: 4,
-            margin: EdgeInsets.only(right: i < total - 1 ? 4 : 0),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? (isCurrent
-                      ? AppColors.primary
-                      : AppColors.primary.withValues(alpha: 0.4))
-                  : AppColors.textDisabled.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
-  String _getStepTitle(AppStrings strings) {
-    switch (_controller.currentStep) {
-      case TrainingStep.stepA:
-        return '${strings.stepATitle} (1/3)';
-      case TrainingStep.stepB:
-        return '${strings.stepBTitle} (2/3)';
-      case TrainingStep.stepC:
-        return '${strings.stepCTitle} (3/3)';
-      case TrainingStep.stepD:
-        return strings.generatingFollowUp;
-      case TrainingStep.stepE:
-        return strings.followUpQuestionLabel;
-      case TrainingStep.stepF:
-        return strings.evaluationTitle;
-    }
-  }
-
-  Widget _buildAnswerCard(String title, String answer) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(12),
-        border:
-            Border.all(color: AppColors.textDisabled.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.textTertiary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            answer,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textPrimary,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _gradeColor(String grade) {
-    switch (grade) {
-      case 'A':
-        return AppColors.accentGreen;
-      case 'B':
-        return Colors.blue;
-      case 'C':
-        return Colors.orange;
-      default:
-        return AppColors.accentRed;
-    }
+  Color _scoreColor(int score) {
+    if (score >= 90) return AppColors.accentGreen;
+    if (score >= 75) return Colors.blue;
+    if (score >= 60) return Colors.orange;
+    return AppColors.accentRed;
   }
 }

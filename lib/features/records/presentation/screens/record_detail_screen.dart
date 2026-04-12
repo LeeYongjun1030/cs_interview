@@ -6,7 +6,6 @@ import '../../../../core/localization/language_service.dart';
 import '../../../training/domain/models/training_session_model.dart';
 import '../../../training/presentation/screens/training_flow_screen.dart';
 import '../../../interview/data/repositories/interview_repository.dart';
-import '../../../home/presentation/widgets/radar_chart_widget.dart';
 
 /// Detail screen for a completed training session.
 class RecordDetailScreen extends StatelessWidget {
@@ -17,7 +16,7 @@ class RecordDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = Provider.of<LanguageController>(context).strings;
-    final eval = session.evaluation;
+    final fb = session.feedback;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -45,17 +44,15 @@ class RecordDetailScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(14),
-                border:
-                    Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${session.subject} · ${session.category}',
-                    style: AppTextStyles.labelSmall
-                        .copyWith(color: AppColors.primary),
-                  ),
+                  Text(strings.question,
+                      style: AppTextStyles.labelSmall
+                          .copyWith(color: AppColors.primary)),
                   const SizedBox(height: 6),
                   Text(
                     session.questionText,
@@ -68,152 +65,108 @@ class RecordDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-            // ── Evaluation (visual first) ──
-            if (eval != null) ...[
-              // Grade
+            // Score
+            if (fb != null) ...[
               Center(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _gradeColor(eval.grade).withValues(alpha: 0.15),
-                        border: Border.all(
-                            color: _gradeColor(eval.grade), width: 3),
-                      ),
-                      child: Center(
-                        child: Text(
-                          eval.grade,
-                          style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
-                            color: _gradeColor(eval.grade),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${strings.totalScoreLabel}: ${eval.totalScore}',
-                      style: AppTextStyles.titleMedium.copyWith(
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _scoreColor(fb.score).withValues(alpha: 0.15),
+                    border:
+                        Border.all(color: _scoreColor(fb.score), width: 3),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '${fb.score}',
+                      style: TextStyle(
+                        fontSize: 30,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        color: _scoreColor(fb.score),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Radar
-              Center(
-                child: RadarChartWidget(
-                  scores: eval.axisScores,
-                  labels: [
-                    strings.axisSummary,
-                    strings.axisPrinciple,
-                    strings.axisExample,
-                    strings.axisKeyword,
-                    strings.axisClarity,
-                    strings.axisFollowUp,
-                  ],
-                  size: 200,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // ── Feedback Card (Improvement + main checklist subtly) ──
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.accentGreen.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                      color: AppColors.accentGreen.withValues(alpha: 0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (eval.improvementTip != null) ...[
-                      Row(
-                        children: [
-                          Icon(Icons.lightbulb_outline,
-                              color: AppColors.accentGreen, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            strings.improvementPointsLabel,
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.accentGreen,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        eval.improvementTip!,
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textPrimary,
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
-                    // Main checklist — subtly listed, no section title
-                    if (eval.mainChecklist.isNotEmpty) ...[
-                      if (eval.improvementTip != null)
-                        const SizedBox(height: 12),
-                      _checklistContent(eval.mainChecklist),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 24),
-
-            // ── My Answers (individual expandable previews) ──
-            Row(
-              children: [
-                Icon(Icons.edit_note,
-                    color: AppColors.textSecondary, size: 18),
-                const SizedBox(width: 8),
-                Text(
-                  strings.myAnswersTitle,
-                  style: AppTextStyles.titleSmall.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
+              // Strengths
+              if (fb.strengths.isNotEmpty) ...[
+                _sectionLabel(Icons.check_circle, strings.strengthsLabel,
+                    AppColors.accentGreen),
+                const SizedBox(height: 8),
+                ...fb.strengths
+                    .map((s) => _feedbackItem(s, AppColors.accentGreen)),
+                const SizedBox(height: 14),
               ],
-            ),
-            const SizedBox(height: 8),
-            _expandableAnswer(strings.myAnswerStepA, session.stepA),
-            const SizedBox(height: 8),
-            _expandableAnswer(strings.myAnswerStepB, session.stepB),
-            const SizedBox(height: 8),
-            _expandableAnswer(strings.myAnswerStepC, session.stepC),
-            const SizedBox(height: 24),
 
-            // ── Follow-up Q&A (visible) ──
-            if (session.aiFollowUpQuestion != null) ...[
-              Row(
-                children: [
-                  Icon(Icons.psychology,
-                      color: AppColors.textSecondary, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    strings.followUpQuestionLabel,
-                    style: AppTextStyles.titleSmall.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
+              // Improvements
+              if (fb.improvements.isNotEmpty) ...[
+                _sectionLabel(Icons.warning_amber, strings.improvementsLabel,
+                    Colors.orange),
+                const SizedBox(height: 8),
+                ...fb.improvements
+                    .map((s) => _feedbackItem(s, Colors.orange)),
+                const SizedBox(height: 14),
+              ],
+
+              // Missing Keywords
+              if (fb.missingKeywords.isNotEmpty) ...[
+                _sectionLabel(Icons.vpn_key, strings.missingKeywordsLabel,
+                    AppColors.primary),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: fb.missingKeywords
+                      .map((kw) => Chip(
+                            label: Text(kw,
+                                style: AppTextStyles.labelSmall
+                                    .copyWith(color: AppColors.accentRed)),
+                            backgroundColor:
+                                AppColors.accentRed.withValues(alpha: 0.08),
+                            side: BorderSide.none,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 0),
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 14),
+              ],
+            ],
+
+            // My Answer
+            _sectionLabel(
+                Icons.edit_note, strings.myAnswerLabel, AppColors.textSecondary),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: AppColors.textDisabled.withValues(alpha: 0.15)),
               ),
+              child: Text(
+                session.userAnswer,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textPrimary,
+                  height: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Follow-up Q&A
+            if (session.aiFollowUpQuestion != null) ...[
+              _sectionLabel(Icons.psychology, strings.followUpQuestionLabel,
+                  Colors.orange),
               const SizedBox(height: 8),
               Container(
                 width: double.infinity,
@@ -228,59 +181,86 @@ class RecordDetailScreen extends StatelessWidget {
                   session.aiFollowUpQuestion!,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
                     height: 1.5,
                   ),
                 ),
               ),
-              if (session.userFollowUpAnswer != null) ...[
-                const SizedBox(height: 8),
-                _answerContent(session.userFollowUpAnswer!),
-              ],
-              // Follow-up checklist (separate from main)
-              if (eval != null && eval.followUpChecklist.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                _checklistContent(eval.followUpChecklist),
-              ],
-            ],
 
-            const SizedBox(height: 32),
+              // User follow-up answer
+              if (session.userFollowUpAnswer != null) ...[
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    session.userFollowUpAnswer!,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textPrimary,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+
+              // Follow-up model answer
+              if (session.aiFollowUpModelAnswer != null) ...[
+                const SizedBox(height: 10),
+                _sectionLabel(Icons.menu_book, strings.referenceAnswerLabel,
+                    AppColors.accentGreen),
+                const SizedBox(height: 8),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentGreen.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.accentGreen.withValues(alpha: 0.2)),
+                  ),
+                  child: Text(
+                    session.aiFollowUpModelAnswer!,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textPrimary,
+                      height: 1.6,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 20),
+            ],
 
             // Retry Training Button
             if (session.questionId.isNotEmpty)
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
+                child: OutlinedButton.icon(
                   onPressed: () async {
-                    final question = await InterviewRepository()
-                        .fetchQuestionById(session.questionId);
-                    if (question != null && context.mounted) {
-                      Navigator.push(
+                    final repo = Provider.of<InterviewRepository>(context,
+                        listen: false);
+                    final q = await repo.fetchQuestionById(session.questionId);
+                    if (q != null && context.mounted) {
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
-                          builder: (_) =>
-                              TrainingFlowScreen(question: question),
-                        ),
-                      );
-                    } else if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(strings.questionNotFound),
+                          builder: (_) => TrainingFlowScreen(question: q),
                         ),
                       );
                     }
                   },
-                  icon: const Icon(Icons.replay, size: 18),
-                  label: Text(
-                    strings.retryTraining,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
+                    side: BorderSide(color: AppColors.primary),
                   ),
+                  icon: Icon(Icons.refresh, color: AppColors.primary),
+                  label: Text(strings.retryTraining,
+                      style: TextStyle(color: AppColors.primary)),
                 ),
               ),
             const SizedBox(height: 40),
@@ -290,160 +270,52 @@ class RecordDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _expandableAnswer(String label, String answer) {
-    return _ExpandableAnswerCard(label: label, answer: answer);
-  }
-
-  Widget _answerContent(String answer) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        answer,
-        style: AppTextStyles.bodyMedium.copyWith(
-          color: AppColors.textPrimary,
-          height: 1.5,
+  Widget _sectionLabel(IconData icon, String text, Color color) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 18),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _checklistContent(List<ChecklistItem> items) {
-    if (items.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: items
-          .map((ci) => Padding(
-                padding: const EdgeInsets.only(bottom: 6),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      ci.passed ? Icons.check_circle : Icons.cancel,
-                      color: ci.passed
-                          ? AppColors.accentGreen
-                          : AppColors.accentRed,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(ci.criterion,
-                              style: AppTextStyles.bodySmall
-                                  .copyWith(color: AppColors.textPrimary)),
-                          if (ci.comment != null && ci.comment!.isNotEmpty)
-                            Text(ci.comment!,
-                                style: AppTextStyles.labelSmall
-                                    .copyWith(color: AppColors.textTertiary)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ))
-          .toList(),
-    );
-  }
-
-  Color _gradeColor(String grade) {
-    switch (grade) {
-      case 'A':
-        return AppColors.accentGreen;
-      case 'B':
-        return Colors.blue;
-      case 'C':
-        return Colors.orange;
-      default:
-        return AppColors.accentRed;
-    }
-  }
-}
-
-/// A card that shows the first line of an answer with "..."
-/// and expands to the full answer on tap.
-class _ExpandableAnswerCard extends StatefulWidget {
-  final String label;
-  final String answer;
-
-  const _ExpandableAnswerCard({required this.label, required this.answer});
-
-  @override
-  State<_ExpandableAnswerCard> createState() => _ExpandableAnswerCardState();
-}
-
-class _ExpandableAnswerCardState extends State<_ExpandableAnswerCard> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => setState(() => _expanded = !_expanded),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-              color: AppColors.textDisabled.withValues(alpha: 0.15)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    widget.label,
-                    style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textTertiary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                Icon(
-                  _expanded
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  color: AppColors.textTertiary,
-                  size: 18,
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            AnimatedCrossFade(
-              firstChild: Text(
-                widget.answer,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
+  Widget _feedbackItem(String text, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            margin: const EdgeInsets.only(top: 7, right: 10),
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.textPrimary,
+                height: 1.5,
               ),
-              secondChild: Text(
-                widget.answer,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textPrimary,
-                  height: 1.5,
-                ),
-              ),
-              crossFadeState: _expanded
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              duration: const Duration(milliseconds: 200),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
+  }
+
+  Color _scoreColor(int score) {
+    if (score >= 90) return AppColors.accentGreen;
+    if (score >= 75) return Colors.blue;
+    if (score >= 60) return Colors.orange;
+    return AppColors.accentRed;
   }
 }
