@@ -20,8 +20,7 @@ class TrainingFlowScreen extends StatefulWidget {
 
 class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
   late final TrainingController _controller;
-  final _textController = TextEditingController();
-  bool _hasEnergy = false;
+  final TextEditingController _textController = TextEditingController();
   bool _showHints = false;
 
   @override
@@ -29,38 +28,33 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
     super.initState();
     _controller = TrainingController();
     _controller.addListener(_onControllerChange);
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _checkAndDeductCredit());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final langCode = Provider.of<LanguageController>(context, listen: false)
+          .currentLanguage
+          .code;
+      _controller.startTraining(widget.question, languageCode: langCode);
+    });
   }
 
-  Future<void> _checkAndDeductCredit() async {
+  Future<void> _submitWithCredit(String answer) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      if (mounted) Navigator.pop(context);
-      return;
-    }
+    if (uid == null) return;
 
     final creditRepo = Provider.of<CreditRepository>(context, listen: false);
     final success = await creditRepo.deductCredit(uid);
 
+    if (!mounted) return;
+
     if (!success) {
-      if (!mounted) return;
       final strings =
           Provider.of<LanguageController>(context, listen: false).strings;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(strings.notEnoughEnergySnack)),
       );
-      Navigator.pop(context);
       return;
     }
 
-    if (mounted) {
-      final langCode = Provider.of<LanguageController>(context, listen: false)
-          .currentLanguage
-          .code;
-      _controller.startTraining(widget.question, languageCode: langCode);
-      setState(() => _hasEnergy = true);
-    }
+    _controller.submitAnswer(answer);
   }
 
   void _onControllerChange() {
@@ -143,11 +137,9 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
         ),
         centerTitle: true,
       ),
-      body: !_hasEnergy
-          ? const Center(child: CircularProgressIndicator())
-          : _controller.isLoading
-              ? _buildLoadingState()
-              : _buildContent(strings, langCode),
+      body: _controller.isLoading
+          ? _buildLoadingState()
+          : _buildContent(strings, langCode),
     );
   }
 
@@ -195,7 +187,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
       case TrainingStep.feedback:
         return _buildFeedbackStep(strings, langCode);
       case TrainingStep.followUp:
-        return _buildFollowUpStep(strings);
+        return _buildFollowUpStep(strings, langCode);
       case TrainingStep.followUpResult:
         return _buildFollowUpResult(strings);
       case TrainingStep.done:
@@ -370,7 +362,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
                 final text = _textController.text.trim();
                 if (text.isEmpty) return;
                 _textController.clear();
-                _controller.submitAnswer(text);
+                _submitWithCredit(text);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
@@ -378,10 +370,59 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    strings.submitForFeedback,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.white),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.bolt, color: Colors.yellow, size: 13),
+                        Text('1',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: _controller.skipToAnswer,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                side: BorderSide(
+                    color: AppColors.primary.withValues(alpha: 0.5)),
+              ),
               child: Text(
-                strings.submitForFeedback,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                strings.seeModelAnswer,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: AppColors.primary,
+                ),
               ),
             ),
           ),
@@ -393,13 +434,6 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
   // ── Feedback Step ──
   Widget _buildFeedbackStep(AppStrings strings, String langCode) {
     final fb = _controller.feedback;
-    if (fb == null) {
-      return Center(
-        child: Text('Evaluation failed',
-            style: TextStyle(color: AppColors.textTertiary)),
-      );
-    }
-
     final refAnswer = widget.question.getLocalizedAnswer(langCode);
 
     return SingleChildScrollView(
@@ -407,10 +441,11 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Score circle
+          if (fb != null) ...[
+            // Score circle
 
-          Center(
-            child: Container(
+            Center(
+              child: Container(
               width: 90,
               height: 90,
               decoration: BoxDecoration(
@@ -475,6 +510,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
             ),
             const SizedBox(height: 16),
           ],
+          ],
 
           // Reference Answer
           if (refAnswer.isNotEmpty) ...[
@@ -522,7 +558,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
                 ),
               ),
               // Follow-up challenge
-              if (fb.followUpQuestion != null) ...[
+              if (fb?.followUpQuestion != null) ...[
                 const SizedBox(width: 12),
                 Expanded(
                   flex: 2,
@@ -551,7 +587,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
   }
 
   // ── Follow-up Step ──
-  Widget _buildFollowUpStep(AppStrings strings) {
+  Widget _buildFollowUpStep(AppStrings strings, String langCode) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -629,7 +665,7 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
             child: ElevatedButton(
               onPressed: () {
                 final text = _textController.text.trim();
-                if (text.isEmpty) return;
+                if (text.isEmpty) return; // Prevent empty submission
                 _textController.clear();
                 _controller.submitFollowUpAnswer(text);
               },
@@ -640,9 +676,37 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
                     borderRadius: BorderRadius.circular(14)),
               ),
               child: Text(
-                strings.seeModelAnswer,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                strings.submitForFeedback,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: Colors.white),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {
+                _textController.clear();
+                _controller.submitFollowUpAnswer('');
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                side: BorderSide(color: Colors.orange.withValues(alpha: 0.5)),
+              ),
+              child: Text(
+                langCode == 'en'
+                    ? "Skip answering (See model answer)"
+                    : "모르겠어요 (답안 바로보기)",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                  color: Colors.orange,
+                ),
               ),
             ),
           ),
@@ -680,13 +744,22 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
             width: double.infinity,
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: AppColors.textDisabled.withValues(alpha: 0.15)),
             ),
             child: Text(
-              _controller.followUpAnswer,
+              _controller.followUpAnswer.isEmpty
+                  ? strings.skippedTrainingLabel
+                  : _controller.followUpAnswer,
               style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textPrimary,
+                color: _controller.followUpAnswer.isEmpty
+                    ? AppColors.textTertiary
+                    : AppColors.textPrimary,
+                fontStyle: _controller.followUpAnswer.isEmpty
+                    ? FontStyle.italic
+                    : FontStyle.normal,
                 height: 1.5,
               ),
             ),

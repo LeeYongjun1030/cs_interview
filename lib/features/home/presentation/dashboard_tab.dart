@@ -326,52 +326,13 @@ class _DashboardTabState extends State<DashboardTab> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                backgroundColor: AppColors.surface,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                title: Text(
-                  strings.confirmTrainingTitle,
-                  style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold),
-                ),
-                content: Text(
-                  strings.confirmTrainingMessage,
-                  style:
-                      TextStyle(color: AppColors.textSecondary, fontSize: 14),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    child: Text(strings.cancelButton,
-                        style: TextStyle(color: AppColors.textTertiary)),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              TrainingFlowScreen(question: _dailyQuestion!),
-                        ),
-                      ).then((_) => _loadData());
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
-                    ),
-                    child: Text(strings.startAction,
-                        style: const TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    TrainingFlowScreen(question: _dailyQuestion!),
               ),
-            );
+            ).then((_) => _loadData());
           },
           borderRadius: BorderRadius.circular(24),
           child: Padding(
@@ -447,26 +408,6 @@ class _DashboardTabState extends State<DashboardTab> {
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.bolt, color: Colors.yellow, size: 13),
-                            Text('1',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold)),
-                          ],
                         ),
                       ),
                     ],

@@ -261,26 +261,6 @@ class _QuestionDetailScreenState extends State<QuestionDetailScreen>
                     Text(strings.trainButton,
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 15)),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.bolt, color: Colors.yellow, size: 13),
-                          Text('1',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ),

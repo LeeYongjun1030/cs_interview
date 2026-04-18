@@ -440,8 +440,14 @@ class AppStrings {
   String get exitTrainingTitle =>
       language == AppLanguage.korean ? '훈련을 종료할까요?' : 'End training?';
   String get exitTrainingMessage => language == AppLanguage.korean
-      ? '지금 나가면 훈련이 종료되며,\n소비된 에너지는 반환되지 않습니다.'
-      : 'If you leave now, training will end\nand energy will not be refunded.';
+      ? '지금 나가시면 진행 사항이 기록되지 않으며\n훈련이 종료됩니다.'
+      : 'If you leave now, your progress will not be saved\nand training will end.';
+  String get skippedTrainingLabel =>
+      language == AppLanguage.korean ? '모범 답안만 확인 (평가 건너뜀)' : 'Answer skipped (Model answer only)';
+  String get skippedFollowUpLabel =>
+      language == AppLanguage.korean ? '꼬리질문 (건너뜀)' : 'Follow-up (Skipped)';
+  String get skippedBadge =>
+      language == AppLanguage.korean ? '스킵' : 'Skipped';
   String get continueTraining =>
       language == AppLanguage.korean ? '계속하기' : 'Continue';
   String get exitAnyway => language == AppLanguage.korean ? '나가기' : 'Exit';

@@ -154,9 +154,16 @@ class RecordDetailScreen extends StatelessWidget {
                     color: AppColors.textDisabled.withValues(alpha: 0.15)),
               ),
               child: Text(
-                session.userAnswer,
+                session.userAnswer.isEmpty
+                    ? strings.skippedTrainingLabel
+                    : session.userAnswer,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textPrimary,
+                  color: session.userAnswer.isEmpty
+                      ? AppColors.textTertiary
+                      : AppColors.textPrimary,
+                  fontStyle: session.userAnswer.isEmpty
+                      ? FontStyle.italic
+                      : FontStyle.normal,
                   height: 1.5,
                 ),
               ),
@@ -165,7 +172,12 @@ class RecordDetailScreen extends StatelessWidget {
 
             // Follow-up Q&A
             if (session.aiFollowUpQuestion != null) ...[
-              _sectionLabel(Icons.psychology, strings.followUpQuestionLabel,
+              _sectionLabel(
+                  Icons.psychology,
+                  (session.userFollowUpAnswer == null ||
+                          session.userFollowUpAnswer!.isEmpty)
+                      ? strings.skippedFollowUpLabel
+                      : strings.followUpQuestionLabel,
                   Colors.orange),
               const SizedBox(height: 8),
               Container(
@@ -187,15 +199,21 @@ class RecordDetailScreen extends StatelessWidget {
                 ),
               ),
 
-              // User follow-up answer
-              if (session.userFollowUpAnswer != null) ...[
+              // User follow-up answer (Only if they wrote something)
+              if (session.userFollowUpAnswer != null &&
+                  session.userFollowUpAnswer!.isNotEmpty) ...[
                 const SizedBox(height: 10),
+                _sectionLabel(Icons.edit_note, strings.myAnswerLabel,
+                    AppColors.textSecondary),
+                const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.background,
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.textDisabled.withValues(alpha: 0.15)),
                   ),
                   child: Text(
                     session.userFollowUpAnswer!,

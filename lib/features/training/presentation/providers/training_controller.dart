@@ -93,6 +93,14 @@ class TrainingController extends ChangeNotifier {
     }
   }
 
+  /// User wants to skip answering and just see the model answer.
+  void skipToAnswer() {
+    _userAnswer = ''; // Blank answer indicates skipped
+    _feedback = null;
+    _currentStep = TrainingStep.feedback;
+    notifyListeners();
+  }
+
   /// User chooses to try the follow-up question.
   void startFollowUp() {
     _currentStep = TrainingStep.followUp;
@@ -129,8 +137,7 @@ class TrainingController extends ChangeNotifier {
       userAnswer: _userAnswer,
       aiFollowUpQuestion: _feedback?.followUpQuestion,
       aiFollowUpModelAnswer: _feedback?.followUpModelAnswer,
-      userFollowUpAnswer:
-          _followUpAnswer.isNotEmpty ? _followUpAnswer : null,
+      userFollowUpAnswer: _followUpAnswer.isNotEmpty ? _followUpAnswer : null,
       feedback: _feedback,
       createdAt: DateTime.now(),
       status: TrainingStatus.completed,

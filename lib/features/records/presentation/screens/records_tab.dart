@@ -259,6 +259,23 @@ class _SessionCard extends StatelessWidget {
                               fontSize: 13,
                             ),
                           ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.textDisabled.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            strings.skippedBadge,
+                            style: TextStyle(
+                              color: AppColors.textTertiary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
                     ],
                   ),
