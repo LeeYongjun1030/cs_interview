@@ -39,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   late String _userId;
   int? _credits; // Nullable for loading state
+  UserModel? _userModel;
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (mounted) {
           setState(() {
             _credits = user.credits;
+            _userModel = user;
           });
         }
       });
@@ -1376,67 +1378,99 @@ class _HomeScreenState extends State<HomeScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ElevatedButton.icon(
-                onPressed: () async {
-                  // Capture providers using stable context (this.context)
-                  final adService =
-                      Provider.of<AdService>(context, listen: false);
-                  final creditRepo =
-                      Provider.of<CreditRepository>(context, listen: false);
-
-                  Navigator.pop(
-                      dialogContext); // Close dialog using dialog context
-
-                  // Show loading? RewardedAd usually shows immediately or not.
-                  final reward = await adService.showRewardedAd();
-                  if (reward != null) {
-                    // Add credits using captured repo
-                    final success = await creditRepo.addCredit(_userId, reward);
-                    await _fetchCredits();
-
-                    if (mounted) {
-                      if (success) {
-                        // Use stable 'context' for the success dialog
-                        showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                                  backgroundColor: AppColors.surface,
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.check_circle,
-                                          color: Colors.green, size: 48),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        strings.rewardSuccessMessage,
-                                        style: TextStyle(
-                                            color: AppColors.textPrimary),
-                                        textAlign: TextAlign.center,
-                                      )
-                                    ],
-                                  ),
-                                ));
-                      } else {
-                        // Failed (likely max limit reached during ad watch)
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content:
-                                Text('Could not add credits. Limit reached?')));
-                      }
-                    }
-                  } else {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(strings.adLoadFailed)));
+              Builder(
+                builder: (context) {
+                  int effectiveAdsWatched = _userModel?.dailyAdsWatched ?? 0;
+                  if (_userModel?.lastAdDate != null) {
+                    final now = DateTime.now();
+                    final lastAd = _userModel!.lastAdDate!;
+                    if (lastAd.year != now.year ||
+                        lastAd.month != now.month ||
+                        lastAd.day != now.day) {
+                      effectiveAdsWatched = 0;
                     }
                   }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                icon: const Icon(Icons.play_circle_filled),
-                label: Text(strings.watchAdAction),
+                  
+                  final bool isLimitReached = effectiveAdsWatched >= 5;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: isLimitReached
+                            ? null
+                            : () async {
+                                final adService = Provider.of<AdService>(context, listen: false);
+                                final creditRepo = Provider.of<CreditRepository>(context, listen: false);
+
+                                Navigator.pop(dialogContext);
+
+                                final reward = await adService.showRewardedAd();
+                                if (reward != null) {
+                                  // Use claimAdReward which handles increments and limits
+                                  final status = await creditRepo.claimAdReward(_userId);
+                                  await _fetchCredits();
+
+                                  if (mounted) {
+                                    if (status == DailyBonusStatus.success) {
+                                      showDialog(
+                                          context: context,
+                                          builder: (ctx) => AlertDialog(
+                                                backgroundColor: AppColors.surface,
+                                                content: Column(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(Icons.check_circle,
+                                                        color: Colors.green, size: 48),
+                                                    const SizedBox(height: 16),
+                                                    Text(
+                                                      strings.rewardSuccessMessage,
+                                                      style: TextStyle(
+                                                          color: AppColors.textPrimary),
+                                                      textAlign: TextAlign.center,
+                                                    )
+                                                  ],
+                                                ),
+                                              ));
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                          content: Text('Could not add credits. Limit reached?')));
+                                    }
+                                  }
+                                } else {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(strings.adLoadFailed)));
+                                  }
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isLimitReached ? AppColors.surfaceVariant : AppColors.primary,
+                          foregroundColor: isLimitReached ? AppColors.textDisabled : Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          disabledBackgroundColor: AppColors.surfaceVariant,
+                          disabledForegroundColor: AppColors.textDisabled,
+                        ),
+                        icon: Icon(Icons.play_circle_filled, 
+                            color: isLimitReached ? AppColors.textDisabled : Colors.white),
+                        label: Text(isLimitReached
+                            ? strings.adLimitReachedBtn(5)
+                            : strings.watchAdActionWithCount(effectiveAdsWatched, 5)),
+                      ),
+                      if (isLimitReached)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12.0),
+                          child: Text(
+                            strings.adLimitReachedMessage,
+                            textAlign: TextAlign.center,
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                        ),
+                    ]
+                  );
+                }
               ),
               const SizedBox(height: 8),
               TextButton(

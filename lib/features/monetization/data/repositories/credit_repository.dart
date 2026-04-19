@@ -148,6 +148,57 @@ class CreditRepository {
     }
   }
 
+  /// Check and claim video ad reward (1 credit). Max 5 per day.
+  /// Returns DailyBonusStatus.success on success.
+  Future<DailyBonusStatus> claimAdReward(String uid) async {
+    final docRef = _usersRef.doc(uid);
+    try {
+      return await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) return DailyBonusStatus.error;
+
+        final data = snapshot.data() as Map<String, dynamic>;
+
+        // 1. Check Max Credit Limit
+        final currentCredits = data['credits'] as int? ?? 0;
+        if (currentCredits >= MAX_CREDITS) {
+          return DailyBonusStatus.maxCreditsReached;
+        }
+
+        final lastAdStr = data['lastAdDate'] as String?;
+        final lastAdDate = lastAdStr != null ? DateTime.parse(lastAdStr) : null;
+        final now = DateTime.now();
+
+        int dailyAdsWatched = data['dailyAdsWatched'] as int? ?? 0;
+
+        // Reset if it's a new day
+        if (lastAdDate != null) {
+          final isSameDay = lastAdDate.year == now.year &&
+              lastAdDate.month == now.month &&
+              lastAdDate.day == now.day;
+          if (!isSameDay) {
+            dailyAdsWatched = 0;
+          }
+        }
+
+        // Check if max 5 ads reached today
+        if (dailyAdsWatched >= 5) {
+          return DailyBonusStatus.alreadyClaimed; // Re-use enum for now
+        }
+
+        transaction.update(docRef, {
+          'credits': currentCredits + 1,
+          'dailyAdsWatched': dailyAdsWatched + 1,
+          'lastAdDate': now.toIso8601String(),
+        });
+        return DailyBonusStatus.success;
+      });
+    } catch (e) {
+      debugPrint('CreditRepository: claimAdReward error: $e');
+      return DailyBonusStatus.error;
+    }
+  }
+
   /// Delete user document (Full Account Deletion)
   Future<void> deleteUser(String uid) async {
     try {

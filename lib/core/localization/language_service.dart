@@ -358,6 +358,16 @@ class AppStrings {
       : 'You need energy to start an interview.\n';
   String get watchAdAction =>
       language == AppLanguage.korean ? '광고 보고 충전하기' : 'Watch Ad to Recharge';
+  String watchAdActionWithCount(int count, int max) =>
+      language == AppLanguage.korean
+          ? '동영상 시청하고 에너지 받기 ($count/$max)'
+          : 'Watch Ad for Energy ($count/$max)';
+  String adLimitReachedBtn(int max) => language == AppLanguage.korean
+      ? '내일 다시 시도해주세요 ($max/$max)'
+      : 'Try again tomorrow ($max/$max)';
+  String get adLimitReachedMessage => language == AppLanguage.korean
+      ? '오늘 시청 가능한 5회의 추가 에너지 획득을 모두 완료했습니다.'
+      : 'You have completed all 5 extra energy recharges for today.';
   String get dailyBonusMessage => language == AppLanguage.korean
       ? '🎉 매일 접속 보너스! +1 에너지를 획득했습니다.'
       : '🎉 Daily Bonus! +1 Energy Added';
