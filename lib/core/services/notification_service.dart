@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Training-triggered local notification service.
 ///
 /// After a user completes training, schedules reminders for the next 2 days
-/// (tomorrow 9 AM + day-after-tomorrow 9 AM) to encourage streak continuity.
+/// (tomorrow 8 PM + day-after-tomorrow 8 PM) to encourage streak continuity.
 /// If the user trains again, old notifications are cancelled and fresh ones
 /// are scheduled.
 class NotificationService {
@@ -97,7 +97,7 @@ class NotificationService {
 
   /// Call this when the user completes a training session.
   /// If notifications are enabled, schedules reminders for
-  /// tomorrow 9 AM and day-after-tomorrow 9 AM.
+  /// tomorrow 8 PM and day-after-tomorrow 8 PM.
   Future<void> onTrainingCompleted() async {
     if (!await isEnabled()) return;
 
@@ -109,26 +109,26 @@ class NotificationService {
     await cancelAll();
 
     final now = tz.TZDateTime.now(tz.local);
-    final tomorrow9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
+    final tomorrow8pm = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
         .add(const Duration(days: 1));
-    final dayAfter9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
+    final dayAfter8pm = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
         .add(const Duration(days: 2));
 
     // Day 1: Tomorrow
     await _scheduleNotification(
       id: _notifIdDay1,
-      scheduledDate: tomorrow9am,
+      scheduledDate: tomorrow8pm,
       body: _getDay1Message(),
     );
 
     // Day 2: Day after tomorrow
     await _scheduleNotification(
       id: _notifIdDay2,
-      scheduledDate: dayAfter9am,
+      scheduledDate: dayAfter8pm,
       body: _getDay2Message(),
     );
 
-    debugPrint('[Notification] Scheduled: tomorrow + day-after at 09:00');
+    debugPrint('[Notification] Scheduled: tomorrow + day-after at 20:00');
   }
 
   /// Re-schedule pending notifications on app restart (if still valid).
@@ -146,36 +146,36 @@ class NotificationService {
     // Only reschedule if within the 2-day window
     if (daysSince >= 2) return;
 
-    final tomorrow9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
+    final tomorrow8pm = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
         .add(Duration(days: daysSince == 0 ? 1 : 1));
-    final dayAfter9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
+    final dayAfter8pm = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20)
         .add(Duration(days: daysSince == 0 ? 2 : 2));
 
     await cancelAll();
 
     if (daysSince == 0) {
       // Trained today → schedule both
-      if (tomorrow9am.isAfter(tz.TZDateTime.now(tz.local))) {
+      if (tomorrow8pm.isAfter(tz.TZDateTime.now(tz.local))) {
         await _scheduleNotification(
           id: _notifIdDay1,
-          scheduledDate: tomorrow9am,
+          scheduledDate: tomorrow8pm,
           body: _getDay1Message(),
         );
       }
-      if (dayAfter9am.isAfter(tz.TZDateTime.now(tz.local))) {
+      if (dayAfter8pm.isAfter(tz.TZDateTime.now(tz.local))) {
         await _scheduleNotification(
           id: _notifIdDay2,
-          scheduledDate: dayAfter9am,
+          scheduledDate: dayAfter8pm,
           body: _getDay2Message(),
         );
       }
     } else if (daysSince == 1) {
       // Trained yesterday → only day-after remains
-      final today9am = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20);
-      if (today9am.isAfter(tz.TZDateTime.now(tz.local))) {
+      final today8pm = tz.TZDateTime(tz.local, now.year, now.month, now.day, 20);
+      if (today8pm.isAfter(tz.TZDateTime.now(tz.local))) {
         await _scheduleNotification(
           id: _notifIdDay1,
-          scheduledDate: today9am,
+          scheduledDate: today8pm,
           body: _getDay2Message(),
         );
       }
