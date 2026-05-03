@@ -8,15 +8,12 @@ class AdService {
   int _numRewardedLoadAttempts = 0;
   static const int maxFailedLoadAttempts = 3;
 
-  // --- Test Ad Unit IDs ---
-  // https://developers.google.com/admob/android/test-ads
-  // https://developers.google.com/admob/ios/test-ads
-
+  // --- Production Ad Unit IDs ---
   String get _rewardedAdUnitId {
     if (Platform.isAndroid) {
-      return 'ca-app-pub-3940256099942544/5224354917';
+      return 'ca-app-pub-1961749057332188/6592563778';
     } else if (Platform.isIOS) {
-      return 'ca-app-pub-3940256099942544/1712485313';
+      return 'ca-app-pub-1961749057332188/1040854190';
     }
     throw UnsupportedError('Unsupported platform');
   }
