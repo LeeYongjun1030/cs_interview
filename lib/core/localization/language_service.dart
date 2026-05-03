@@ -589,7 +589,7 @@ class AppStrings {
   String get completeTraining =>
       language == AppLanguage.korean ? '완료' : 'Done';
   String get seeModelAnswer =>
-      language == AppLanguage.korean ? '모범 답안 보기' : 'See Model Answer';
+      language == AppLanguage.korean ? '모범 답안만 확인 (훈련 종료)' : 'See Model Answer (End Training)';
   String get myAnswerLabel =>
       language == AppLanguage.korean ? '내 답변' : 'My Answer';
   String get trainingComplete => language == AppLanguage.korean

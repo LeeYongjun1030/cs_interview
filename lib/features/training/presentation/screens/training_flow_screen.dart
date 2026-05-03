@@ -665,8 +665,8 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
             child: ElevatedButton(
               onPressed: () {
                 final text = _textController.text.trim();
-                if (text.isEmpty) return; // Prevent empty submission
-                _textController.clear();
+                _textController.clear(); // Clear text field
+                // Submit will save the answer if not empty, or mark it skipped if empty
                 _controller.submitFollowUpAnswer(text);
               },
               style: ElevatedButton.styleFrom(
@@ -676,37 +676,13 @@ class _TrainingFlowScreenState extends State<TrainingFlowScreen> {
                     borderRadius: BorderRadius.circular(14)),
               ),
               child: Text(
-                strings.submitForFeedback,
+                langCode == 'en'
+                    ? "Complete & See Model Answer"
+                    : "답변 완료 및 모범답안 확인",
                 style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     color: Colors.white),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                _textController.clear();
-                _controller.submitFollowUpAnswer('');
-              },
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14)),
-                side: BorderSide(color: Colors.orange.withValues(alpha: 0.5)),
-              ),
-              child: Text(
-                langCode == 'en'
-                    ? "Skip answering (See model answer)"
-                    : "모르겠어요 (답안 바로보기)",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 15,
-                  color: Colors.orange,
-                ),
               ),
             ),
           ),

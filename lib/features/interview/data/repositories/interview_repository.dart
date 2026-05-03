@@ -285,7 +285,7 @@ class InterviewRepository {
 
   /// Select today's question. Stable per day (same question all day).
   /// Prioritizes: untrained > least-reviewed > date-based pick.
-  Future<Question> getDailyQuestion(String userId) async {
+  Future<Question> getDailyQuestion(String userId, {int offset = 0}) async {
     final allQuestions = await _loadLocalQuestions();
     if (allQuestions.isEmpty) {
       throw Exception('No questions available');
@@ -311,18 +311,18 @@ class InterviewRepository {
           allQuestions.where((q) => !trainedIds.contains(q.id)).toList();
 
       if (untrained.isNotEmpty) {
-        // Sort for stability, then pick by date seed
+        // Sort for stability, then pick by date seed + offset
         untrained.sort((a, b) => a.id.compareTo(b.id));
-        return untrained[daySeed % untrained.length];
+        return untrained[(daySeed + offset) % untrained.length];
       }
     } catch (e) {
       // Firestore index may not exist yet; fallback
       print('getDailyQuestion fallback: $e');
     }
 
-    // Fallback: deterministic daily pick from all questions
+    // Fallback: deterministic daily pick plus offset
     final sorted = List<Question>.from(allQuestions)
       ..sort((a, b) => a.id.compareTo(b.id));
-    return sorted[daySeed % sorted.length];
+    return sorted[(daySeed + offset) % sorted.length];
   }
 }

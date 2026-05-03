@@ -23,6 +23,7 @@ class _DashboardTabState extends State<DashboardTab> {
   UserStats? _stats;
   Question? _dailyQuestion;
   bool _isLoading = true;
+  int _dailyOffset = 0;
 
   @override
   void initState() {
@@ -36,7 +37,7 @@ class _DashboardTabState extends State<DashboardTab> {
 
     try {
       final stats = await _repository.getUserStats(uid);
-      final daily = await _repository.getDailyQuestion(uid);
+      final daily = await _repository.getDailyQuestion(uid, offset: _dailyOffset);
       if (mounted) {
         setState(() {
           _stats = stats;
@@ -49,6 +50,28 @@ class _DashboardTabState extends State<DashboardTab> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Future<void> _refreshDailyQuestion() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+    
+    // Increment offset to get a new question
+    _dailyOffset++;
+    
+    // We only want a soft loading state if possible, but let's just use _loadData
+    // which manages _isLoading. To prevent blanking the screen completely, 
+    // let's do an in-place update without turning the whole screen to a spinner.
+    try {
+      final daily = await _repository.getDailyQuestion(uid, offset: _dailyOffset);
+      if (mounted) {
+        setState(() {
+          _dailyQuestion = daily;
+        });
+      }
+    } catch (e) {
+      debugPrint('Refresh error: $e');
     }
   }
 
@@ -359,6 +382,30 @@ class _DashboardTabState extends State<DashboardTab> {
                           fontSize: 12,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Refresh Button
+                    GestureDetector(
+                      onTap: () {
+                        // Prevent triggering the card's onTap
+                        _refreshDailyQuestion();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.1)
+                              : Colors.black.withValues(alpha: 0.05),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.refresh_rounded,
+                          size: 16,
+                          color: isDark
+                              ? const Color(0xFFA5B4FC)
+                              : const Color(0xFF6366F1),
                         ),
                       ),
                     ),

@@ -6,6 +6,7 @@ import '../../../../core/localization/language_service.dart';
 import '../../../training/domain/models/training_session_model.dart';
 import '../../../training/presentation/screens/training_flow_screen.dart';
 import '../../../interview/data/repositories/interview_repository.dart';
+import '../../../interview/domain/models/question_model.dart';
 
 /// Detail screen for a completed training session.
 class RecordDetailScreen extends StatelessWidget {
@@ -169,6 +170,44 @@ class RecordDetailScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
+
+            // Original Question Model Answer
+            FutureBuilder<Question?>(
+              future: InterviewRepository().fetchQuestionById(session.questionId),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData || snapshot.data == null) {
+                  return const SizedBox.shrink();
+                }
+                final langCode = Provider.of<LanguageController>(context, listen: false).currentLanguage.code;
+                final modelAnswer = snapshot.data!.getLocalizedAnswer(langCode);
+                
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _sectionLabel(Icons.menu_book, strings.referenceAnswerLabel, AppColors.accentGreen),
+                    const SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.accentGreen.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: AppColors.accentGreen.withValues(alpha: 0.2)),
+                      ),
+                      child: Text(
+                        modelAnswer,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.textPrimary,
+                          height: 1.6,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                );
+              },
+            ),
 
             // Follow-up Q&A
             if (session.aiFollowUpQuestion != null) ...[
